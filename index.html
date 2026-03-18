@@ -776,6 +776,56 @@ self.addEventListener('fetch',e=>{
     </div>
 </div>
 
+<!-- ════ MODAL REGRAS FIRESTORE ════ -->
+<div id="modal-firestore-regras" class="hidden fixed inset-0 bg-black/70 overlay flex items-center justify-center z-[250] px-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 fade-in">
+        <div class="flex items-start gap-4 mb-5">
+            <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-2xl shrink-0">🔒</div>
+            <div>
+                <h2 class="text-lg font-black text-gray-900">Permissão negada pelo Firebase</h2>
+                <p class="text-sm text-gray-500 mt-1">As regras de segurança do Firestore precisam ser atualizadas para permitir leitura e escrita nas coleções do app.</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 rounded-xl p-4 mb-5 font-mono text-xs text-emerald-400 overflow-x-auto">
+            <p class="text-slate-400 mb-2">// Cole isto no Firebase Console → Firestore → Regras</p>
+            <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</pre>
+        </div>
+
+        <div class="space-y-2 mb-5">
+            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Passo a passo:</p>
+            <div class="flex items-start gap-3 text-sm text-gray-700">
+                <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-black shrink-0">1</span>
+                <span>Acesse <strong>console.firebase.google.com</strong> e abra o projeto <strong>finapp-tm</strong></span>
+            </div>
+            <div class="flex items-start gap-3 text-sm text-gray-700">
+                <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-black shrink-0">2</span>
+                <span>No menu lateral: <strong>Firestore Database → Regras</strong></span>
+            </div>
+            <div class="flex items-start gap-3 text-sm text-gray-700">
+                <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-black shrink-0">3</span>
+                <span>Apague o conteúdo atual e cole o código acima</span>
+            </div>
+            <div class="flex items-start gap-3 text-sm text-gray-700">
+                <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-black shrink-0">4</span>
+                <span>Clique em <strong>Publicar</strong> e tente salvar novamente</span>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="window.open('https://console.firebase.google.com/project/finapp-tm/firestore/rules','_blank')" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-black hover:bg-blue-700 active:scale-95 transition text-sm">🔗 Abrir Firebase Console</button>
+            <button id="btn-fechar-regras" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 active:scale-95 transition text-sm">Fechar</button>
+        </div>
+    </div>
+</div>
+
 <script type="module">
 import { initializeApp }      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, where, writeBatch }
@@ -853,6 +903,7 @@ $id('btn-fechar-modal-meta').onclick  = ()=>$id('modal-meta').classList.add('hid
 $id('btn-fechar-modal-rec').onclick   = ()=>$id('modal-recorrente').classList.add('hidden');
 $id('btn-fechar-modal-cat').onclick   = ()=>$id('modal-categoria').classList.add('hidden');
 $id('btn-fechar-modal-imp').onclick   = ()=>$id('modal-importar').classList.add('hidden');
+const _btnRegras=$id('btn-fechar-regras'); if(_btnRegras) _btnRegras.onclick=()=>$id('modal-firestore-regras').classList.add('hidden');
 
 // ── POPULAR SELECTS DE CONTA ──────────────────────────────────────────────────
 function popularSelectsContas(){
@@ -1172,11 +1223,22 @@ $id('form-conta').addEventListener('submit', async e=>{
         if(id) await updateDoc(doc(db,'contas',id),payload);
         else await addDoc(collection(db,'contas'),{...payload,criadoEm:new Date().toISOString()});
         toast('🏦 Conta salva!'); $id('modal-conta').classList.add('hidden');
-    }catch{ toast('Erro ao salvar conta.','erro'); }
+    }catch(err){ erroFirestore(err,'conta'); }
 });
 window.deletarConta=async id=>{ if(!await confirmar('Excluir esta conta? Os lançamentos vinculados não serão excluídos.'))return; try{ await deleteDoc(doc(db,'contas',id)); toast('Conta removida.'); }catch{ toast('Erro.','erro'); } };
 
-// ── TRANSFERÊNCIAS ────────────────────────────────────────────────────────────
+// ── TRATAMENTO CENTRALIZADO DE ERROS FIRESTORE ───────────────────────────────
+function erroFirestore(err, contexto=''){
+    console.error(`[Firestore ${contexto}]`, err);
+    if(err.code==='permission-denied' || err.code==='PERMISSION_DENIED'){
+        // Mostra modal com instrução de como corrigir as regras
+        const m = $id('modal-firestore-regras');
+        if(m) m.classList.remove('hidden');
+        return;
+    }
+    const msg = err.code ? `Erro: ${err.code}` : 'Erro ao salvar. Verifique sua conexão.';
+    toast(msg, 'erro');
+}
 $id('btn-nova-transferencia').onclick=()=>{ $id('form-transferencia').reset(); $id('transf-data').value=hojeStr(); $id('modal-transferencia').classList.remove('hidden'); };
 $id('form-transferencia').addEventListener('submit', async e=>{
     e.preventDefault();
@@ -1186,7 +1248,7 @@ $id('form-transferencia').addEventListener('submit', async e=>{
     try{
         await addDoc(collection(db,'transferencias'),{ userId:currentUser.uid, contaOrigemId:orig, contaDestinoId:dest, valor:parseFloat($id('transf-valor').value), data:$id('transf-data').value, desc:$id('transf-desc').value.trim()||null, status:'confirmada', criadoEm:new Date().toISOString() });
         toast('↔️ Transferência registrada!'); $id('modal-transferencia').classList.add('hidden');
-    }catch{ toast('Erro ao registrar transferência.','erro'); }
+    }catch(err){ erroFirestore(err,'transferencia'); }
 });
 window.deletarTransferencia=async id=>{ if(!await confirmar('Remover esta transferência?'))return; try{ await deleteDoc(doc(db,'transferencias',id)); toast('Removida.'); }catch{ toast('Erro.','erro'); } };
 
@@ -1256,7 +1318,7 @@ $id('form-cartao').addEventListener('submit', async e=>{
     try{
         await addDoc(collection(db,'cartoes'),{ userId:currentUser.uid, nome:$id('cartao-nome').value.trim(), limite:parseFloat($id('cartao-limite').value), fechamento:parseInt($id('cartao-fechamento').value), vencimento:parseInt($id('cartao-vencimento').value), contaPagamentoId:$id('cartao-conta-pagamento').value||null, criadoEm:new Date().toISOString() });
         toast('💳 Cartão salvo!'); $id('modal-cartao').classList.add('hidden');
-    }catch{ toast('Erro ao salvar cartão.','erro'); }
+    }catch(err){ erroFirestore(err,'cartao'); }
 });
 window.deletarCartao=async id=>{ if(!await confirmar('Excluir este cartão?'))return; try{ await deleteDoc(doc(db,'cartoes',id)); toast('Cartão removido.'); }catch{ toast('Erro.','erro'); } };
 
@@ -1497,7 +1559,7 @@ $id('form-categoria').addEventListener('submit', async e=>{
     try{
         await addDoc(collection(db,'categorias'),{userId:currentUser.uid,nome,icone:$id('cat-icone').value.trim()||'🏷️',tipo:$id('cat-tipo').value,cor,criadoEm:new Date().toISOString()});
         toast('🏷️ Categoria criada!'); $id('modal-categoria').classList.add('hidden');
-    }catch{ toast('Erro ao salvar categoria.','erro'); }
+    }catch(err){ erroFirestore(err,'categoria'); }
 });
 window.deletarCategoriaCustom=async id=>{ if(!await confirmar('Remover esta categoria?'))return; try{ await deleteDoc(doc(db,'categorias',id)); toast('Categoria removida.'); }catch{ toast('Erro.','erro'); } };
 
@@ -1633,7 +1695,7 @@ function atualizarMetas(){
     });
 }
 $id('btn-nova-meta').onclick=()=>{ $id('form-meta').reset(); $id('modal-meta').classList.remove('hidden'); };
-$id('form-meta').addEventListener('submit', async e=>{ e.preventDefault(); const cat=$id('meta-categoria').value; if(metas.find(m=>m.categoria===cat)){ toast('Já existe meta para esta categoria.','aviso'); return; } try{ await addDoc(collection(db,'metas'),{userId:currentUser.uid,categoria:cat,valor:parseFloat($id('meta-valor').value),criadoEm:new Date().toISOString()}); toast('🎯 Meta criada!'); $id('modal-meta').classList.add('hidden'); }catch{ toast('Erro.','erro'); } });
+$id('form-meta').addEventListener('submit', async e=>{ e.preventDefault(); const cat=$id('meta-categoria').value; if(metas.find(m=>m.categoria===cat)){ toast('Já existe meta para esta categoria.','aviso'); return; } try{ await addDoc(collection(db,'metas'),{userId:currentUser.uid,categoria:cat,valor:parseFloat($id('meta-valor').value),criadoEm:new Date().toISOString()}); toast('🎯 Meta criada!'); $id('modal-meta').classList.add('hidden'); }catch(err){ erroFirestore(err,'meta'); } });
 window.deletarMeta=async id=>{ if(!await confirmar('Remover esta meta?'))return; try{ await deleteDoc(doc(db,'metas',id)); toast('Meta removida.'); }catch{ toast('Erro.','erro'); } };
 
 // ── ANALYTICS ─────────────────────────────────────────────────────────────────
@@ -1729,7 +1791,7 @@ function renderizarRecorrentes(){
     recorrentes.forEach(r=>{ const cor=r.tipo==='receita'?'border-emerald-200':'border-rose-200'; cont.innerHTML+=`<div class="bg-white rounded-2xl border-2 ${cor} p-4 shadow-sm flex justify-between items-center gap-3"><div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 shrink-0 ${r.tipo==='receita'?'bg-emerald-50':'bg-rose-50'} rounded-xl flex items-center justify-center text-xl">${r.tipo==='receita'?'💰':'💸'}</div><div class="min-w-0"><p class="font-black text-gray-800 truncate">${r.desc}</p><p class="text-xs text-gray-400 mt-0.5">📅 Dia <strong>${r.dia}</strong> · 🏷️ ${r.categoria}</p></div></div><div class="text-right shrink-0 flex flex-col items-end gap-1.5"><span class="font-black text-base mono ${r.tipo==='receita'?'text-emerald-600':'text-rose-600'}">${fmt(r.valor)}</span><button onclick="deletarRecorrente('${r.id}')" class="text-xs text-red-400 hover:text-red-600 font-bold">Remover</button></div></div>`; });
 }
 $id('btn-nova-recorrente').onclick=()=>{ $id('form-recorrente').reset(); $id('modal-recorrente').classList.remove('hidden'); };
-$id('form-recorrente').addEventListener('submit', async e=>{ e.preventDefault(); try{ await addDoc(collection(db,'recorrentes'),{userId:currentUser.uid,tipo:$id('rec-tipo').value,valor:parseFloat($id('rec-valor').value),dia:parseInt($id('rec-dia').value),categoria:$id('rec-categoria').value,desc:$id('rec-desc').value.trim(),status:$id('rec-status').value,criadoEm:new Date().toISOString()}); toast('🔁 Recorrente salva!'); $id('modal-recorrente').classList.add('hidden'); }catch{ toast('Erro.','erro'); } });
+$id('form-recorrente').addEventListener('submit', async e=>{ e.preventDefault(); try{ await addDoc(collection(db,'recorrentes'),{userId:currentUser.uid,tipo:$id('rec-tipo').value,valor:parseFloat($id('rec-valor').value),dia:parseInt($id('rec-dia').value),categoria:$id('rec-categoria').value,desc:$id('rec-desc').value.trim(),status:$id('rec-status').value,criadoEm:new Date().toISOString()}); toast('🔁 Recorrente salva!'); $id('modal-recorrente').classList.add('hidden'); }catch(err){ erroFirestore(err,'recorrente'); } });
 window.deletarRecorrente=async id=>{ if(!await confirmar('Remover esta recorrente?'))return; try{ await deleteDoc(doc(db,'recorrentes',id)); toast('Removida.'); }catch{ toast('Erro.','erro'); } };
 $id('btn-aplicar-recorrentes').addEventListener('click', async()=>{
     if(!recorrentes.length){ toast('Nenhuma recorrente cadastrada.','aviso'); return; }
