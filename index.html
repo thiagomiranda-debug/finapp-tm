@@ -124,6 +124,9 @@ self.addEventListener('fetch',e=>{
         html.dark .text-gray-600,html.dark .text-gray-700{color:var(--text2)!important;}
         html.dark .text-gray-400,html.dark .text-gray-500{color:var(--text3)!important;}
         html.dark nav{background:var(--nav-bg)!important;border-color:var(--border)!important;}
+        /* No dark mode, a safe area acima da nav também fica escura */
+        html.dark body { background-color: var(--nav-bg); }
+        html.dark nav.sticky { background-color: var(--nav-bg) !important; }
         html.dark .input-field{background:var(--input-bg)!important;border-color:var(--border)!important;color:var(--text)!important;}
         html.dark select option{background:var(--bg2);color:var(--text);}
         html.dark .tab-inactive{color:#475569!important;}
@@ -187,6 +190,24 @@ self.addEventListener('fetch',e=>{
         /* PDF print area */
         @media print{body>*{display:none!important;}#pdf-print-area{display:block!important;}}
         #pdf-print-area{display:none;}
+        /* ── iOS SAFE AREA (notch / barra de status / home indicator) ── */
+        /* A nav cresce para cobrir a status bar no iPhone */
+        nav.sticky {
+            padding-top: env(safe-area-inset-top, 0px);
+        }
+        /* A linha interna da nav mantém altura fixa de 4rem (h-16)
+           mas o padding-top da nav empurra tudo para baixo da barra */
+        /* Safe area no bottom: FAB e banner não ficam atrás do home indicator */
+        #btn-fab {
+            bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        #pwa-install-banner {
+            bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        /* Dashboard não fica escondido atrás da nav com safe area */
+        #dashboard-screen {
+            padding-top: 0;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-gray-800 min-h-screen">
@@ -243,7 +264,7 @@ self.addEventListener('fetch',e=>{
 
 <!-- ═══════════ DASHBOARD ═══════════ -->
 <div id="dashboard-screen" class="hidden fade-in" style="padding-bottom:6rem">
-    <nav class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-30">
+    <nav class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-30" style="padding-top:env(safe-area-inset-top,0px)">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-2">
