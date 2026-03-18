@@ -5,7 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FinApp PRO">
+    <meta name="application-name" content="FinApp PRO">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="Inteligência Financeira Pessoal">
+    <meta name="msapplication-TileColor" content="#2563eb">
+
+    <!-- Apple Touch Icons (inline SVG via data URI) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%232563eb'/><text x='90' y='125' font-size='100' text-anchor='middle'>💰</text></svg>">
+
+    <!-- PWA Manifest inline -->
+    <link rel="manifest" href="data:application/manifest+json,{
+      %22name%22:%22FinApp%20PRO%22,
+      %22short_name%22:%22FinApp%22,
+      %22description%22:%22Intelig%C3%AAncia%20Financeira%20Pessoal%22,
+      %22start_url%22:%22./%22,
+      %22display%22:%22standalone%22,
+      %22orientation%22:%22portrait-primary%22,
+      %22background_color%22:%22%230f172a%22,
+      %22theme_color%22:%22%232563eb%22,
+      %22lang%22:%22pt-BR%22,
+      %22icons%22:[
+        {%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A//www.w3.org/2000/svg'%20viewBox%3D'0%200%20192%20192'%3E%3Crect%20width%3D'192'%20height%3D'192'%20rx%3D'38'%20fill%3D'%232563eb'/%3E%3Ctext%20x%3D'96'%20y%3D'130'%20font-size%3D'110'%20text-anchor%3D'middle'%20fill%3D'white'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any%20maskable%22},
+        {%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A//www.w3.org/2000/svg'%20viewBox%3D'0%200%20512%20512'%3E%3Crect%20width%3D'512'%20height%3D'512'%20rx%3D'100'%20fill%3D'%232563eb'/%3E%3Ctext%20x%3D'256'%20y%3D'345'%20font-size%3D'290'%20text-anchor%3D'middle'%20fill%3D'white'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any%20maskable%22}
+      ]
+    }">
+
     <title>FinApp PRO</title>
+
+    <!-- Service Worker Registration -->
+    <script>
+    if ('serviceWorker' in navigator) {
+      const SW_CODE = `
+const CACHE='finapp-v1.2';
+const ASSETS=['./','./index.html'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>{return Promise.all(ASSETS.map(a=>c.add(a).catch(()=>{})));}).then(()=>self.skipWaiting()));});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+self.addEventListener('fetch',e=>{
+  const url=new URL(e.request.url);
+  if(url.hostname.includes('firebaseapp.com')||url.hostname.includes('googleapis.com')||url.hostname.includes('anthropic.com')||url.hostname.includes('securetoken')||url.hostname.includes('identitytoolkit'))return;
+  if(url.hostname.includes('jsdelivr.net')||url.hostname.includes('tailwindcss.com')||url.hostname.includes('fonts.g')){
+    e.respondWith(caches.match(e.request).then(c=>{if(c)return c;return fetch(e.request).then(r=>{if(r.ok)caches.open(CACHE).then(ca=>ca.put(e.request,r.clone()));return r;}).catch(()=>c);}));
+    return;
+  }
+  if(e.request.mode==='navigate'){
+    e.respondWith(fetch(e.request).then(r=>{if(r.ok)caches.open(CACHE).then(c=>c.put(e.request,r.clone()));return r;}).catch(()=>caches.match('./index.html')));
+    return;
+  }
+});`;
+      const blob = new Blob([SW_CODE], {type:'application/javascript'});
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl, {scope:'./'})
+        .then(reg => {
+          console.log('[PWA] Service Worker registrado ✅', reg.scope);
+          reg.addEventListener('updatefound', () => {
+            reg.installing?.addEventListener('statechange', e => {
+              if (e.target.state === 'installed' && navigator.serviceWorker.controller) {
+                // Nova versão disponível — mostra toast se app estiver pronto
+                window._swUpdateReady = true;
+              }
+            });
+          });
+        })
+        .catch(err => console.warn('[PWA] SW não registrado:', err));
+    }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -137,6 +202,21 @@
             <button id="confirm-no"  class="flex-1 py-3 rounded-xl border-2 border-gray-200 font-bold text-gray-600 hover:bg-gray-50 transition">Cancelar</button>
             <button id="confirm-yes" class="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition">Confirmar</button>
         </div>
+    </div>
+</div>
+
+<!-- PWA Install Banner -->
+<div id="pwa-install-banner" class="hidden fixed bottom-20 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-blue-600 text-white rounded-2xl shadow-2xl p-4 z-[50] fade-in">
+    <div class="flex items-start gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl shrink-0">💰</div>
+        <div class="flex-1 min-w-0">
+            <p class="font-black text-sm">Instalar FinApp PRO</p>
+            <p class="text-blue-200 text-xs mt-0.5">Adicione à tela inicial para acesso rápido, como um app nativo.</p>
+        </div>
+    </div>
+    <div class="flex gap-2 mt-3">
+        <button id="pwa-install-btn" class="flex-1 bg-white text-blue-700 py-2 rounded-xl font-black text-sm hover:bg-blue-50 active:scale-95 transition">📲 Instalar</button>
+        <button id="pwa-install-dismiss" class="px-4 py-2 bg-blue-700 rounded-xl text-sm font-bold hover:bg-blue-800 active:scale-95 transition">Agora não</button>
     </div>
 </div>
 
@@ -1648,6 +1728,73 @@ function onFiltroChange(){
 }
 $id('filtro-mes').addEventListener('change',onFiltroChange);
 $id('filtro-ano').addEventListener('change',onFiltroChange);
+
+// ── PWA: INSTALL PROMPT ───────────────────────────────────────────────────────
+let _pwaPrompt = null;
+const pwaKey = 'finapp-pwa-dismissed';
+
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _pwaPrompt = e;
+    // Só mostra se não foi dispensado antes
+    if (!localStorage.getItem(pwaKey)) {
+        setTimeout(() => {
+            const banner = $id('pwa-install-banner');
+            if (banner) banner.classList.remove('hidden');
+        }, 3000); // aparece 3s após carregar
+    }
+});
+
+const pwaInstallBtn   = $id('pwa-install-btn');
+const pwaInstallDismiss = $id('pwa-install-dismiss');
+
+if (pwaInstallBtn) {
+    pwaInstallBtn.addEventListener('click', async () => {
+        if (!_pwaPrompt) return;
+        _pwaPrompt.prompt();
+        const { outcome } = await _pwaPrompt.userChoice;
+        _pwaPrompt = null;
+        $id('pwa-install-banner').classList.add('hidden');
+        if (outcome === 'accepted') toast('✅ App instalado na tela inicial!');
+    });
+}
+
+if (pwaInstallDismiss) {
+    pwaInstallDismiss.addEventListener('click', () => {
+        $id('pwa-install-banner').classList.add('hidden');
+        localStorage.setItem(pwaKey, '1');
+    });
+}
+
+// iOS: mostra instrução manual (iOS não suporta beforeinstallprompt)
+window.addEventListener('load', () => {
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isInStandalone = window.navigator.standalone === true;
+    if (isIOS && !isInStandalone && !localStorage.getItem(pwaKey)) {
+        setTimeout(() => {
+            const banner = $id('pwa-install-banner');
+            if (banner) {
+                banner.querySelector('p.font-black').innerText = 'Instalar no iPhone/iPad';
+                banner.querySelector('p.text-blue-200').innerText = 'Toque em  ⎙ Compartilhar  e depois "Adicionar à Tela de Início".';
+                const btn = $id('pwa-install-btn');
+                if (btn) { btn.innerText = '✅ Entendi'; btn.onclick = () => { banner.classList.add('hidden'); localStorage.setItem(pwaKey,'1'); }; }
+                banner.classList.remove('hidden');
+            }
+        }, 3000);
+    }
+
+    // Toast de atualização disponível
+    if (window._swUpdateReady) {
+        toast('🔄 Nova versão disponível! Recarregue o app.', 'info');
+    }
+});
+
+// Quando o app é instalado com sucesso
+window.addEventListener('appinstalled', () => {
+    toast('🎉 FinApp PRO instalado!');
+    $id('pwa-install-banner').classList.add('hidden');
+});
+
 </script>
 </body>
 </html>
