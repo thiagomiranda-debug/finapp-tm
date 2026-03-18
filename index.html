@@ -73,8 +73,46 @@
         html.dark .divide-gray-50>*{border-color:var(--border)!important;}
         html.dark .shadow-sm{box-shadow:0 1px 3px rgba(0,0,0,.4)!important;}
         html.dark .bg-gradient-to-r.from-violet-600{/* keep gradient */}
-        /* quick action buttons */
-        .quick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:.875rem;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .15s;border:none;min-height:0;}
+        /* dark: tab bar border */
+        html.dark .border-gray-200{ border-color:var(--border)!important; }
+        /* dark: modal backgrounds */
+        html.dark .modal-inner{ background:var(--card-bg)!important; }
+        html.dark #confirm-modal .bg-white{ background:var(--card-bg)!important; }
+        /* dark: input inside modal */
+        html.dark .bg-blue-50.border-blue-200{ background:#0c1a2e!important; border-color:#1e40af!important; }
+        html.dark .bg-rose-50.border-rose-200{ background:#1c0a09!important; border-color:#9f1239!important; }
+        /* dark: text in modals */
+        html.dark .text-gray-800{ color:var(--text)!important; }
+        /* dark: vencimentos card */
+        html.dark .bg-amber-50.border-amber-100{ background:#1c1409!important; border-color:#92400e!important; }
+        /* dark: login screen keeps its gradient */
+        html.dark #login-screen{ background:unset; }
+        /* dark: notif dropdown */
+        html.dark #notif-dropdown{ background:var(--card-bg)!important; border-color:var(--border)!important; }
+        html.dark #notif-dropdown .bg-slate-50{ background:var(--bg2)!important; }
+        /* dark: insight cards in analytics */
+        html.dark .bg-indigo-50.border-indigo-100{ background:#0d1117!important; }
+        html.dark .bg-rose-50.border-rose-100{ background:#1c0a09!important; }
+        html.dark .text-indigo-900{ color:#a5b4fc!important; }
+        html.dark .text-rose-900{ color:#fda4af!important; }
+        /* dark: quick buttons */
+        html.dark .quick-btn{ filter:brightness(.85); }
+        /* dark: paginação */
+        html.dark .border-gray-200 button{ background:var(--bg2); color:var(--text2); border-color:var(--border); }
+        /* dark: saldo mini chips */
+        html.dark .border-gray-100.bg-white.shadow-sm{ background:var(--bg2)!important; border-color:var(--border)!important; }
+        /* dark: extrato items */
+        html.dark .border-gray-100.bg-white{ background:var(--card-bg)!important; }
+        html.dark .border-amber-200.bg-amber-50{ background:#1c1409!important; border-color:#78350f!important; }
+        /* dark: confirm modal */
+        html.dark #confirm-modal .border-gray-200{ border-color:var(--border)!important; color:var(--text2)!important; background:var(--bg2)!important; }
+        /* tab bar fade indicator on mobile */
+        .tab-fade-right::after{
+            content:'';position:absolute;right:0;top:0;bottom:0;width:24px;
+            background:linear-gradient(to right,transparent,var(--bg,#f8fafc));
+            pointer-events:none;
+        }
+        html.dark .tab-fade-right::after{ background:linear-gradient(to right,transparent,#0f172a); }
         /* extrato sort */
         #extrato-sort{border:1px solid #e5e7eb;border-radius:.75rem;padding:4px 10px;font-size:.75rem;font-weight:700;background:#f8fafc;color:#64748b;cursor:pointer;min-height:0;height:34px;outline:none;}
         html.dark #extrato-sort{background:var(--input-bg);border-color:var(--border);color:var(--text2);}
@@ -151,15 +189,18 @@
     <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
         <!-- Tabs + Filtro -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-5">
-            <div class="flex border-b border-gray-200 w-full sm:w-auto overflow-x-auto no-scrollbar">
-                <button data-tab="operacao"    class="tab-btn pb-2.5 px-3 tab-active   text-sm whitespace-nowrap transition-colors">📊 Operacional</button>
-                <button data-tab="contas"      class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏦 Contas</button>
-                <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">💳 Cartões</button>
-                <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📈 Patrimônio</button>
-                <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🎯 Metas</button>
-                <button data-tab="analytics"   class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔬 Analytics</button>
-                <button data-tab="recorrentes" class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔁 Recorrentes</button>
-                <button data-tab="categorias"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏷️ Categorias</button>
+            <div class="relative w-full sm:w-auto">
+                <div class="flex border-b border-gray-200 w-full sm:w-auto overflow-x-auto no-scrollbar tab-fade-right">
+                    <button data-tab="operacao"    class="tab-btn pb-2.5 px-3 tab-active   text-sm whitespace-nowrap transition-colors">📊 Operacional</button>
+                    <button data-tab="contas"      class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏦 Contas</button>
+                    <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">💳 Cartões</button>
+                    <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📈 Patrimônio</button>
+                    <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🎯 Metas</button>
+                    <button data-tab="analytics"   class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔬 Analytics</button>
+                    <button data-tab="recorrentes" class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔁 Recorrentes</button>
+                    <button data-tab="categorias"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏷️ Categorias</button>
+                </div>
+            </div>
             </div>
             <div class="flex bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden shrink-0 w-full sm:w-auto">
                 <select id="filtro-mes" class="flex-1 sm:w-36 px-3 py-2 bg-transparent border-none cursor-pointer font-bold text-gray-700 focus:outline-none"></select>
@@ -695,6 +736,7 @@ function setTab(ativa){
     if(ativa==='contas')     renderizarContas();
     if(ativa==='cartoes')    renderizarCartoes();
     if(ativa==='categorias') renderizarCategoriasCustom();
+    if(ativa==='operacao')   atualizarResumoSemanal();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 const _btnIrContas2=$id('btn-ir-contas2'); if(_btnIrContas2) _btnIrContas2.onclick=()=>setTab('contas');
@@ -883,7 +925,8 @@ function iniciarSincronizacao(){
     if(!currentUser)return;
     onSnapshot(query(collection(db,'transacoes'),where('userId','==',currentUser.uid)), snap=>{
         transacoes=[]; snap.forEach(d=>transacoes.push({id:d.id,...d.data()}));
-        atualizarDashboard(); atualizarFiltroCategorias(); gerenciarNotificacoes(); atualizarResumoSemanal();
+        atualizarDashboard(); atualizarFiltroCategorias(); gerenciarNotificacoes();
+        if(!$id('view-operacao').classList.contains('hidden')) atualizarResumoSemanal();
         const vC=!$id('view-contas').classList.contains('hidden');
         const vCa=!$id('view-cartoes').classList.contains('hidden');
         if(!$id('view-analytics').classList.contains('hidden'))  atualizarAnalytics();
@@ -905,7 +948,11 @@ $id('form-transacao').addEventListener('submit', async e=>{
     const tags=$id('input-tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
     const contaId=$id('input-conta').value||null;
     const cartaoId=$id('input-categoria').value==='Cartão de Crédito'?($id('input-cartao').value||null):null;
-    const payload={ userId:currentUser.uid, tipo:$id('input-tipo').value, data:$id('input-data').value, valor:parseFloat($id('input-valor').value), desc:$id('input-desc').value.trim(), categoria:$id('input-categoria').value, status:$id('input-status').value, tags, contaId, cartaoId };
+    const valorRaw=parseFloat($id('input-valor').value);
+    if(!valorRaw||isNaN(valorRaw)||valorRaw<=0){ toast('Informe um valor válido.','aviso'); btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; return; }
+    const dataVal=$id('input-data').value;
+    if(!dataVal){ toast('Informe a data.','aviso'); btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; return; }
+    const payload={ userId:currentUser.uid, tipo:$id('input-tipo').value, data:dataVal, valor:valorRaw, desc:$id('input-desc').value.trim(), categoria:$id('input-categoria').value, status:$id('input-status').value, tags, contaId, cartaoId };
     try{
         if(modoEdicao){
             await updateDoc(doc(db,'transacoes',$id('input-edit-id').value),{...payload,atualizadoEm:new Date().toISOString()});
@@ -1037,7 +1084,7 @@ $id('form-transferencia').addEventListener('submit', async e=>{
     if(!orig||!dest){ toast('Selecione origem e destino.','aviso'); return; }
     if(orig===dest){ toast('Origem e destino devem ser diferentes.','aviso'); return; }
     try{
-        await addDoc(collection(db,'transferencias'),{ userId:currentUser.uid, contaOrigemId:orig, contaDestinoId:dest, valor:parseFloat($id('transf-valor').value), data:$id('transf-data').value, desc:$id('transf-desc').value.trim()||null, criadoEm:new Date().toISOString() });
+        await addDoc(collection(db,'transferencias'),{ userId:currentUser.uid, contaOrigemId:orig, contaDestinoId:dest, valor:parseFloat($id('transf-valor').value), data:$id('transf-data').value, desc:$id('transf-desc').value.trim()||null, status:'confirmada', criadoEm:new Date().toISOString() });
         toast('↔️ Transferência registrada!'); $id('modal-transferencia').classList.add('hidden');
     }catch{ toast('Erro ao registrar transferência.','erro'); }
 });
@@ -1101,7 +1148,7 @@ function renderizarCartoes(){
 }
 
 // Lançar pagamento de fatura
-window.lancarFatura = id=>{ const c=cartoes.find(x=>x.id===id); if(!c)return; abrirModalNovo(); $id('input-tipo').value='despesa'; $id('input-categoria').value='Cartão de Crédito'; $id('input-desc').value=`Fatura ${c.nome}`; $id('input-status').value='confirmada'; if(c.contaPagamentoId) $id('input-conta').value=c.contaPagamentoId; };
+window.lancarFatura = id=>{ const c=cartoes.find(x=>x.id===id); if(!c)return; abrirModalNovo(); $id('input-tipo').value='despesa'; $id('input-categoria').value='Cartão de Crédito'; $id('cartao-select-wrap').classList.remove('hidden'); $id('input-cartao').value=id; $id('input-desc').value=`Fatura ${c.nome}`; $id('input-status').value='confirmada'; if(c.contaPagamentoId) $id('input-conta').value=c.contaPagamentoId; setTimeout(()=>$id('input-valor').focus(),200); };
 
 $id('btn-novo-cartao').onclick=()=>{ $id('form-cartao').reset(); $id('modal-cartao').classList.remove('hidden'); };
 $id('form-cartao').addEventListener('submit', async e=>{
@@ -1161,10 +1208,17 @@ $id('btn-exportar-csv').addEventListener('click',()=>{
 });
 
 // ── DARK MODE ─────────────────────────────────────────────────────────────────
+function aplicarDarkChart(){
+    const isDark=document.documentElement.classList.contains('dark');
+    Chart.defaults.color          = isDark ? '#94a3b8' : '#64748b';
+    Chart.defaults.borderColor    = isDark ? '#1e293b' : '#f1f5f9';
+    Chart.defaults.font.family    = "'DM Sans',sans-serif";
+}
 (()=>{
     const html=document.documentElement;
     const isDark=localStorage.getItem('finapp-dark')==='1';
     if(isDark) html.classList.add('dark');
+    aplicarDarkChart();
     const btnD=$id('btn-dark');
     if(btnD){
         btnD.innerText=isDark?'☀️':'🌙';
@@ -1172,6 +1226,10 @@ $id('btn-exportar-csv').addEventListener('click',()=>{
             const on=html.classList.toggle('dark');
             localStorage.setItem('finapp-dark',on?'1':'0');
             btnD.innerText=on?'☀️':'🌙';
+            aplicarDarkChart();
+            // Re-render active charts
+            if(!$id('view-analytics').classList.contains('hidden'))  atualizarAnalytics();
+            if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
         });
     }
 })();
@@ -1432,6 +1490,7 @@ $id('btn-pag-prox').onclick = ()=>{ paginaAtual++; atualizarDashboard(); $id('li
 
 // ── PATRIMÔNIO ────────────────────────────────────────────────────────────────
 function atualizarPatrimonio(){
+    aplicarDarkChart();
     let totalRec=0,totalDesp=0; const porMes={};
     transacoes.forEach(t=>{
         if(t.status!=='confirmada'||t.tipo==='transferencia')return;
@@ -1479,6 +1538,7 @@ window.deletarMeta=async id=>{ if(!await confirmar('Remover esta meta?'))return;
 
 // ── ANALYTICS ─────────────────────────────────────────────────────────────────
 function atualizarAnalytics(){
+    aplicarDarkChart();
     const mSel=parseInt($id('filtro-mes').value), aSel=parseInt($id('filtro-ano').value);
     let mAnt=mSel-1, aAnt=aSel; if(mAnt===0){mAnt=12;aAnt--;}
     let dAt=0,dAn=0,cAt={},cAn={},mEvo={};
