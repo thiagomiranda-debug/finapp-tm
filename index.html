@@ -44,7 +44,7 @@ self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>{retu
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{
   const url=new URL(e.request.url);
-  if(url.hostname.includes('firebaseapp.com')||url.hostname.includes('googleapis.com')||url.hostname.includes('anthropic.com')||url.hostname.includes('securetoken')||url.hostname.includes('identitytoolkit'))return;
+  if(url.hostname.includes('firebaseapp.com')||url.hostname.includes('googleapis.com')||url.hostname.includes('securetoken')||url.hostname.includes('identitytoolkit'))return;
   if(url.hostname.includes('jsdelivr.net')||url.hostname.includes('tailwindcss.com')||url.hostname.includes('fonts.g')){
     e.respondWith(caches.match(e.request).then(c=>{if(c)return c;return fetch(e.request).then(r=>{if(r.ok)caches.open(CACHE).then(ca=>ca.put(e.request,r.clone()));return r;}).catch(()=>c);}));
     return;
@@ -89,7 +89,6 @@ self.addEventListener('fetch',e=>{
         .tab-active   { border-bottom:3px solid #2563eb; color:#1d4ed8; font-weight:800; }
         .tab-inactive { color:#94a3b8; font-weight:600; }
         .spinner { width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle; }
-        .spinner-v { border-color:rgba(109,40,217,.2);border-top-color:#7c3aed; }
         .overlay { backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
         .progress-bar { transition:width .8s cubic-bezier(.4,0,.2,1); }
         @media(max-width:640px){
@@ -186,7 +185,6 @@ self.addEventListener('fetch',e=>{
         #extrato-sort{border:1px solid #e5e7eb;border-radius:.75rem;padding:4px 10px;font-size:.75rem;font-weight:700;background:#f8fafc;color:#64748b;cursor:pointer;min-height:0;height:34px;outline:none;}
         html.dark #extrato-sort{background:var(--input-bg);border-color:var(--border);color:var(--text2);}
         /* resumo semanal card */
-        #card-resumo-semanal{transition:all .3s;}
         /* PDF print area */
         @media print{body>*{display:none!important;}#pdf-print-area{display:block!important;}}
         #pdf-print-area{display:none;}
@@ -298,7 +296,6 @@ self.addEventListener('fetch',e=>{
                     <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">💳 Cartões</button>
                     <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📈 Patrimônio</button>
                     <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🎯 Metas</button>
-                    <button data-tab="analytics"   class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔬 Analytics</button>
                     <button data-tab="recorrentes" class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔁 Recorrentes</button>
                     <button data-tab="categorias"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏷️ Categorias</button>
                 </div>
@@ -312,25 +309,6 @@ self.addEventListener('fetch',e=>{
 
         <!-- ════ OPERACIONAL ════ -->
         <div id="view-operacao" class="fade-in">
-
-            <!-- Resumo semanal -->
-            <div id="card-resumo-semanal" class="bg-gradient-to-r from-slate-700 to-slate-800 rounded-2xl p-4 mb-4 text-white">
-                <div class="flex justify-between items-start gap-2">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-slate-300 text-xs font-bold uppercase tracking-wider mb-1">📅 Esta Semana</p>
-                        <div class="flex items-baseline gap-3 flex-wrap">
-                            <span class="text-2xl font-black mono" id="sem-desp">R$ 0,00</span>
-                            <span class="text-slate-400 text-xs">em despesas</span>
-                            <span class="text-emerald-400 font-black mono text-sm" id="sem-rec">+R$ 0,00</span>
-                        </div>
-                        <p class="text-slate-400 text-xs mt-1" id="sem-desc">Calculando...</p>
-                    </div>
-                    <div class="text-right shrink-0">
-                        <p class="text-slate-400 text-xs font-bold uppercase">Top gasto</p>
-                        <p class="text-white font-black text-sm" id="sem-top-cat">—</p>
-                    </div>
-                </div>
-            </div>
 
             <!-- KPIs -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 mb-4">
@@ -353,18 +331,27 @@ self.addEventListener('fetch',e=>{
                     <div class="bg-blue-700 text-blue-100 px-3 py-2 rounded-lg text-xs font-bold flex justify-between"><span>📅 Previsão fim mês</span><span id="val-saldo-proj" class="mono">R$ 0,00</span></div>
                 </div>
             </div>
-            <!-- Card saldo consolidado das contas -->
-            <div id="card-saldo-contas" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">💼 Saldo Consolidado — Todas as Contas</p>
-                        <p class="text-2xl font-black mono" id="val-saldo-total">R$ 0,00</p>
-                        <p class="text-xs text-gray-400 mt-0.5">Soma real de todas as contas cadastradas</p>
+
+            <!-- Gráficos de pizza -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Despesas por Categoria</h2>
+                    <p class="text-xs text-gray-300 mb-3">Mês selecionado · confirmadas</p>
+                    <div class="relative" style="height:220px">
+                        <canvas id="pizza-despesas"></canvas>
+                        <p id="pizza-despesas-vazio" class="hidden absolute inset-0 flex items-center justify-center text-gray-300 text-sm font-medium">Sem despesas no mês</p>
                     </div>
-                    <button id="btn-ir-contas2" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-100 active:scale-95 transition whitespace-nowrap">Ver contas →</button>
                 </div>
-                <div id="lista-saldos-mini" class="flex flex-wrap gap-2"></div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Receitas por Categoria</h2>
+                    <p class="text-xs text-gray-300 mb-3">Mês selecionado · confirmadas</p>
+                    <div class="relative" style="height:220px">
+                        <canvas id="pizza-receitas"></canvas>
+                        <p id="pizza-receitas-vazio" class="hidden absolute inset-0 flex items-center justify-center text-gray-300 text-sm font-medium">Sem receitas no mês</p>
+                    </div>
+                </div>
             </div>
+
             <!-- Barra comprometimento -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
                 <div class="flex justify-between items-center mb-2">
@@ -376,35 +363,8 @@ self.addEventListener('fetch',e=>{
                 </div>
                 <p id="comprometimento-msg" class="text-xs text-gray-400 mt-1.5"></p>
             </div>
-            <!-- Busca + Filtros -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 mb-4">
-                <div class="flex flex-col gap-2.5">
-                    <!-- Campo busca -->
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-                        <input type="search" id="busca-transacao" placeholder="Buscar descrição, categoria, conta ou tag..." class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-slate-50 transition">
-                    </div>
-                    <!-- Selects de filtro — 2x2 no mobile, 4 em linha no desktop -->
-                    <div class="grid grid-cols-2 sm:flex sm:flex-row gap-2">
-                        <select id="filtro-tipo"            class="px-3 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 bg-slate-50 focus:outline-none cursor-pointer"><option value="">Todos</option><option value="receita">Entradas</option><option value="despesa">Saídas</option><option value="transferencia">Transf.</option></select>
-                        <select id="filtro-status"          class="px-3 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 bg-slate-50 focus:outline-none cursor-pointer"><option value="">Qualquer status</option><option value="confirmada">Confirmadas</option><option value="pendente">Pendentes</option></select>
-                        <select id="filtro-conta-lista"     class="px-3 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 bg-slate-50 focus:outline-none cursor-pointer"><option value="">Todas contas</option></select>
-                        <select id="filtro-categoria-lista" class="px-3 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 bg-slate-50 focus:outline-none cursor-pointer"><option value="">Todas categorias</option></select>
-                    </div>
-                    <!-- Botões de exportação — linha separada, ícone no mobile, texto no desktop -->
-                    <div class="flex gap-2 justify-end pt-0.5">
-                        <button id="btn-exportar-csv" class="px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-bold hover:bg-emerald-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap">
-                            <span>⬇️</span><span class="hidden sm:inline">CSV</span>
-                        </button>
-                        <button id="btn-exportar-pdf" class="px-3 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-bold hover:bg-rose-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap">
-                            <span>📄</span><span class="hidden sm:inline">PDF</span>
-                        </button>
-                        <label id="btn-importar-csv" class="px-3 py-2 bg-violet-50 text-violet-700 border border-violet-200 rounded-xl font-bold hover:bg-violet-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap cursor-pointer">
-                            <span>📥</span><span class="hidden sm:inline">Importar</span><input type="file" id="input-importar-csv" accept=".csv,.txt" class="hidden">
-                        </label>
-                    </div>
-                </div>
-            </div>
+
+            <!-- Extrato + Vencimentos -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
                     <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
@@ -425,6 +385,18 @@ self.addEventListener('fetch',e=>{
                         <button id="btn-pag-ant"  class="px-4 py-2 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 active:scale-95 transition disabled:opacity-40">← Ant.</button>
                         <span id="pag-info" class="px-3 py-2 text-xs font-bold text-gray-400 self-center"></span>
                         <button id="btn-pag-prox" class="px-4 py-2 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 active:scale-95 transition disabled:opacity-40">Próx. →</button>
+                    </div>
+                    <!-- Botões de exportação -->
+                    <div class="flex gap-2 justify-end mt-4 pt-3 border-t border-gray-100">
+                        <button id="btn-exportar-csv" class="px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-bold hover:bg-emerald-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap">
+                            <span>⬇️</span><span class="hidden sm:inline">CSV</span>
+                        </button>
+                        <button id="btn-exportar-pdf" class="px-3 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-bold hover:bg-rose-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap">
+                            <span>📄</span><span class="hidden sm:inline">PDF</span>
+                        </button>
+                        <label id="btn-importar-csv" class="px-3 py-2 bg-violet-50 text-violet-700 border border-violet-200 rounded-xl font-bold hover:bg-violet-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap cursor-pointer">
+                            <span>📥</span><span class="hidden sm:inline">Importar</span><input type="file" id="input-importar-csv" accept=".csv,.txt" class="hidden">
+                        </label>
                     </div>
                 </div>
                 <div class="bg-amber-50 rounded-2xl shadow-sm p-4 sm:p-5 border border-amber-100">
@@ -502,24 +474,6 @@ self.addEventListener('fetch',e=>{
             <div id="metas-vazio" class="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center"><span class="text-4xl">🎯</span><p class="text-gray-400 font-medium mt-3">Nenhuma meta cadastrada.</p></div>
         </div>
 
-        <!-- ════ ANALYTICS ════ -->
-        <div id="view-analytics" class="hidden fade-in">
-            <div class="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-4 sm:p-5 mb-5 text-white shadow-lg">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-2"><span>🤖</span><h3 class="font-black text-xs uppercase tracking-wider text-violet-100">Resumo Inteligente — IA</h3></div><p id="ai-resumo-texto" class="text-white font-medium text-sm opacity-80 leading-relaxed">Clique em "Gerar" para análise personalizada.</p></div>
-                    <button id="btn-gerar-resumo" class="shrink-0 bg-white text-violet-700 px-3 sm:px-4 py-2 rounded-xl font-black text-xs hover:bg-violet-50 active:scale-95 transition shadow-md flex items-center gap-1.5 whitespace-nowrap"><span id="resumo-btn-icon">✨</span><span id="resumo-btn-text">Gerar</span></button>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 sm:p-5"><h3 class="text-indigo-700 font-black uppercase tracking-wider text-xs mb-2">📊 vs Mês Anterior</h3><p id="insight-comparativo" class="text-indigo-900 font-medium text-sm sm:text-base">Analisando...</p></div>
-                <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4 sm:p-5"><h3 class="text-rose-700 font-black uppercase tracking-wider text-xs mb-2">🔍 Foco de Atenção</h3><p id="insight-categoria" class="text-rose-900 font-medium text-sm sm:text-base">Buscando anomalias...</p></div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100"><h2 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Evolução 6 Meses</h2><div class="relative h-56 sm:h-64"><canvas id="lineChartEvolucao"></canvas></div></div>
-                <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100"><h2 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Abertura de Despesas</h2><div class="relative h-56 sm:h-64 flex items-center justify-center"><canvas id="categoryChartAnalytics"></canvas><p id="grafico-vazio" class="hidden text-gray-300 absolute font-medium text-sm">Sem dados</p></div></div>
-            </div>
-        </div>
-
         <!-- ════ RECORRENTES ════ -->
         <div id="view-recorrentes" class="hidden fade-in">
             <div class="flex justify-between items-start mb-4 gap-3">
@@ -576,10 +530,6 @@ self.addEventListener('fetch',e=>{
     <div class="modal-inner bg-white w-full sm:max-w-lg sm:rounded-2xl shadow-2xl border-t-4 border-blue-600 overflow-y-auto" style="max-height:92vh">
         <div class="p-4 sm:p-6">
             <div class="flex justify-between items-center mb-4"><h2 id="modal-titulo" class="text-lg font-black text-gray-800">Novo Lançamento</h2><button id="btn-fechar-modal" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
-            <div id="voz-wrap" class="bg-blue-50 border border-blue-100 p-3 rounded-xl mb-4 flex items-center justify-between">
-                <div><p class="text-xs font-bold text-blue-700 uppercase tracking-wider">Lançar por Voz</p><p class="text-xs text-blue-500 mt-0.5">Ex: "Gastei 50 reais de gasolina"</p></div>
-                <button type="button" id="btn-voz" class="bg-blue-600 text-white rounded-full w-11 h-11 flex items-center justify-center shadow-md text-xl active:scale-90 transition">🎤</button>
-            </div>
             <form id="form-transacao" class="space-y-3.5">
                 <input type="hidden" id="input-edit-id">
                 <div class="grid grid-cols-2 gap-3">
@@ -590,7 +540,7 @@ self.addEventListener('fetch',e=>{
                     <div><label class="label-xs">Parcelamento</label><select id="input-parcelas" class="input-field"><option value="1">À vista</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="10">10x</option><option value="12">12x</option></select></div>
                     <div><label class="label-xs">Status</label><select id="input-status" class="input-field"><option value="confirmada">✔️ Confirmada</option><option value="pendente">⏳ Pendente</option></select></div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-3">
                     <div><label class="label-xs">Data</label><input type="date" id="input-data" class="input-field" required></div>
                     <div><label class="label-xs">Conta (opcional)</label><select id="input-conta" class="input-field"><option value="">-- Sem conta --</option></select></div>
                 </div>
@@ -603,11 +553,7 @@ self.addEventListener('fetch',e=>{
                 </select></div>
                 <div id="cartao-select-wrap" class="hidden"><label class="label-xs">💳 Cartão vinculado</label><select id="input-cartao" class="input-field"><option value="">-- Nenhum --</option></select></div>
                 <div><label class="label-xs">Descrição</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="input-desc" placeholder="Ex: Supermercado Atacadão" class="input-field flex-1" autocomplete="off" required>
-                        <button type="button" id="btn-ia-categoria" class="px-3 bg-violet-100 text-violet-700 rounded-xl hover:bg-violet-200 active:scale-95 transition font-bold text-xs flex items-center gap-1 whitespace-nowrap shrink-0">🤖 IA</button>
-                    </div>
-                    <p id="ia-categoria-hint" class="text-xs mt-1 hidden"></p>
+                    <input type="text" id="input-desc" placeholder="Ex: Supermercado Atacadão" class="input-field" autocomplete="off" required>
                 </div>
                 <div><label class="label-xs">Tags <span class="normal-case font-normal text-gray-300">(vírgula)</span></label><input type="text" id="input-tags" placeholder="nubank, viagem, fixo" class="input-field"></div>
                 <button type="submit" id="btn-submit-form" class="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md text-base">Salvar Transação</button>
@@ -841,10 +787,11 @@ const auth = getAuth(app);
 // ── STATE ────────────────────────────────────────────────────────────────────
 let transacoes=[], recorrentes=[], metas=[], contas=[], cartoes=[], transferencias=[], categoriasCustom=[];
 let currentUser=null;
-let donutInst=null, lineInst=null, barInst=null;
+
 let modoEdicao=false;
 let paginaAtual=0; const POR_PAGINA=20;
-let importRows=[];  // linhas parsed do CSV a importar
+let importRows=[];
+let _unsubscribers=[]; // guarda funções de cancelamento dos onSnapshot
 
 const $id = id => document.getElementById(id);
 const mesesNomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -871,7 +818,7 @@ function toast(msg, tipo='sucesso'){
 function confirmar(msg){ return new Promise(r=>{ const m=$id('confirm-modal'); $id('confirm-msg').innerText=msg; m.classList.remove('hidden'); const y=$id('confirm-yes'),n=$id('confirm-no'); const done=v=>{ m.classList.add('hidden'); y.onclick=n.onclick=null; r(v); }; y.onclick=()=>done(true); n.onclick=()=>done(false); }); }
 
 // ── TABS ─────────────────────────────────────────────────────────────────────
-const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', patrimonio:'view-patrimonio', metas:'view-metas', analytics:'view-analytics', recorrentes:'view-recorrentes', categorias:'view-categorias' };
+const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', patrimonio:'view-patrimonio', metas:'view-metas', recorrentes:'view-recorrentes', categorias:'view-categorias' };
 function setTab(ativa){
     document.querySelectorAll('.tab-btn').forEach(b=>b.className=b.className.replace('tab-active','tab-inactive'));
     document.querySelectorAll('[id^="view-"]').forEach(v=>v.classList.add('hidden'));
@@ -879,17 +826,14 @@ function setTab(ativa){
     if(btn) btn.className=btn.className.replace('tab-inactive','tab-active');
     document.getElementById(VIEW_MAP[ativa])?.classList.remove('hidden');
     paginaAtual=0;
-    if(ativa==='analytics')  atualizarAnalytics();
     if(ativa==='patrimonio') atualizarPatrimonio();
     if(ativa==='metas')      atualizarMetas();
     if(ativa==='recorrentes')renderizarRecorrentes();
     if(ativa==='contas')     renderizarContas();
     if(ativa==='cartoes')    renderizarCartoes();
     if(ativa==='categorias') renderizarCategoriasCustom();
-    if(ativa==='operacao')   atualizarResumoSemanal();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
-const _btnIrContas2=$id('btn-ir-contas2'); if(_btnIrContas2) _btnIrContas2.onclick=()=>setTab('contas');
 
 // ── MODAIS HELPERS ────────────────────────────────────────────────────────────
 const todosModais = ['modal-transacao','modal-conta','modal-transferencia','modal-cartao','modal-meta','modal-recorrente','modal-categoria','modal-importar'];
@@ -917,10 +861,7 @@ function popularSelectsContas(){
         if(val) sel.value=val;
     });
     // Filtro conta no extrato
-    const selFiltro=$id('filtro-conta-lista'), valF=selFiltro.value;
-    selFiltro.innerHTML='<option value="">Todas as contas</option>';
-    contas.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.innerText=c.nome; selFiltro.appendChild(o); });
-    selFiltro.value=valF;
+    const selFiltro=$id('filtro-conta-lista'); if(selFiltro){ const valF=selFiltro.value; selFiltro.innerHTML='<option value="">Todas as contas</option>'; contas.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.innerText=c.nome; selFiltro.appendChild(o); }); selFiltro.value=valF; }
 }
 function popularSelectsCartoes(){
     const sel=$id('input-cartao'); if(!sel)return;
@@ -945,7 +886,6 @@ function abrirModalNovo(){
     $id('input-edit-id').value='';
     $id('input-data').value=hojeStr();
     $id('parcelas-row').classList.remove('hidden');
-    $id('ia-categoria-hint').classList.add('hidden');
     $id('cartao-select-wrap').classList.add('hidden');
     $id('modal-transacao').classList.remove('hidden');
 }
@@ -964,7 +904,6 @@ function abrirModalEditar(t){
     $id('input-conta').value=t.contaId||'';
     $id('input-cartao').value=t.cartaoId||'';
     $id('parcelas-row').classList.add('hidden');
-    $id('ia-categoria-hint').classList.add('hidden');
     $id('cartao-select-wrap').classList.toggle('hidden', t.categoria!=='Cartão de Crédito');
     $id('modal-transacao').classList.remove('hidden');
 }
@@ -982,64 +921,6 @@ window.abrirRapido = (tipo, categoria)=>{
 $id('btn-nova-transacao-nav').onclick = abrirModalNovo;
 $id('btn-fab').onclick = abrirModalNovo;
 
-// ── IA CATEGORIA ──────────────────────────────────────────────────────────────
-$id('btn-ia-categoria').addEventListener('click', async()=>{
-    const desc=$id('input-desc').value.trim(); if(!desc){ toast('Digite uma descrição primeiro.','aviso'); return; }
-    const btn=$id('btn-ia-categoria'), hint=$id('ia-categoria-hint');
-    btn.disabled=true; btn.innerHTML='<span class="spinner spinner-v"></span>';
-    hint.classList.remove('hidden'); hint.innerText='Classificando...'; hint.className='text-xs text-violet-500 mt-1';
-    try{
-        const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:30,system:'Classificador financeiro. Retorne APENAS o nome exato da categoria: Alimentação, Transporte, Moradia, Cartão de Crédito, Lazer, Saúde, Educação, Assinaturas, Salário/Vendas, Outros.',messages:[{role:'user',content:desc}]})});
-        if(!r.ok){ const err=await r.json().catch(()=>({})); throw new Error(err?.error?.message||`HTTP ${r.status}`); }
-        const d=await r.json(), cat=d.content?.[0]?.text?.trim();
-        const ok=['Alimentação','Transporte','Moradia','Cartão de Crédito','Lazer','Saúde','Educação','Assinaturas','Salário/Vendas','Outros'];
-        if(cat&&ok.includes(cat)){ $id('input-categoria').value=cat; $id('input-categoria').dispatchEvent(new Event('change')); hint.innerText=`✅ Sugestão: ${cat}`; hint.className='text-xs text-emerald-600 mt-1'; }
-        else { hint.innerText='⚠️ Não classificado. Escolha manualmente.'; hint.className='text-xs text-amber-500 mt-1'; }
-    }catch(e){ hint.innerText=`❌ ${e.message||'Erro de conexão.'}`.substring(0,80); hint.className='text-xs text-red-500 mt-1'; }
-    finally{ btn.disabled=false; btn.innerHTML='🤖 IA'; }
-});
-
-// ── IA RESUMO ─────────────────────────────────────────────────────────────────
-$id('btn-gerar-resumo').addEventListener('click', async()=>{
-    const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
-    const filtradas=transacoes.filter(t=>{ const[a,m]=t.data.split('-'); return parseInt(m)===mS&&parseInt(a)===aS&&t.tipo!=='transferencia'; });
-    if(!filtradas.length){ toast('Sem transações no mês.','aviso'); return; }
-    const btn=$id('btn-gerar-resumo'), texto=$id('ai-resumo-texto');
-    $id('resumo-btn-icon').innerHTML='<span class="spinner spinner-v"></span>'; $id('resumo-btn-text').innerText='...'; btn.disabled=true; texto.style.opacity='.5';
-    let rec=0,desp=0,cats={};
-    filtradas.forEach(t=>{ if(t.tipo==='receita'&&t.status==='confirmada')rec+=t.valor; if(t.tipo==='despesa'&&t.status==='confirmada'){desp+=t.valor;cats[t.categoria]=(cats[t.categoria]||0)+t.valor;} });
-    const catStr=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`${c}: R$${v.toFixed(2)}`).join(', ')||'sem gastos';
-    const metasStr=metas.length?metas.map(m=>`${m.categoria}: limite R$${m.valor}, gasto R$${(cats[m.categoria]||0).toFixed(2)}`).join(', '):'sem metas';
-    try{
-        const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,system:'Consultor financeiro pessoal, pt-BR, direto. 3 frases: positivo, alerta, recomendação acionável. Mencione metas ultrapassadas. Sem introdução.',messages:[{role:'user',content:`${mesesNomes[mS-1]}/${aS}. Receitas: R$${rec.toFixed(2)}. Despesas: R$${desp.toFixed(2)}. Saldo: R$${(rec-desp).toFixed(2)}. Categorias: ${catStr}. Metas: ${metasStr}.`}]})});
-        if(!r.ok){ const err=await r.json().catch(()=>({})); throw new Error(err?.error?.message||`HTTP ${r.status}`); }
-        const d=await r.json(); texto.innerText=d.content?.[0]?.text||'Sem resposta da IA.';
-    }catch(e){ texto.innerText=`❌ Erro: ${e.message||'Verifique sua conexão.'}`.substring(0,120); }
-    finally{ $id('resumo-btn-icon').innerText='✨'; $id('resumo-btn-text').innerText='Gerar'; btn.disabled=false; texto.style.opacity='1'; }
-});
-
-// ── VOZ ───────────────────────────────────────────────────────────────────────
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition, btnVoz=$id('btn-voz');
-if(SR){
-    const rv=new SR(); rv.lang='pt-BR';
-    btnVoz.addEventListener('click',()=>{ rv.start(); btnVoz.classList.add('recording'); $id('input-desc').value='Ouvindo...'; });
-    rv.onresult=e=>{ const f=e.results[0][0].transcript.toLowerCase(); btnVoz.classList.remove('recording');
-        const m=f.match(/\d+(?:[.,]\d+)?/); if(m) $id('input-valor').value=parseFloat(m[0].replace(',','.'));
-        $id('input-tipo').value=(f.includes('recebi')||f.includes('ganhei'))?'receita':'despesa';
-        let c='Outros';
-        if(f.match(/mercado|supermercado|comida|almoço|jantar|lanche|padaria|restaurante/)) c='Alimentação';
-        if(f.match(/gasolina|uber|ônibus|transporte|combustível|táxi/))                    c='Transporte';
-        if(f.match(/aluguel|luz|água|condomínio|internet|gás/))                             c='Moradia';
-        if(f.match(/netflix|spotify|assinatura|streaming|prime/))                           c='Assinaturas';
-        if(f.match(/médico|farmácia|remédio|saúde|plano|hospital/))                        c='Saúde';
-        $id('input-categoria').value=c; $id('input-categoria').dispatchEvent(new Event('change'));
-        const limpo=f.replace(/gastei|paguei|recebi|ganhei|reais|real/gi,'').trim();
-        $id('input-desc').value=limpo.charAt(0).toUpperCase()+limpo.slice(1);
-        toast('🎤 Voz capturada!','info');
-    };
-    rv.onerror=()=>{ btnVoz.classList.remove('recording'); $id('input-desc').value=''; };
-}else{ $id('voz-wrap').classList.add('hidden'); }
-
 // ── NOTIF ─────────────────────────────────────────────────────────────────────
 const btnN=$id('btn-notif'), dropN=$id('notif-dropdown');
 btnN.addEventListener('click',e=>{ e.stopPropagation(); dropN.classList.toggle('hidden'); });
@@ -1054,8 +935,18 @@ onAuthStateChanged(auth, user=>{
         $id('btn-fab').classList.remove('hidden'); $id('input-data').value=hojeStr();
         iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom();
     }else{
-        currentUser=null; $id('dashboard-screen').classList.add('hidden');
-        $id('login-screen').classList.remove('hidden'); $id('btn-fab').classList.add('hidden');
+        // Cancela todos os listeners ativos antes de limpar o estado
+        _unsubscribers.forEach(unsub=>{ try{ unsub(); }catch(_){} });
+        _unsubscribers=[];
+        // Limpa estado local
+        transacoes=[]; contas=[]; cartoes=[]; transferencias=[];
+        metas=[]; recorrentes=[]; categoriasCustom=[];
+        currentUser=null;
+        $id('dashboard-screen').classList.add('hidden');
+        $id('login-screen').classList.remove('hidden');
+        $id('btn-fab').classList.add('hidden');
+        // Fecha qualquer modal aberto
+        ['modal-transacao','modal-conta','modal-cartao','modal-meta','modal-recorrente','modal-categoria','modal-importar','modal-firestore-regras'].forEach(id=>$id(id)?.classList.add('hidden'));
     }
 });
 $id('auth-form').addEventListener('submit', async e=>{ e.preventDefault();
@@ -1074,22 +965,24 @@ $id('btn-logout').addEventListener('click',()=>signOut(auth));
 // ── SINCRONIZAÇÃO ─────────────────────────────────────────────────────────────
 function iniciarSincronizacao(){
     if(!currentUser)return;
-    onSnapshot(query(collection(db,'transacoes'),where('userId','==',currentUser.uid)), snap=>{
-        transacoes=[]; snap.forEach(d=>transacoes.push({id:d.id,...d.data()}));
-        atualizarDashboard(); atualizarFiltroCategorias(); gerenciarNotificacoes();
-        if(!$id('view-operacao').classList.contains('hidden')) atualizarResumoSemanal();
-        const vC=!$id('view-contas').classList.contains('hidden');
-        const vCa=!$id('view-cartoes').classList.contains('hidden');
-        if(!$id('view-analytics').classList.contains('hidden'))  atualizarAnalytics();
-        if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
-        if(!$id('view-metas').classList.contains('hidden'))      atualizarMetas();
-        if(vC) renderizarContas();
-        if(vCa) renderizarCartoes();
-    });
-    onSnapshot(query(collection(db,'transferencias'),where('userId','==',currentUser.uid)), snap=>{
-        transferencias=[]; snap.forEach(d=>transferencias.push({id:d.id,...d.data()}));
-        if(!$id('view-contas').classList.contains('hidden')) renderizarContas();
-    });
+    _unsubscribers.push(
+        onSnapshot(query(collection(db,'transacoes'),where('userId','==',currentUser.uid)), snap=>{
+            transacoes=[]; snap.forEach(d=>transacoes.push({id:d.id,...d.data()}));
+            atualizarDashboard(); atualizarFiltroCategorias(); gerenciarNotificacoes();
+            const vC=!$id('view-contas').classList.contains('hidden');
+            const vCa=!$id('view-cartoes').classList.contains('hidden');
+            if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
+            if(!$id('view-metas').classList.contains('hidden'))      atualizarMetas();
+            if(vC) renderizarContas();
+            if(vCa) renderizarCartoes();
+        }, err=>erroFirestore(err,'transacoes'))
+    );
+    _unsubscribers.push(
+        onSnapshot(query(collection(db,'transferencias'),where('userId','==',currentUser.uid)), snap=>{
+            transferencias=[]; snap.forEach(d=>transferencias.push({id:d.id,...d.data()}));
+            if(!$id('view-contas').classList.contains('hidden')) renderizarContas();
+        }, err=>erroFirestore(err,'transferencias'))
+    );
 }
 
 // ── CRUD TRANSAÇÕES ───────────────────────────────────────────────────────────
@@ -1122,16 +1015,18 @@ $id('form-transacao').addEventListener('submit', async e=>{
     }catch(err){ console.error(err); toast('Erro ao salvar.','erro'); }
     finally{ btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; }
 });
-window.deletarTransacao = async id=>{ if(!await confirmar('Excluir esta transação?')) return; try{ await deleteDoc(doc(db,'transacoes',id)); toast('🗑️ Removida.'); }catch{ toast('Erro.','erro'); } };
-window.alterarStatus    = async(id,s)=>{ try{ await updateDoc(doc(db,'transacoes',id),{status:s}); }catch{ toast('Erro.','erro'); } };
+window.deletarTransacao = async id=>{ if(!await confirmar('Excluir esta transação?')) return; try{ await deleteDoc(doc(db,'transacoes',id)); toast('🗑️ Removida.'); }catch(err){ erroFirestore(err,'del-transacao'); } };
+window.alterarStatus = async(id,s)=>{ try{ await updateDoc(doc(db,'transacoes',id),{status:s}); }catch(err){ erroFirestore(err,'status'); } };
 
 // ── CONTAS ────────────────────────────────────────────────────────────────────
 function carregarContas(){
-    onSnapshot(query(collection(db,'contas'),where('userId','==',currentUser.uid)), snap=>{
-        contas=[]; snap.forEach(d=>contas.push({id:d.id,...d.data()}));
-        popularSelectsContas(); atualizarSaldosMini();
-        if(!$id('view-contas').classList.contains('hidden')) renderizarContas();
-    });
+    _unsubscribers.push(
+        onSnapshot(query(collection(db,'contas'),where('userId','==',currentUser.uid)), snap=>{
+            contas=[]; snap.forEach(d=>contas.push({id:d.id,...d.data()}));
+            popularSelectsContas(); atualizarSaldosMini();
+            if(!$id('view-contas').classList.contains('hidden')) renderizarContas();
+        }, err=>erroFirestore(err,'contas'))
+    );
 }
 
 // Calcula saldo real de uma conta: saldo_inicial + receitas confirmadas - despesas confirmadas + transferencias recebidas - transferencias enviadas
@@ -1152,19 +1047,19 @@ function calcularSaldoConta(contaId){
 }
 
 function atualizarSaldosMini(){
-    const wrap=$id('lista-saldos-mini'); wrap.innerHTML='';
-    if(!contas.length){ wrap.innerHTML='<p class="text-xs text-gray-400">Nenhuma conta cadastrada.</p>'; return; }
-    contas.forEach(c=>{
+    const wrap=$id('lista-saldos-mini'); if(wrap){ wrap.innerHTML='';
+    if(!contas.length){ wrap.innerHTML='<p class="text-xs text-gray-400">Nenhuma conta cadastrada.</p>'; }
+    else{ contas.forEach(c=>{
         const saldo=calcularSaldoConta(c.id);
         const cor=CORES[c.cor||'blue'];
         wrap.innerHTML+=`<div class="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-100 bg-white shadow-sm">
             <span class="w-7 h-7 ${cor.bg} rounded-lg flex items-center justify-center text-sm shrink-0">${TIPO_ICONE[c.tipo]||'🏦'}</span>
             <div><p class="text-xs font-black text-gray-700 leading-tight">${c.nome}</p><p class="text-xs mono font-bold ${saldo>=0?'text-emerald-600':'text-rose-600'}">${fmt(saldo)}</p></div>
         </div>`;
-    });
-    // Atualiza total consolidado
+    }); } }
+    // Atualiza total consolidado (aba Contas)
     const total=contas.reduce((sum,c)=>sum+calcularSaldoConta(c.id),0);
-    $id('val-saldo-total').innerText=fmt(total);
+    const elTotal=$id('val-saldo-total'); if(elTotal) elTotal.innerText=fmt(total);
     $id('patrimonio-total-contas').innerText=fmt(total);
 }
 
@@ -1225,13 +1120,14 @@ $id('form-conta').addEventListener('submit', async e=>{
         toast('🏦 Conta salva!'); $id('modal-conta').classList.add('hidden');
     }catch(err){ erroFirestore(err,'conta'); }
 });
-window.deletarConta=async id=>{ if(!await confirmar('Excluir esta conta? Os lançamentos vinculados não serão excluídos.'))return; try{ await deleteDoc(doc(db,'contas',id)); toast('Conta removida.'); }catch{ toast('Erro.','erro'); } };
+window.deletarConta=async id=>{ if(!await confirmar('Excluir esta conta? Os lançamentos vinculados não serão excluídos.'))return; try{ await deleteDoc(doc(db,'contas',id)); toast('Conta removida.'); }catch(err){ erroFirestore(err,'delete'); } };
 
 // ── TRATAMENTO CENTRALIZADO DE ERROS FIRESTORE ───────────────────────────────
 function erroFirestore(err, contexto=''){
+    // Se não há usuário logado, erros de permissão são esperados (logout) — ignorar
+    if(!currentUser) return;
     console.error(`[Firestore ${contexto}]`, err);
     if(err.code==='permission-denied' || err.code==='PERMISSION_DENIED'){
-        // Mostra modal com instrução de como corrigir as regras
         const m = $id('modal-firestore-regras');
         if(m) m.classList.remove('hidden');
         return;
@@ -1250,15 +1146,17 @@ $id('form-transferencia').addEventListener('submit', async e=>{
         toast('↔️ Transferência registrada!'); $id('modal-transferencia').classList.add('hidden');
     }catch(err){ erroFirestore(err,'transferencia'); }
 });
-window.deletarTransferencia=async id=>{ if(!await confirmar('Remover esta transferência?'))return; try{ await deleteDoc(doc(db,'transferencias',id)); toast('Removida.'); }catch{ toast('Erro.','erro'); } };
+window.deletarTransferencia=async id=>{ if(!await confirmar('Remover esta transferência?'))return; try{ await deleteDoc(doc(db,'transferencias',id)); toast('Removida.'); }catch(err){ erroFirestore(err,'delete'); } };
 
 // ── CARTÕES ───────────────────────────────────────────────────────────────────
 function carregarCartoes(){
-    onSnapshot(query(collection(db,'cartoes'),where('userId','==',currentUser.uid)), snap=>{
-        cartoes=[]; snap.forEach(d=>cartoes.push({id:d.id,...d.data()}));
-        popularSelectsCartoes();
-        if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
-    });
+    _unsubscribers.push(
+        onSnapshot(query(collection(db,'cartoes'),where('userId','==',currentUser.uid)), snap=>{
+            cartoes=[]; snap.forEach(d=>cartoes.push({id:d.id,...d.data()}));
+            popularSelectsCartoes();
+            if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
+        }, err=>erroFirestore(err,'cartoes'))
+    );
 }
 function renderizarCartoes(){
     const cont=$id('lista-cartoes-container'), vazio=$id('cartoes-vazio');
@@ -1320,37 +1218,18 @@ $id('form-cartao').addEventListener('submit', async e=>{
         toast('💳 Cartão salvo!'); $id('modal-cartao').classList.add('hidden');
     }catch(err){ erroFirestore(err,'cartao'); }
 });
-window.deletarCartao=async id=>{ if(!await confirmar('Excluir este cartão?'))return; try{ await deleteDoc(doc(db,'cartoes',id)); toast('Cartão removido.'); }catch{ toast('Erro.','erro'); } };
+window.deletarCartao=async id=>{ if(!await confirmar('Excluir este cartão?'))return; try{ await deleteDoc(doc(db,'cartoes',id)); toast('Cartão removido.'); }catch(err){ erroFirestore(err,'delete'); } };
 
 // ── FILTROS DO EXTRATO ────────────────────────────────────────────────────────
-function atualizarFiltroCategorias(){
-    const sel=$id('filtro-categoria-lista'), val=sel.value;
-    const cats=[...new Set(transacoes.map(t=>t.categoria).filter(Boolean))].sort();
-    sel.innerHTML='<option value="">Todas categorias</option>';
-    cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.innerText=c; sel.appendChild(o); });
-    sel.value=val;
-}
+function atualizarFiltroCategorias(){ /* não utilizado — filtros removidos do operacional */ }
 function getTransacoesFiltradas(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
-    const busca=$id('busca-transacao').value.toLowerCase().trim();
-    const tipo=$id('filtro-tipo').value, status=$id('filtro-status').value;
-    const cat=$id('filtro-categoria-lista').value, contaFiltro=$id('filtro-conta-lista').value;
     return transacoes.filter(t=>{
         const[a,m]=t.data.split('-');
-        if(parseInt(m)!==mS||parseInt(a)!==aS) return false;
-        if(tipo&&t.tipo!==tipo) return false;
-        if(status&&t.status!==status) return false;
-        if(cat&&t.categoria!==cat) return false;
-        if(contaFiltro&&t.contaId!==contaFiltro) return false;
-        if(busca){ const h=`${t.desc} ${t.categoria} ${(t.tags||[]).join(' ')} ${contas.find(c=>c.id===t.contaId)?.nome||''}`.toLowerCase(); if(!h.includes(busca)) return false; }
-        return true;
+        return parseInt(m)===mS && parseInt(a)===aS;
     });
 }
-['busca-transacao','filtro-tipo','filtro-status','filtro-conta-lista','filtro-categoria-lista'].forEach(id=>{
-    const el=$id(id);
-    el.addEventListener('input',  ()=>{ paginaAtual=0; atualizarDashboard(); });
-    el.addEventListener('change', ()=>{ paginaAtual=0; atualizarDashboard(); });
-});
+
 
 // ── EXPORTAR CSV ──────────────────────────────────────────────────────────────
 $id('btn-exportar-csv').addEventListener('click',()=>{
@@ -1370,17 +1249,10 @@ $id('btn-exportar-csv').addEventListener('click',()=>{
 });
 
 // ── DARK MODE ─────────────────────────────────────────────────────────────────
-function aplicarDarkChart(){
-    const isDark=document.documentElement.classList.contains('dark');
-    Chart.defaults.color          = isDark ? '#94a3b8' : '#64748b';
-    Chart.defaults.borderColor    = isDark ? '#1e293b' : '#f1f5f9';
-    Chart.defaults.font.family    = "'DM Sans',sans-serif";
-}
 (()=>{
     const html=document.documentElement;
     const isDark=localStorage.getItem('finapp-dark')==='1';
     if(isDark) html.classList.add('dark');
-    aplicarDarkChart();
     const btnD=$id('btn-dark');
     if(btnD){
         btnD.innerText=isDark?'☀️':'🌙';
@@ -1388,15 +1260,11 @@ function aplicarDarkChart(){
             const on=html.classList.toggle('dark');
             localStorage.setItem('finapp-dark',on?'1':'0');
             btnD.innerText=on?'☀️':'🌙';
-            aplicarDarkChart();
-            // Re-render active charts
-            if(!$id('view-analytics').classList.contains('hidden'))  atualizarAnalytics();
             if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
         });
     }
 })();
 
-// ── SORT DO EXTRATO ───────────────────────────────────────────────────────────
 $id('extrato-sort')?.addEventListener('change',()=>{ paginaAtual=0; atualizarDashboard(); });
 
 // ── PDF EXPORT ────────────────────────────────────────────────────────────────
@@ -1487,40 +1355,22 @@ $id('btn-import-confirmar').addEventListener('click', async()=>{
         }
         toast(`✅ ${ok} transações importadas!`);
         $id('modal-importar').classList.add('hidden'); importRows=[];
-    }catch{ toast('Erro ao importar.','erro'); }
+    }catch(err){ erroFirestore(err,'importar'); }
     finally{ btn.disabled=false; btn.innerText=`✅ Importar ${importRows.length} transações`; }
 });
 
 // ── RESUMO SEMANAL ────────────────────────────────────────────────────────────
-function atualizarResumoSemanal(){
-    const hoje=new Date();
-    const diaSem=hoje.getDay(); // 0=dom
-    const inicioSem=new Date(hoje); inicioSem.setDate(hoje.getDate()-diaSem); inicioSem.setHours(0,0,0,0);
-    const fimSem=new Date(inicioSem); fimSem.setDate(inicioSem.getDate()+6);
-    const strInicio=`${inicioSem.getFullYear()}-${String(inicioSem.getMonth()+1).padStart(2,'0')}-${String(inicioSem.getDate()).padStart(2,'0')}`;
-    const strFim=`${fimSem.getFullYear()}-${String(fimSem.getMonth()+1).padStart(2,'0')}-${String(fimSem.getDate()).padStart(2,'0')}`;
-    let dSem=0, rSem=0, cats={};
-    transacoes.forEach(t=>{
-        if(t.data<strInicio||t.data>strFim||t.tipo==='transferencia')return;
-        if(t.tipo==='despesa'&&t.status==='confirmada'){dSem+=t.valor;cats[t.categoria]=(cats[t.categoria]||0)+t.valor;}
-        if(t.tipo==='receita'&&t.status==='confirmada') rSem+=t.valor;
-    });
-    $id('sem-desp').innerText=fmt(dSem);
-    $id('sem-rec').innerText=`+${fmt(rSem)}`;
-    const topCat=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
-    $id('sem-top-cat').innerText=topCat?`${topCat[0]} (${fmt(topCat[1])})`:'-';
-    const diasNome=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-    $id('sem-desc').innerText=`${diasNome[inicioSem.getDay()]} ${fmtData(strInicio)} a ${diasNome[fimSem.getDay()]} ${fmtData(strFim)} · ${Object.keys(cats).length} categoria${Object.keys(cats).length!==1?'s':''}`;
-}
 
 // ── CATEGORIAS PERSONALIZADAS ─────────────────────────────────────────────────
 function carregarCategoriasCustom(){
     if(!currentUser)return;
-    onSnapshot(query(collection(db,'categorias'),where('userId','==',currentUser.uid)), snap=>{
-        categoriasCustom=[]; snap.forEach(d=>categoriasCustom.push({id:d.id,...d.data()}));
-        popularSelectsCategorias();
-        if(!$id('view-categorias').classList.contains('hidden')) renderizarCategoriasCustom();
-    });
+    _unsubscribers.push(
+        onSnapshot(query(collection(db,'categorias'),where('userId','==',currentUser.uid)), snap=>{
+            categoriasCustom=[]; snap.forEach(d=>categoriasCustom.push({id:d.id,...d.data()}));
+            popularSelectsCategorias();
+            if(!$id('view-categorias').classList.contains('hidden')) renderizarCategoriasCustom();
+        }, err=>erroFirestore(err,'categorias'))
+    );
 }
 function popularSelectsCategorias(){
     // Popula todos os selects de categoria com as categorias custom
@@ -1561,7 +1411,7 @@ $id('form-categoria').addEventListener('submit', async e=>{
         toast('🏷️ Categoria criada!'); $id('modal-categoria').classList.add('hidden');
     }catch(err){ erroFirestore(err,'categoria'); }
 });
-window.deletarCategoriaCustom=async id=>{ if(!await confirmar('Remover esta categoria?'))return; try{ await deleteDoc(doc(db,'categorias',id)); toast('Categoria removida.'); }catch{ toast('Erro.','erro'); } };
+window.deletarCategoriaCustom=async id=>{ if(!await confirmar('Remover esta categoria?'))return; try{ await deleteDoc(doc(db,'categorias',id)); toast('Categoria removida.'); }catch(err){ erroFirestore(err,'delete'); } };
 
 
 function atualizarDashboard(){
@@ -1646,13 +1496,80 @@ function atualizarDashboard(){
     const pw=$id('paginacao-wrap');
     if(totalPags>1){ pw.classList.remove('hidden'); $id('pag-info').innerText=`${paginaAtual+1} / ${totalPags}`; $id('btn-pag-ant').disabled=paginaAtual===0; $id('btn-pag-prox').disabled=paginaAtual>=totalPags-1; }
     else pw.classList.add('hidden');
+    atualizarPizzas();
 }
 $id('btn-pag-ant').onclick  = ()=>{ paginaAtual--; atualizarDashboard(); $id('lista-transacoes').scrollIntoView({behavior:'smooth',block:'start'}); };
 $id('btn-pag-prox').onclick = ()=>{ paginaAtual++; atualizarDashboard(); $id('lista-transacoes').scrollIntoView({behavior:'smooth',block:'start'}); };
 
+// ── GRÁFICOS DE PIZZA ─────────────────────────────────────────────────────────
+let pizzaDesp=null, pizzaRec=null;
+const PIZZA_CORES=['#f43f5e','#f59e0b','#3b82f6','#10b981','#8b5cf6','#64748b','#ec4899','#14b8a6','#f97316','#06b6d4'];
+
+function atualizarPizzas(){
+    const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
+    const catDesp={}, catRec={};
+    transacoes.forEach(t=>{
+        if(t.status!=='confirmada'||t.tipo==='transferencia') return;
+        const[a,m]=t.data.split('-');
+        if(parseInt(m)!==mS||parseInt(a)!==aS) return;
+        if(t.tipo==='despesa') catDesp[t.categoria]=(catDesp[t.categoria]||0)+t.valor;
+        else catRec[t.categoria]=(catRec[t.categoria]||0)+t.valor;
+    });
+
+    // Pizza despesas
+    const elD=$id('pizza-despesas'), vzD=$id('pizza-despesas-vazio');
+    if(pizzaDesp){ pizzaDesp.destroy(); pizzaDesp=null; }
+    if(!Object.keys(catDesp).length){
+        vzD.classList.remove('hidden');
+    } else {
+        vzD.classList.add('hidden');
+        const totalD=Object.values(catDesp).reduce((a,b)=>a+b,0);
+        pizzaDesp=new Chart(elD.getContext('2d'),{
+            type:'doughnut',
+            data:{
+                labels:Object.keys(catDesp).map((k,i)=>`${k} (${((catDesp[k]/totalD)*100).toFixed(0)}%)`),
+                datasets:[{data:Object.values(catDesp),backgroundColor:PIZZA_CORES,borderWidth:2,borderColor:'#fff',hoverOffset:6}]
+            },
+            options:{
+                responsive:true,maintainAspectRatio:false,
+                cutout:'58%',
+                plugins:{
+                    legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:6}},
+                    tooltip:{callbacks:{label:c=>`  ${fmt(c.raw)}  (${((c.raw/totalD)*100).toFixed(1)}%)`}}
+                }
+            }
+        });
+    }
+
+    // Pizza receitas
+    const elR=$id('pizza-receitas'), vzR=$id('pizza-receitas-vazio');
+    if(pizzaRec){ pizzaRec.destroy(); pizzaRec=null; }
+    if(!Object.keys(catRec).length){
+        vzR.classList.remove('hidden');
+    } else {
+        vzR.classList.add('hidden');
+        const totalR=Object.values(catRec).reduce((a,b)=>a+b,0);
+        pizzaRec=new Chart(elR.getContext('2d'),{
+            type:'doughnut',
+            data:{
+                labels:Object.keys(catRec).map((k,i)=>`${k} (${((catRec[k]/totalR)*100).toFixed(0)}%)`),
+                datasets:[{data:Object.values(catRec),backgroundColor:['#10b981','#3b82f6','#f59e0b','#8b5cf6','#f43f5e','#64748b','#ec4899','#14b8a6','#f97316','#06b6d4'],borderWidth:2,borderColor:'#fff',hoverOffset:6}]
+            },
+            options:{
+                responsive:true,maintainAspectRatio:false,
+                cutout:'58%',
+                plugins:{
+                    legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:6}},
+                    tooltip:{callbacks:{label:c=>`  ${fmt(c.raw)}  (${((c.raw/totalR)*100).toFixed(1)}%)`}}
+                }
+            }
+        });
+    }
+}
+
 // ── PATRIMÔNIO ────────────────────────────────────────────────────────────────
 function atualizarPatrimonio(){
-    aplicarDarkChart();
+    Chart.defaults.font.family="'DM Sans',sans-serif";
     let totalRec=0,totalDesp=0; const porMes={};
     transacoes.forEach(t=>{
         if(t.status!=='confirmada'||t.tipo==='transferencia')return;
@@ -1678,7 +1595,7 @@ function atualizarPatrimonio(){
 }
 
 // ── METAS ─────────────────────────────────────────────────────────────────────
-function carregarMetas(){ onSnapshot(query(collection(db,'metas'),where('userId','==',currentUser.uid)),snap=>{ metas=[]; snap.forEach(d=>metas.push({id:d.id,...d.data()})); if(!$id('view-metas').classList.contains('hidden')) atualizarMetas(); }); }
+function carregarMetas(){ _unsubscribers.push(onSnapshot(query(collection(db,'metas'),where('userId','==',currentUser.uid)),snap=>{ metas=[]; snap.forEach(d=>metas.push({id:d.id,...d.data()})); if(!$id('view-metas').classList.contains('hidden')) atualizarMetas(); }, err=>erroFirestore(err,'metas'))); }
 function atualizarMetas(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
     const gastosCat={};
@@ -1696,59 +1613,7 @@ function atualizarMetas(){
 }
 $id('btn-nova-meta').onclick=()=>{ $id('form-meta').reset(); $id('modal-meta').classList.remove('hidden'); };
 $id('form-meta').addEventListener('submit', async e=>{ e.preventDefault(); const cat=$id('meta-categoria').value; if(metas.find(m=>m.categoria===cat)){ toast('Já existe meta para esta categoria.','aviso'); return; } try{ await addDoc(collection(db,'metas'),{userId:currentUser.uid,categoria:cat,valor:parseFloat($id('meta-valor').value),criadoEm:new Date().toISOString()}); toast('🎯 Meta criada!'); $id('modal-meta').classList.add('hidden'); }catch(err){ erroFirestore(err,'meta'); } });
-window.deletarMeta=async id=>{ if(!await confirmar('Remover esta meta?'))return; try{ await deleteDoc(doc(db,'metas',id)); toast('Meta removida.'); }catch{ toast('Erro.','erro'); } };
-
-// ── ANALYTICS ─────────────────────────────────────────────────────────────────
-function atualizarAnalytics(){
-    aplicarDarkChart();
-    const mSel=parseInt($id('filtro-mes').value), aSel=parseInt($id('filtro-ano').value);
-    let mAnt=mSel-1, aAnt=aSel; if(mAnt===0){mAnt=12;aAnt--;}
-    let dAt=0,dAn=0,cAt={},cAn={},mEvo={};
-    for(let i=5;i>=0;i--){ const d=new Date(aSel,mSel-1-i,1); mEvo[`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`]={r:0,d:0}; }
-    transacoes.forEach(t=>{
-        if(t.tipo==='transferencia')return;
-        const[ano,mes]=t.data.split('-'); const a=parseInt(ano),m=parseInt(mes); const ch=`${a}-${String(m).padStart(2,'0')}`;
-        if(mEvo[ch]&&t.status==='confirmada'){ if(t.tipo==='receita')mEvo[ch].r+=t.valor; else mEvo[ch].d+=t.valor; }
-        if(t.tipo==='despesa'&&t.status==='confirmada'){
-            if(a===aSel&&m===mSel){dAt+=t.valor;cAt[t.categoria]=(cAt[t.categoria]||0)+t.valor;}
-            if(a===aAnt&&m===mAnt){dAn+=t.valor;cAn[t.categoria]=(cAn[t.categoria]||0)+t.valor;}
-        }
-    });
-    const mC=$id('insight-comparativo');
-    if(dAn>0){ const d=((dAt-dAn)/dAn)*100; mC.innerHTML=d>0?`Despesas <strong class="text-rose-600">${d.toFixed(1)}% maiores</strong> que mês anterior.`:`Despesas <strong class="text-emerald-600">${Math.abs(d).toFixed(1)}% menores</strong> que mês anterior.`; }
-    else mC.innerHTML='Sem histórico do mês anterior.';
-    let mA=-999,pC=''; for(let c in cAt){ if(cAn[c]>0){ const p=((cAt[c]-cAn[c])/cAn[c])*100; if(p>mA&&p>0){mA=p;pC=c;} } }
-    $id('insight-categoria').innerHTML=mA>0?`Atenção: <strong class="text-rose-700">${pC}</strong> subiu <strong class="text-rose-600">${mA.toFixed(1)}%</strong> vs mês anterior.`:'Sem anomalias detectadas. ✅';
-    Chart.defaults.font.family="'DM Sans',sans-serif";
-    const lMap={'01':'Jan','02':'Fev','03':'Mar','04':'Abr','05':'Mai','06':'Jun','07':'Jul','08':'Ago','09':'Set','10':'Out','11':'Nov','12':'Dez'};
-    const ctxCat=$id('categoryChartAnalytics').getContext('2d');
-    if(donutInst)donutInst.destroy();
-    const av=$id('grafico-vazio');
-    if(!Object.keys(cAt).length){ av.classList.remove('hidden'); }
-    else{
-        av.classList.add('hidden');
-        const tC=Object.values(cAt).reduce((a,b)=>a+b,0);
-        const CORES_CHART=['#f43f5e','#f59e0b','#3b82f6','#10b981','#8b5cf6','#64748b','#ec4899','#14b8a6'];
-        donutInst=new Chart(ctxCat,{
-            type:'doughnut',
-            data:{
-                labels:Object.keys(cAt).map((k,i)=>`${k} (${((cAt[k]/tC)*100).toFixed(0)}%)`),
-                datasets:[{data:Object.values(cAt),backgroundColor:CORES_CHART,borderWidth:2,borderColor:'#fff'}]
-            },
-            options:{
-                responsive:true,maintainAspectRatio:false,
-                plugins:{
-                    legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:6,generateLabels:chart=>chart.data.labels.map((l,i)=>({text:l,fillStyle:CORES_CHART[i%CORES_CHART.length],strokeStyle:'#fff',lineWidth:1,index:i}))}},
-                    tooltip:{callbacks:{label:c=>` ${fmt(c.raw)}  (${((c.raw/tC)*100).toFixed(1)}%)`}}
-                },
-                cutout:'50%'
-            }
-        });
-    }
-    const ctxLin=$id('lineChartEvolucao').getContext('2d');
-    if(lineInst)lineInst.destroy();
-    lineInst=new Chart(ctxLin,{type:'line',data:{labels:Object.keys(mEvo).map(k=>lMap[k.split('-')[1]]),datasets:[{label:'Receitas',data:Object.keys(mEvo).map(k=>mEvo[k].r),borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.08)',fill:true,tension:.35,pointBackgroundColor:'#10b981',pointRadius:4},{label:'Despesas',data:Object.keys(mEvo).map(k=>mEvo[k].d),borderColor:'#f43f5e',borderDash:[5,5],tension:.35,pointBackgroundColor:'#f43f5e',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11},boxWidth:12}}},scales:{y:{ticks:{callback:v=>fmt(v),font:{size:10}}}}}});
-}
+window.deletarMeta=async id=>{ if(!await confirmar('Remover esta meta?'))return; try{ await deleteDoc(doc(db,'metas',id)); toast('Meta removida.'); }catch(err){ erroFirestore(err,'delete'); } };
 
 // ── NOTIFICAÇÕES ──────────────────────────────────────────────────────────────
 function gerenciarNotificacoes(){
@@ -1784,7 +1649,7 @@ function gerenciarNotificacoes(){
 }
 
 // ── RECORRENTES ───────────────────────────────────────────────────────────────
-function carregarRecorrentes(){ onSnapshot(query(collection(db,'recorrentes'),where('userId','==',currentUser.uid)),snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); if(!$id('view-recorrentes').classList.contains('hidden')) renderizarRecorrentes(); }); }
+function carregarRecorrentes(){ _unsubscribers.push(onSnapshot(query(collection(db,'recorrentes'),where('userId','==',currentUser.uid)),snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); if(!$id('view-recorrentes').classList.contains('hidden')) renderizarRecorrentes(); }, err=>erroFirestore(err,'recorrentes'))); }
 function renderizarRecorrentes(){
     const cont=$id('lista-recorrentes-container'), vazio=$id('recorrentes-vazio'); cont.innerHTML='';
     if(!recorrentes.length){ vazio.classList.remove('hidden'); return; } vazio.classList.add('hidden');
@@ -1792,19 +1657,18 @@ function renderizarRecorrentes(){
 }
 $id('btn-nova-recorrente').onclick=()=>{ $id('form-recorrente').reset(); $id('modal-recorrente').classList.remove('hidden'); };
 $id('form-recorrente').addEventListener('submit', async e=>{ e.preventDefault(); try{ await addDoc(collection(db,'recorrentes'),{userId:currentUser.uid,tipo:$id('rec-tipo').value,valor:parseFloat($id('rec-valor').value),dia:parseInt($id('rec-dia').value),categoria:$id('rec-categoria').value,desc:$id('rec-desc').value.trim(),status:$id('rec-status').value,criadoEm:new Date().toISOString()}); toast('🔁 Recorrente salva!'); $id('modal-recorrente').classList.add('hidden'); }catch(err){ erroFirestore(err,'recorrente'); } });
-window.deletarRecorrente=async id=>{ if(!await confirmar('Remover esta recorrente?'))return; try{ await deleteDoc(doc(db,'recorrentes',id)); toast('Removida.'); }catch{ toast('Erro.','erro'); } };
+window.deletarRecorrente=async id=>{ if(!await confirmar('Remover esta recorrente?'))return; try{ await deleteDoc(doc(db,'recorrentes',id)); toast('Removida.'); }catch(err){ erroFirestore(err,'delete'); } };
 $id('btn-aplicar-recorrentes').addEventListener('click', async()=>{
     if(!recorrentes.length){ toast('Nenhuma recorrente cadastrada.','aviso'); return; }
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
     const btn=$id('btn-aplicar-recorrentes'); btn.disabled=true; btn.innerText='Aplicando...'; let criados=0;
-    try{ for(const r of recorrentes){ const dia=Math.min(r.dia,new Date(aS,mS,0).getDate()); const ds=`${aS}-${String(mS).padStart(2,'0')}-${String(dia).padStart(2,'0')}`; const existe=transacoes.find(t=>t.desc===r.desc&&t.data===ds&&Math.abs(t.valor-r.valor)<0.01); if(!existe){ await addDoc(collection(db,'transacoes'),{userId:currentUser.uid,tipo:r.tipo,data:ds,valor:r.valor,desc:r.desc,categoria:r.categoria,status:r.status,tags:['recorrente'],criadoEm:new Date().toISOString()}); criados++; } } toast(criados>0?`✅ ${criados} lançamento(s) criados!`:'Recorrentes já aplicadas neste mês.',criados>0?'sucesso':'aviso'); }catch{ toast('Erro ao aplicar.','erro'); }
+    try{ for(const r of recorrentes){ const dia=Math.min(r.dia,new Date(aS,mS,0).getDate()); const ds=`${aS}-${String(mS).padStart(2,'0')}-${String(dia).padStart(2,'0')}`; const existe=transacoes.find(t=>t.desc===r.desc&&t.data===ds&&Math.abs(t.valor-r.valor)<0.01); if(!existe){ await addDoc(collection(db,'transacoes'),{userId:currentUser.uid,tipo:r.tipo,data:ds,valor:r.valor,desc:r.desc,categoria:r.categoria,status:r.status,tags:['recorrente'],criadoEm:new Date().toISOString()}); criados++; } } toast(criados>0?`✅ ${criados} lançamento(s) criados!`:'Recorrentes já aplicadas neste mês.',criados>0?'sucesso':'aviso'); }catch(err){ erroFirestore(err,'recorrentes-aplicar'); }
     finally{ btn.disabled=false; btn.innerText='✅ Aplicar ao Mês Selecionado'; }
 });
 
 // ── FILTROS GERAIS ────────────────────────────────────────────────────────────
 function onFiltroChange(){
     paginaAtual=0; atualizarDashboard(); gerenciarNotificacoes();
-    if(!$id('view-analytics').classList.contains('hidden'))  atualizarAnalytics();
     if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
     if(!$id('view-metas').classList.contains('hidden'))      atualizarMetas();
     if(!$id('view-cartoes').classList.contains('hidden'))    renderizarCartoes();
