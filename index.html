@@ -296,7 +296,6 @@ self.addEventListener('fetch',e=>{
                     <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">💳 Cartões</button>
                     <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📈 Patrimônio</button>
                     <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🎯 Metas</button>
-                    <button data-tab="recorrentes" class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔁 Recorrentes</button>
                     <button data-tab="categorias"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏷️ Categorias</button>
                 </div>
             </div>
@@ -455,13 +454,75 @@ self.addEventListener('fetch',e=>{
 
         <!-- ════ PATRIMÔNIO ════ -->
         <div id="view-patrimonio" class="hidden fade-in">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 mb-5">
-                <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border-l-4 border-blue-500"><p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Saldo Acumulado</p><p class="text-2xl sm:text-3xl font-black mono leading-tight" id="pat-saldo-acumulado">R$ 0,00</p><p class="text-xs text-gray-400 mt-1">Histórico confirmado</p></div>
-                <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border-l-4 border-emerald-500"><p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Recebido</p><p class="text-2xl sm:text-3xl font-black text-emerald-600 mono leading-tight" id="pat-total-receitas">R$ 0,00</p><p class="text-xs text-gray-400 mt-1">Receitas confirmadas</p></div>
-                <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border-l-4 border-rose-500"><p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Gasto</p><p class="text-2xl sm:text-3xl font-black text-rose-600 mono leading-tight" id="pat-total-despesas">R$ 0,00</p><p class="text-xs text-gray-400 mt-1">Despesas confirmadas</p></div>
+
+            <!-- Hero — Patrimônio Líquido -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 sm:p-6 mb-4 text-white shadow-lg">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">💼 Patrimônio Líquido Acumulado</p>
+                        <p class="text-4xl sm:text-5xl font-black mono leading-none" id="pat-liquido-total">R$ 0,00</p>
+                        <p class="text-slate-400 text-xs mt-2">Soma de todo o histórico confirmado (receitas − despesas)</p>
+                    </div>
+                    <div class="flex flex-row sm:flex-col gap-3 sm:gap-2 sm:text-right shrink-0">
+                        <div class="bg-white/10 rounded-xl px-4 py-3 flex-1 sm:flex-none">
+                            <p class="text-slate-400 text-xs font-bold uppercase">vs Mês Anterior</p>
+                            <p class="font-black text-xl mono mt-0.5" id="pat-var-mes">—</p>
+                        </div>
+                        <div class="bg-white/10 rounded-xl px-4 py-3 flex-1 sm:flex-none">
+                            <p class="text-slate-400 text-xs font-bold uppercase">Sobra do Mês</p>
+                            <p class="font-black text-xl mono mt-0.5" id="pat-sobra-mes">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100 mb-5"><h2 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-4">Receita vs Despesa — Últimos 12 Meses</h2><div class="relative h-60 sm:h-72"><canvas id="barChartPatrimonio"></canvas></div></div>
-            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100"><h2 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-4">Resultado por Mês</h2><div id="tabela-saldo-mensal" class="space-y-2 max-h-80 overflow-y-auto"></div></div>
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+                <div class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-blue-500">
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">💰 Saldo Atual nas Contas</p>
+                    <p class="text-2xl font-black mono leading-tight" id="pat-saldo-contas">R$ 0,00</p>
+                    <p class="text-xs text-gray-400 mt-1">Soma real de todas as contas cadastradas</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-emerald-500">
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📈 Total Recebido</p>
+                    <p class="text-2xl font-black text-emerald-600 mono leading-tight" id="pat-total-receitas">R$ 0,00</p>
+                    <p class="text-xs text-gray-400 mt-1">Todas as receitas confirmadas</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-rose-500">
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📉 Total Gasto</p>
+                    <p class="text-2xl font-black text-rose-600 mono leading-tight" id="pat-total-despesas">R$ 0,00</p>
+                    <p class="text-xs text-gray-400 mt-1">Todas as despesas confirmadas</p>
+                </div>
+            </div>
+
+            <!-- Gráfico evolução patrimônio (linha) -->
+            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100 mb-4">
+                <div class="flex items-start justify-between mb-1">
+                    <div>
+                        <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider">Evolução do Patrimônio</h2>
+                        <p class="text-xs text-gray-300 mt-0.5">Saldo acumulado mês a mês (sobras somadas)</p>
+                    </div>
+                    <span class="text-xs text-gray-300 font-medium">12 meses</span>
+                </div>
+                <div class="relative h-56 sm:h-64 mt-3">
+                    <canvas id="lineChartPatrimonio"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico barras Receita vs Despesa -->
+            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100 mb-4">
+                <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-1">Receita vs Despesa</h2>
+                <p class="text-xs text-gray-300 mb-3">Últimos 12 meses · valores confirmados</p>
+                <div class="relative h-52 sm:h-64">
+                    <canvas id="barChartPatrimonio"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabela mensal com variação -->
+            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
+                <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-4">Resultado por Mês</h2>
+                <div id="tabela-saldo-mensal" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
         </div>
 
         <!-- ════ METAS ════ -->
@@ -474,17 +535,6 @@ self.addEventListener('fetch',e=>{
             <div id="metas-vazio" class="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center"><span class="text-4xl">🎯</span><p class="text-gray-400 font-medium mt-3">Nenhuma meta cadastrada.</p></div>
         </div>
 
-        <!-- ════ RECORRENTES ════ -->
-        <div id="view-recorrentes" class="hidden fade-in">
-            <div class="flex justify-between items-start mb-4 gap-3">
-                <div><h2 class="text-lg font-black text-gray-800">🔁 Recorrentes</h2><p class="text-sm text-gray-400 mt-0.5">Despesas e receitas fixas mensais.</p></div>
-                <button id="btn-nova-recorrente" class="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700 active:scale-95 transition shadow-sm whitespace-nowrap">+ Nova</button>
-            </div>
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 mb-4 text-amber-800 text-sm font-medium flex items-start gap-3"><span class="text-xl shrink-0 mt-0.5">💡</span><span>As recorrentes <strong>não são lançadas automaticamente</strong>. Clique em <strong>"Aplicar ao Mês"</strong> para gerar.</span></div>
-            <div id="lista-recorrentes-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5"></div>
-            <div id="recorrentes-vazio" class="hidden bg-white rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center"><span class="text-4xl">🔁</span><p class="text-gray-400 font-medium mt-3">Nenhuma recorrente cadastrada.</p></div>
-            <div class="flex justify-end"><button id="btn-aplicar-recorrentes" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-black hover:bg-emerald-700 active:scale-95 transition shadow-md text-sm">✅ Aplicar ao Mês Selecionado</button></div>
-        </div>
         <!-- ════ CATEGORIAS ════ -->
         <div id="view-categorias" class="hidden fade-in">
             <div class="flex justify-between items-start mb-4 gap-3">
@@ -556,6 +606,24 @@ self.addEventListener('fetch',e=>{
                     <input type="text" id="input-desc" placeholder="Ex: Supermercado Atacadão" class="input-field" autocomplete="off" required>
                 </div>
                 <div><label class="label-xs">Tags <span class="normal-case font-normal text-gray-300">(vírgula)</span></label><input type="text" id="input-tags" placeholder="nubank, viagem, fixo" class="input-field"></div>
+
+                <!-- Toggle Recorrente -->
+                <div id="recorrente-wrap" class="border border-indigo-200 bg-indigo-50 rounded-xl p-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-black text-indigo-700 uppercase tracking-wider">🔁 Lançamento Recorrente</p>
+                            <p class="text-xs text-indigo-400 mt-0.5">Repetir todo mês automaticamente</p>
+                        </div>
+                        <button type="button" id="btn-toggle-recorrente" class="w-12 h-6 rounded-full bg-gray-200 relative transition-colors duration-200 focus:outline-none" role="switch" aria-checked="false">
+                            <span id="toggle-rec-knob" class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200"></span>
+                        </button>
+                    </div>
+                    <div id="rec-fields" class="hidden mt-3 grid grid-cols-2 gap-3">
+                        <div><label class="label-xs">Dia do mês</label><input type="number" id="input-rec-dia" min="1" max="31" placeholder="Ex: 5" class="input-field"></div>
+                        <div><label class="label-xs">Status ao repetir</label><select id="input-rec-status" class="input-field"><option value="pendente">⏳ Pendente</option><option value="confirmada">✔️ Confirmada</option></select></div>
+                    </div>
+                </div>
+
                 <button type="submit" id="btn-submit-form" class="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md text-base">Salvar Transação</button>
             </form>
         </div>
@@ -650,33 +718,6 @@ self.addEventListener('fetch',e=>{
     </div>
 </div>
 
-<!-- ════ MODAL RECORRENTE ════ -->
-<div id="modal-recorrente" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-    <div class="modal-inner bg-white w-full sm:max-w-md sm:rounded-2xl shadow-2xl border-t-4 border-indigo-500">
-        <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🔁 Nova Recorrente</h2><button id="btn-fechar-modal-rec" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
-            <form id="form-recorrente" class="space-y-3.5">
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="label-xs">Tipo</label><select id="rec-tipo" class="input-field"><option value="despesa">💸 Saída</option><option value="receita">💰 Entrada</option></select></div>
-                    <div><label class="label-xs">Valor (R$)</label><input type="number" id="rec-valor" step="0.01" min="0.01" placeholder="0,00" class="input-field text-xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="label-xs">Dia do mês</label><input type="number" id="rec-dia" min="1" max="31" placeholder="Ex: 5" class="input-field" required></div>
-                    <div><label class="label-xs">Categoria</label><select id="rec-categoria" class="input-field">
-                        <option value="Alimentação">🍽️ Alimentação</option><option value="Transporte">🚗 Transporte</option>
-                        <option value="Moradia">🏠 Moradia</option><option value="Cartão de Crédito">💳 Cartão de Crédito</option>
-                        <option value="Lazer">🎮 Lazer</option><option value="Saúde">❤️ Saúde</option>
-                        <option value="Educação">📚 Educação</option><option value="Assinaturas">📱 Assinaturas</option>
-                        <option value="Salário/Vendas">💼 Salário/Vendas</option><option value="Outros">📦 Outros</option>
-                    </select></div>
-                </div>
-                <div><label class="label-xs">Descrição</label><input type="text" id="rec-desc" placeholder="Aluguel, Netflix, Salário..." class="input-field" autocomplete="off" required></div>
-                <div><label class="label-xs">Status ao aplicar</label><select id="rec-status" class="input-field"><option value="pendente">⏳ Pendente</option><option value="confirmada">✔️ Confirmada</option></select></div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-xl hover:bg-indigo-700 active:scale-95 transition font-black shadow-md">Salvar Recorrente</button>
-            </form>
-        </div>
-    </div>
-</div>
 
 <!-- ════ MODAL NOVA CATEGORIA ════ -->
 <div id="modal-categoria" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
@@ -818,7 +859,7 @@ function toast(msg, tipo='sucesso'){
 function confirmar(msg){ return new Promise(r=>{ const m=$id('confirm-modal'); $id('confirm-msg').innerText=msg; m.classList.remove('hidden'); const y=$id('confirm-yes'),n=$id('confirm-no'); const done=v=>{ m.classList.add('hidden'); y.onclick=n.onclick=null; r(v); }; y.onclick=()=>done(true); n.onclick=()=>done(false); }); }
 
 // ── TABS ─────────────────────────────────────────────────────────────────────
-const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', patrimonio:'view-patrimonio', metas:'view-metas', recorrentes:'view-recorrentes', categorias:'view-categorias' };
+const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', patrimonio:'view-patrimonio', metas:'view-metas', categorias:'view-categorias' };
 function setTab(ativa){
     document.querySelectorAll('.tab-btn').forEach(b=>b.className=b.className.replace('tab-active','tab-inactive'));
     document.querySelectorAll('[id^="view-"]').forEach(v=>v.classList.add('hidden'));
@@ -828,7 +869,6 @@ function setTab(ativa){
     paginaAtual=0;
     if(ativa==='patrimonio') atualizarPatrimonio();
     if(ativa==='metas')      atualizarMetas();
-    if(ativa==='recorrentes')renderizarRecorrentes();
     if(ativa==='contas')     renderizarContas();
     if(ativa==='cartoes')    renderizarCartoes();
     if(ativa==='categorias') renderizarCategoriasCustom();
@@ -836,7 +876,7 @@ function setTab(ativa){
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 
 // ── MODAIS HELPERS ────────────────────────────────────────────────────────────
-const todosModais = ['modal-transacao','modal-conta','modal-transferencia','modal-cartao','modal-meta','modal-recorrente','modal-categoria','modal-importar'];
+const todosModais = ['modal-transacao','modal-conta','modal-transferencia','modal-cartao','modal-meta','modal-categoria','modal-importar'];
 function fecharTodosModais(){ todosModais.forEach(id=>$id(id)?.classList.add('hidden')); }
 todosModais.forEach(id=>{ const m=$id(id); if(m) m.addEventListener('click',e=>{ if(e.target===m) m.classList.add('hidden'); }); });
 $id('btn-fechar-modal').onclick       = ()=>$id('modal-transacao').classList.add('hidden');
@@ -844,7 +884,6 @@ $id('btn-fechar-modal-conta').onclick = ()=>$id('modal-conta').classList.add('hi
 $id('btn-fechar-modal-transf').onclick= ()=>$id('modal-transferencia').classList.add('hidden');
 $id('btn-fechar-modal-cartao').onclick= ()=>$id('modal-cartao').classList.add('hidden');
 $id('btn-fechar-modal-meta').onclick  = ()=>$id('modal-meta').classList.add('hidden');
-$id('btn-fechar-modal-rec').onclick   = ()=>$id('modal-recorrente').classList.add('hidden');
 $id('btn-fechar-modal-cat').onclick   = ()=>$id('modal-categoria').classList.add('hidden');
 $id('btn-fechar-modal-imp').onclick   = ()=>$id('modal-importar').classList.add('hidden');
 const _btnRegras=$id('btn-fechar-regras'); if(_btnRegras) _btnRegras.onclick=()=>$id('modal-firestore-regras').classList.add('hidden');
@@ -887,6 +926,8 @@ function abrirModalNovo(){
     $id('input-data').value=hojeStr();
     $id('parcelas-row').classList.remove('hidden');
     $id('cartao-select-wrap').classList.add('hidden');
+    $id('recorrente-wrap').classList.remove('hidden');
+    if(window._resetToggleRec) window._resetToggleRec();
     $id('modal-transacao').classList.remove('hidden');
 }
 function abrirModalEditar(t){
@@ -905,6 +946,9 @@ function abrirModalEditar(t){
     $id('input-cartao').value=t.cartaoId||'';
     $id('parcelas-row').classList.add('hidden');
     $id('cartao-select-wrap').classList.toggle('hidden', t.categoria!=='Cartão de Crédito');
+    // Oculta bloco recorrente na edição
+    $id('recorrente-wrap').classList.add('hidden');
+    if(window._resetToggleRec) window._resetToggleRec();
     $id('modal-transacao').classList.remove('hidden');
 }
 window.abrirEditar = id=>{ const t=transacoes.find(x=>x.id===id); if(t) abrirModalEditar(t); };
@@ -934,19 +978,21 @@ onAuthStateChanged(auth, user=>{
         $id('login-screen').classList.add('hidden'); $id('dashboard-screen').classList.remove('hidden');
         $id('btn-fab').classList.remove('hidden'); $id('input-data').value=hojeStr();
         iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom();
+        // Auto-lança recorrentes do dia após dados carregarem
+        setTimeout(()=>aplicarRecorrentesAuto(), 3000);
     }else{
         // Cancela todos os listeners ativos antes de limpar o estado
         _unsubscribers.forEach(unsub=>{ try{ unsub(); }catch(_){} });
         _unsubscribers=[];
         // Limpa estado local
         transacoes=[]; contas=[]; cartoes=[]; transferencias=[];
-        metas=[]; recorrentes=[]; categoriasCustom=[];
+        metas=[]; categoriasCustom=[];
         currentUser=null;
         $id('dashboard-screen').classList.add('hidden');
         $id('login-screen').classList.remove('hidden');
         $id('btn-fab').classList.add('hidden');
         // Fecha qualquer modal aberto
-        ['modal-transacao','modal-conta','modal-cartao','modal-meta','modal-recorrente','modal-categoria','modal-importar','modal-firestore-regras'].forEach(id=>$id(id)?.classList.add('hidden'));
+        ['modal-transacao','modal-conta','modal-cartao','modal-meta','modal-categoria','modal-importar','modal-firestore-regras'].forEach(id=>$id(id)?.classList.add('hidden'));
     }
 });
 $id('auth-form').addEventListener('submit', async e=>{ e.preventDefault();
@@ -1009,9 +1055,29 @@ $id('form-transacao').addEventListener('submit', async e=>{
                 const ds=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
                 await addDoc(collection(db,'transacoes'),{...payload,valor:vPar,data:ds,status:(par>1&&i>0)?'pendente':payload.status,desc:payload.desc+(par>1?` (${i+1}/${par})`:''),criadoEm:new Date().toISOString()});
             }
-            toast(par>1?`✅ ${par}x lançadas!`:'✅ Salva!');
+            // Salvar como recorrente se toggle ativo
+            const recAtivo=$id('btn-toggle-recorrente')?.getAttribute('aria-checked')==='true';
+            if(recAtivo && par===1){
+                const diaRec=parseInt($id('input-rec-dia').value)||parseInt(dataVal.split('-')[2]);
+                const statusRec=$id('input-rec-status').value||payload.status;
+                // Verifica se já existe recorrente igual
+                const jaExiste=recorrentes.find(r=>r.desc===payload.desc&&r.tipo===payload.tipo&&Math.abs(r.valor-payload.valor)<0.01);
+                if(jaExiste){
+                    toast('⚠️ Já existe uma recorrente igual cadastrada.','aviso');
+                }else{
+                    await addDoc(collection(db,'recorrentes'),{
+                        userId:currentUser.uid, tipo:payload.tipo, valor:payload.valor,
+                        dia:diaRec, categoria:payload.categoria, desc:payload.desc,
+                        status:statusRec, criadoEm:new Date().toISOString()
+                    });
+                    toast(par>1?`✅ ${par}x lançadas!`:'✅ Salva e recorrente cadastrada! 🔁');
+                }
+            }else{
+                toast(par>1?`✅ ${par}x lançadas!`:'✅ Salva!');
+            }
         }
         $id('modal-transacao').classList.add('hidden'); e.target.reset(); $id('input-data').value=hojeStr();
+        if(window._resetToggleRec) window._resetToggleRec();
     }catch(err){ console.error(err); toast('Erro ao salvar.','erro'); }
     finally{ btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; }
 });
@@ -1375,7 +1441,7 @@ function carregarCategoriasCustom(){
 function popularSelectsCategorias(){
     // Popula todos os selects de categoria com as categorias custom
     const catsCopy=categoriasCustom.slice();
-    const sels=['input-categoria','meta-categoria','rec-categoria'];
+    const sels=['input-categoria','meta-categoria'];
     sels.forEach(selId=>{
         const sel=$id(selId); if(!sel)return;
         // Remove opções custom antigas (marcadas com data-custom)
@@ -1570,28 +1636,182 @@ function atualizarPizzas(){
 // ── PATRIMÔNIO ────────────────────────────────────────────────────────────────
 function atualizarPatrimonio(){
     Chart.defaults.font.family="'DM Sans',sans-serif";
-    let totalRec=0,totalDesp=0; const porMes={};
+
+    // ── Agrupa por mês ──────────────────────────────────────────────────────
+    const porMes={};
+    let totalRec=0, totalDesp=0;
     transacoes.forEach(t=>{
-        if(t.status!=='confirmada'||t.tipo==='transferencia')return;
+        if(t.status!=='confirmada'||t.tipo==='transferencia') return;
         const[ano,mes]=t.data.split('-'), ch=`${ano}-${mes}`;
-        if(!porMes[ch])porMes[ch]={r:0,d:0};
-        if(t.tipo==='receita'){totalRec+=t.valor;porMes[ch].r+=t.valor;}
-        else{totalDesp+=t.valor;porMes[ch].d+=t.valor;}
+        if(!porMes[ch]) porMes[ch]={r:0,d:0};
+        if(t.tipo==='receita'){totalRec+=t.valor; porMes[ch].r+=t.valor;}
+        else{totalDesp+=t.valor; porMes[ch].d+=t.valor;}
     });
-    const sa=totalRec-totalDesp;
-    const elSA=$id('pat-saldo-acumulado');
-    elSA.innerText=fmt(sa); elSA.className=`text-2xl sm:text-3xl font-black mono leading-tight ${sa>=0?'text-emerald-600':'text-rose-600'}`;
-    $id('pat-total-receitas').innerText=fmt(totalRec); $id('pat-total-despesas').innerText=fmt(totalDesp);
-    const hoje=new Date(), labels12=[],recs12=[],desps12=[];
-    for(let i=11;i>=0;i--){ const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1); const ch=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; labels12.push(`${mesesNomes[d.getMonth()].substring(0,3)}/${String(d.getFullYear()).substring(2)}`); recs12.push(porMes[ch]?.r||0); desps12.push(porMes[ch]?.d||0); }
-    Chart.defaults.font.family="'DM Sans',sans-serif";
+    const mesesOrd=Object.keys(porMes).sort();
+
+    // ── Patrimônio líquido acumulado (sobras somadas) ────────────────────────
+    const patrimonioLiquido=totalRec-totalDesp;
+    const elPL=$id('pat-liquido-total');
+    elPL.innerText=fmt(patrimonioLiquido);
+    elPL.className=`text-4xl sm:text-5xl font-black mono leading-none ${patrimonioLiquido>=0?'text-white':'text-rose-400'}`;
+
+    // ── Sobra do mês atual (filtro-mes/filtro-ano) ───────────────────────────
+    const mSel=parseInt($id('filtro-mes').value), aSel=parseInt($id('filtro-ano').value);
+    const chSel=`${aSel}-${String(mSel).padStart(2,'0')}`;
+    const sobraMes=(porMes[chSel]?.r||0)-(porMes[chSel]?.d||0);
+    const elSobra=$id('pat-sobra-mes');
+    elSobra.innerText=(sobraMes>=0?'+':'')+fmt(sobraMes);
+    elSobra.className=`font-black text-xl mono mt-0.5 ${sobraMes>=0?'text-emerald-400':'text-rose-400'}`;
+
+    // ── Variação % vs mês anterior ───────────────────────────────────────────
+    let mAnt=mSel-1, aAnt=aSel; if(mAnt===0){mAnt=12;aAnt--;}
+    const chAnt=`${aAnt}-${String(mAnt).padStart(2,'0')}`;
+    const sobraAnt=(porMes[chAnt]?.r||0)-(porMes[chAnt]?.d||0);
+    const elVar=$id('pat-var-mes');
+    if(sobraAnt!==0){
+        const varPct=((sobraMes-sobraAnt)/Math.abs(sobraAnt))*100;
+        const sinal=varPct>=0?'↑ +':'↓ ';
+        elVar.innerText=`${sinal}${Math.abs(varPct).toFixed(1)}%`;
+        elVar.className=`font-black text-xl mono mt-0.5 ${varPct>=0?'text-emerald-400':'text-rose-400'}`;
+    } else if(sobraMes>0){
+        elVar.innerText='↑ novo'; elVar.className='font-black text-xl mono mt-0.5 text-emerald-400';
+    } else {
+        elVar.innerText='—'; elVar.className='font-black text-xl mono mt-0.5 text-slate-400';
+    }
+
+    // ── Saldo real nas contas ────────────────────────────────────────────────
+    const totalContas=contas.reduce((sum,c)=>sum+calcularSaldoConta(c.id),0);
+    const elSC=$id('pat-saldo-contas');
+    elSC.innerText=fmt(totalContas);
+    elSC.className=`text-2xl font-black mono leading-tight ${totalContas>=0?'text-blue-600':'text-rose-600'}`;
+
+    $id('pat-total-receitas').innerText=fmt(totalRec);
+    $id('pat-total-despesas').innerText=fmt(totalDesp);
+
+    // ── Últimos 12 meses para gráficos ───────────────────────────────────────
+    const hoje=new Date();
+    const labels12=[], recs12=[], desps12=[], acum12=[];
+    let acumulado=0;
+    // Calcula acumulado até 13 meses atrás (ponto de partida)
+    Object.keys(porMes).sort().forEach(ch=>{
+        const d=new Date(parseInt(ch.split('-')[0]), parseInt(ch.split('-')[1])-1, 1);
+        const limiteInicio=new Date(hoje.getFullYear(), hoje.getMonth()-12, 1);
+        if(d < limiteInicio) acumulado += (porMes[ch].r - porMes[ch].d);
+    });
+    for(let i=11;i>=0;i--){
+        const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
+        const ch=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const r=porMes[ch]?.r||0, dep=porMes[ch]?.d||0;
+        acumulado+=(r-dep);
+        labels12.push(`${mesesNomes[d.getMonth()].substring(0,3)}/${String(d.getFullYear()).substring(2)}`);
+        recs12.push(r); desps12.push(dep); acum12.push(acumulado);
+    }
+
+    // ── Gráfico linha — evolução do patrimônio ───────────────────────────────
+    const ctxLine=$id('lineChartPatrimonio').getContext('2d');
+    if(window._patLineInst){ window._patLineInst.destroy(); }
+    window._patLineInst=new Chart(ctxLine,{
+        type:'line',
+        data:{
+            labels:labels12,
+            datasets:[{
+                label:'Patrimônio Acumulado',
+                data:acum12,
+                borderColor:'#3b82f6',
+                backgroundColor:'rgba(59,130,246,.08)',
+                fill:true,
+                tension:.4,
+                pointBackgroundColor:acum12.map(v=>v>=0?'#3b82f6':'#f43f5e'),
+                pointRadius:4,
+                pointHoverRadius:6,
+                borderWidth:2.5
+            }]
+        },
+        options:{
+            responsive:true,maintainAspectRatio:false,
+            plugins:{
+                legend:{display:false},
+                tooltip:{callbacks:{label:c=>`Patrimônio: ${fmt(c.raw)}`}}
+            },
+            scales:{
+                y:{
+                    ticks:{callback:v=>fmt(v),font:{size:10}},
+                    grid:{color:'rgba(0,0,0,.04)'},
+                    border:{dash:[4,4]}
+                },
+                x:{grid:{display:false},ticks:{font:{size:9}}}
+            }
+        }
+    });
+
+    // ── Gráfico barras — Receita vs Despesa ──────────────────────────────────
     const ctx=$id('barChartPatrimonio').getContext('2d');
-    if(barInst)barInst.destroy();
-    barInst=new Chart(ctx,{type:'bar',data:{labels:labels12,datasets:[{label:'Receitas',data:recs12,backgroundColor:'rgba(16,185,129,.8)',borderRadius:5,borderSkipped:false},{label:'Despesas',data:desps12,backgroundColor:'rgba(244,63,94,.7)',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fmt(v),font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+    if(barInst) barInst.destroy();
+    barInst=new Chart(ctx,{
+        type:'bar',
+        data:{
+            labels:labels12,
+            datasets:[
+                {label:'Receitas',data:recs12,backgroundColor:'rgba(16,185,129,.8)',borderRadius:4,borderSkipped:false},
+                {label:'Despesas',data:desps12,backgroundColor:'rgba(244,63,94,.7)',borderRadius:4,borderSkipped:false}
+            ]
+        },
+        options:{
+            responsive:true,maintainAspectRatio:false,
+            plugins:{
+                legend:{labels:{font:{size:11},boxWidth:12}},
+                tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}
+            },
+            scales:{
+                y:{ticks:{callback:v=>fmt(v),font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}},
+                x:{grid:{display:false},ticks:{font:{size:9}}}
+            }
+        }
+    });
+
+    // ── Tabela mensal com variação % ─────────────────────────────────────────
     const tab=$id('tabela-saldo-mensal'); tab.innerHTML='';
-    const mesesOrd=Object.keys(porMes).sort().reverse();
-    if(!mesesOrd.length){ tab.innerHTML='<p class="text-gray-300 text-sm text-center py-4">Sem dados</p>'; return; }
-    mesesOrd.forEach(ch=>{ const[ano,mes]=ch.split('-'),saldo=porMes[ch].r-porMes[ch].d,pos=saldo>=0; tab.innerHTML+=`<div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition"><div class="flex items-center gap-3"><div class="w-1.5 h-8 rounded-full ${pos?'bg-emerald-400':'bg-rose-400'}"></div><div><p class="font-bold text-gray-800 text-sm">${mesesNomes[parseInt(mes)-1]} ${ano}</p><p class="text-xs text-gray-400">↑ ${fmt(porMes[ch].r)} · ↓ ${fmt(porMes[ch].d)}</p></div></div><span class="font-black mono text-sm ${pos?'text-emerald-600':'text-rose-600'}">${pos?'+':''}${fmt(saldo)}</span></div>`; });
+    if(!mesesOrd.length){ tab.innerHTML='<p class="text-gray-300 text-sm text-center py-4">Sem dados registrados</p>'; return; }
+
+    // Cabeçalho
+    tab.innerHTML=`<div class="grid grid-cols-4 gap-2 px-3 pb-2 border-b border-gray-100">
+        <span class="text-xs font-black text-gray-400 uppercase tracking-wider">Mês</span>
+        <span class="text-xs font-black text-gray-400 uppercase tracking-wider text-right">Receitas</span>
+        <span class="text-xs font-black text-gray-400 uppercase tracking-wider text-right">Despesas</span>
+        <span class="text-xs font-black text-gray-400 uppercase tracking-wider text-right">Sobra / Var%</span>
+    </div>`;
+
+    mesesOrd.slice().reverse().forEach((ch,idx,arr)=>{
+        const[ano,mes]=ch.split('-');
+        const saldo=porMes[ch].r-porMes[ch].d;
+        const pos=saldo>=0;
+        // Variação vs mês anterior
+        const chPrev=arr[idx+1]; // array já revertido, então próximo é o anterior
+        let varHtml='';
+        if(chPrev && porMes[chPrev]){
+            const saldoPrev=porMes[chPrev].r-porMes[chPrev].d;
+            if(saldoPrev!==0){
+                const v=((saldo-saldoPrev)/Math.abs(saldoPrev))*100;
+                varHtml=`<span class="text-[10px] font-bold ${v>=0?'text-emerald-500':'text-rose-500'}">${v>=0?'↑':'↓'}${Math.abs(v).toFixed(0)}%</span>`;
+            }
+        }
+        const isSel=(parseInt(mes)===mSel&&parseInt(ano)===aSel);
+        tab.innerHTML+=`<div class="grid grid-cols-4 gap-2 items-center px-3 py-2.5 rounded-xl ${isSel?'bg-blue-50 border border-blue-100':'hover:bg-slate-50'} transition">
+            <div class="flex items-center gap-2">
+                <div class="w-1.5 h-7 rounded-full ${pos?'bg-emerald-400':'bg-rose-400'} shrink-0"></div>
+                <div>
+                    <p class="font-bold text-gray-800 text-sm leading-tight">${mesesNomes[parseInt(mes)-1].substring(0,3)}</p>
+                    <p class="text-[10px] text-gray-400">${ano}</p>
+                </div>
+            </div>
+            <p class="text-sm font-bold text-emerald-600 mono text-right">${fmt(porMes[ch].r)}</p>
+            <p class="text-sm font-bold text-rose-500 mono text-right">${fmt(porMes[ch].d)}</p>
+            <div class="text-right">
+                <p class="text-sm font-black mono ${pos?'text-emerald-600':'text-rose-600'}">${pos?'+':''}${fmt(saldo)}</p>
+                ${varHtml}
+            </div>
+        </div>`;
+    });
 }
 
 // ── METAS ─────────────────────────────────────────────────────────────────────
@@ -1648,23 +1868,73 @@ function gerenciarNotificacoes(){
     else{ badge.classList.add('hidden'); lista.innerHTML='<li class="p-5 text-center text-gray-300 text-sm">Tudo tranquilo ✌️</li>'; }
 }
 
-// ── RECORRENTES ───────────────────────────────────────────────────────────────
-function carregarRecorrentes(){ _unsubscribers.push(onSnapshot(query(collection(db,'recorrentes'),where('userId','==',currentUser.uid)),snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); if(!$id('view-recorrentes').classList.contains('hidden')) renderizarRecorrentes(); }, err=>erroFirestore(err,'recorrentes'))); }
-function renderizarRecorrentes(){
-    const cont=$id('lista-recorrentes-container'), vazio=$id('recorrentes-vazio'); cont.innerHTML='';
-    if(!recorrentes.length){ vazio.classList.remove('hidden'); return; } vazio.classList.add('hidden');
-    recorrentes.forEach(r=>{ const cor=r.tipo==='receita'?'border-emerald-200':'border-rose-200'; cont.innerHTML+=`<div class="bg-white rounded-2xl border-2 ${cor} p-4 shadow-sm flex justify-between items-center gap-3"><div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 shrink-0 ${r.tipo==='receita'?'bg-emerald-50':'bg-rose-50'} rounded-xl flex items-center justify-center text-xl">${r.tipo==='receita'?'💰':'💸'}</div><div class="min-w-0"><p class="font-black text-gray-800 truncate">${r.desc}</p><p class="text-xs text-gray-400 mt-0.5">📅 Dia <strong>${r.dia}</strong> · 🏷️ ${r.categoria}</p></div></div><div class="text-right shrink-0 flex flex-col items-end gap-1.5"><span class="font-black text-base mono ${r.tipo==='receita'?'text-emerald-600':'text-rose-600'}">${fmt(r.valor)}</span><button onclick="deletarRecorrente('${r.id}')" class="text-xs text-red-400 hover:text-red-600 font-bold">Remover</button></div></div>`; });
+
+// ── RECORRENTES (sem aba — toggle no modal de lançamento) ────────────────────
+function carregarRecorrentes(){
+    _unsubscribers.push(onSnapshot(
+        query(collection(db,'recorrentes'),where('userId','==',currentUser.uid)),
+        snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); },
+        err=>erroFirestore(err,'recorrentes')
+    ));
 }
-$id('btn-nova-recorrente').onclick=()=>{ $id('form-recorrente').reset(); $id('modal-recorrente').classList.remove('hidden'); };
-$id('form-recorrente').addEventListener('submit', async e=>{ e.preventDefault(); try{ await addDoc(collection(db,'recorrentes'),{userId:currentUser.uid,tipo:$id('rec-tipo').value,valor:parseFloat($id('rec-valor').value),dia:parseInt($id('rec-dia').value),categoria:$id('rec-categoria').value,desc:$id('rec-desc').value.trim(),status:$id('rec-status').value,criadoEm:new Date().toISOString()}); toast('🔁 Recorrente salva!'); $id('modal-recorrente').classList.add('hidden'); }catch(err){ erroFirestore(err,'recorrente'); } });
-window.deletarRecorrente=async id=>{ if(!await confirmar('Remover esta recorrente?'))return; try{ await deleteDoc(doc(db,'recorrentes',id)); toast('Removida.'); }catch(err){ erroFirestore(err,'delete'); } };
-$id('btn-aplicar-recorrentes').addEventListener('click', async()=>{
-    if(!recorrentes.length){ toast('Nenhuma recorrente cadastrada.','aviso'); return; }
-    const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
-    const btn=$id('btn-aplicar-recorrentes'); btn.disabled=true; btn.innerText='Aplicando...'; let criados=0;
-    try{ for(const r of recorrentes){ const dia=Math.min(r.dia,new Date(aS,mS,0).getDate()); const ds=`${aS}-${String(mS).padStart(2,'0')}-${String(dia).padStart(2,'0')}`; const existe=transacoes.find(t=>t.desc===r.desc&&t.data===ds&&Math.abs(t.valor-r.valor)<0.01); if(!existe){ await addDoc(collection(db,'transacoes'),{userId:currentUser.uid,tipo:r.tipo,data:ds,valor:r.valor,desc:r.desc,categoria:r.categoria,status:r.status,tags:['recorrente'],criadoEm:new Date().toISOString()}); criados++; } } toast(criados>0?`✅ ${criados} lançamento(s) criados!`:'Recorrentes já aplicadas neste mês.',criados>0?'sucesso':'aviso'); }catch(err){ erroFirestore(err,'recorrentes-aplicar'); }
-    finally{ btn.disabled=false; btn.innerText='✅ Aplicar ao Mês Selecionado'; }
-});
+
+// Toggle visual
+(()=>{
+    let ativo=false;
+    const btn=$id('btn-toggle-recorrente');
+    const knob=$id('toggle-rec-knob');
+    const fields=$id('rec-fields');
+    if(!btn) return;
+    btn.addEventListener('click',()=>{
+        ativo=!ativo;
+        btn.setAttribute('aria-checked', ativo);
+        btn.classList.toggle('bg-indigo-500', ativo);
+        btn.classList.toggle('bg-gray-200', !ativo);
+        knob.style.transform = ativo ? 'translateX(24px)' : 'translateX(0)';
+        fields.classList.toggle('hidden', !ativo);
+        if(ativo){
+            // Preenche dia com o dia atual do campo data
+            const d=$id('input-data').value;
+            if(d) $id('input-rec-dia').value=parseInt(d.split('-')[2]);
+        }
+    });
+    // Reset ao fechar/abrir modal
+    window._resetToggleRec=()=>{
+        ativo=false;
+        btn.setAttribute('aria-checked','false');
+        btn.classList.remove('bg-indigo-500'); btn.classList.add('bg-gray-200');
+        knob.style.transform='translateX(0)';
+        fields.classList.add('hidden');
+    };
+})();
+
+// Auto-lançamento de recorrentes ao fazer login (dia atual)
+async function aplicarRecorrentesAuto(){
+    if(!recorrentes.length) return;
+    const hoje=new Date();
+    const mS=hoje.getMonth()+1, aS=hoje.getFullYear();
+    let criados=0;
+    for(const r of recorrentes){
+        const dia=Math.min(r.dia, new Date(aS,mS,0).getDate());
+        // Só lança se hoje for o dia configurado ou posterior (dentro do mês)
+        if(hoje.getDate()<dia) continue;
+        const ds=`${aS}-${String(mS).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+        const existe=transacoes.find(t=>
+            t.desc===r.desc && t.data===ds && Math.abs(t.valor-r.valor)<0.01 && (t.tags||[]).includes('recorrente')
+        );
+        if(!existe){
+            try{
+                await addDoc(collection(db,'transacoes'),{
+                    userId:currentUser.uid, tipo:r.tipo, data:ds, valor:r.valor,
+                    desc:r.desc, categoria:r.categoria, status:r.status,
+                    tags:['recorrente'], criadoEm:new Date().toISOString()
+                });
+                criados++;
+            }catch(err){ erroFirestore(err,'rec-auto'); }
+        }
+    }
+    if(criados>0) toast(`🔁 ${criados} recorrente(s) lançada(s) automaticamente!`,'info');
+}
 
 // ── FILTROS GERAIS ────────────────────────────────────────────────────────────
 function onFiltroChange(){
