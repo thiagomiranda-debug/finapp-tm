@@ -38,10 +38,25 @@
     <script>
     if ('serviceWorker' in navigator) {
       const SW_CODE = `
-const CACHE='finapp-v1.2';
+const CACHE='finapp-v1.3';
 const ASSETS=['./','./index.html'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>{return Promise.all(ASSETS.map(a=>c.add(a).catch(()=>{})));}).then(()=>self.skipWaiting()));});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+const NOTIF_KEY='finapp-notificacoes-pendentes';
+
+self.addEventListener('install',e=>{
+  e.waitUntil(caches.open(CACHE).then(c=>{
+    return Promise.all(ASSETS.map(a=>c.add(a).catch(()=>{})));
+  }).then(()=>self.skipWaiting()));
+});
+
+self.addEventListener('activate',e=>{
+  e.waitUntil(
+    caches.keys()
+      .then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+      .then(()=>self.clients.claim())
+      .then(()=>verificarEDisparar())
+  );
+});
+
 self.addEventListener('fetch',e=>{
   const url=new URL(e.request.url);
   if(url.hostname.includes('firebaseapp.com')||url.hostname.includes('googleapis.com')||url.hostname.includes('securetoken')||url.hostname.includes('identitytoolkit'))return;
@@ -53,7 +68,71 @@ self.addEventListener('fetch',e=>{
     e.respondWith(fetch(e.request).then(r=>{if(r.ok)caches.open(CACHE).then(c=>c.put(e.request,r.clone()));return r;}).catch(()=>caches.match('./index.html')));
     return;
   }
-});`;
+});
+
+// Recebe mensagem do app principal com lista de alertas do dia
+self.addEventListener('message',e=>{
+  if(e.data?.tipo==='AGENDAR_NOTIFICACOES'){
+    caches.open(CACHE).then(c=>{
+      const blob=new Blob([JSON.stringify(e.data.alertas)],{type:'application/json'});
+      c.put(new Request(NOTIF_KEY),new Response(blob));
+    }).then(()=>verificarEDisparar());
+  }
+  if(e.data?.tipo==='LIMPAR_NOTIFICACOES'){
+    caches.open(CACHE).then(c=>c.delete(new Request(NOTIF_KEY)));
+  }
+});
+
+// Periodic background sync (Chrome Android)
+self.addEventListener('periodicsync',e=>{
+  if(e.tag==='finapp-check') e.waitUntil(verificarEDisparar());
+});
+
+// Push event (caso futuro com servidor VAPID)
+self.addEventListener('push',e=>{
+  const data=e.data?.json()||{};
+  e.waitUntil(self.registration.showNotification(data.title||'FinApp PRO',{
+    body:data.body||'',icon:'/icon-192.png',badge:'/icon-192.png',
+    data:{url:data.url||'/'},tag:data.tag||'finapp',renotify:true
+  }));
+});
+
+self.addEventListener('notificationclick',e=>{
+  e.notification.close();
+  e.waitUntil(clients.matchAll({type:'window'}).then(cs=>{
+    for(const c of cs){ if(c.url&&'focus' in c) return c.focus(); }
+    if(clients.openWindow) return clients.openWindow('/');
+  }));
+});
+
+async function verificarEDisparar(){
+  try{
+    const perm=await self.registration.showNotification; // só continua se suportado
+    const cache=await caches.open(CACHE);
+    const resp=await cache.match(new Request(NOTIF_KEY));
+    if(!resp) return;
+    const alertas=await resp.json();
+    if(!alertas||!alertas.length) return;
+    const hoje=new Date().toISOString().slice(0,10);
+    const doHoje=alertas.filter(a=>a.data===hoje&&!a.disparado);
+    for(const a of doHoje){
+      await self.registration.showNotification(a.titulo,{
+        body:a.corpo,
+        icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="38" fill="%232563eb"/><text x="96" y="130" font-size="110" text-anchor="middle" fill="white">💰</text></svg>',
+        badge:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" rx="20" fill="%232563eb"/><text x="48" y="68" font-size="56" text-anchor="middle" fill="white">💰</text></svg>',
+        tag:a.id,
+        renotify:false,
+        requireInteraction:false,
+        data:{id:a.id}
+      });
+      a.disparado=true;
+    }
+    // Salva de volta com marcação de disparado
+    const blob=new Blob([JSON.stringify(alertas)],{type:'application/json'});
+    await cache.put(new Request(NOTIF_KEY),new Response(blob));
+  }catch(err){ /* silencioso — notificações podem não ser suportadas */ }
+}
+`;
       const blob = new Blob([SW_CODE], {type:'application/javascript'});
       const swUrl = URL.createObjectURL(blob);
       navigator.serviceWorker.register(swUrl, {scope:'./'})
@@ -62,11 +141,18 @@ self.addEventListener('fetch',e=>{
           reg.addEventListener('updatefound', () => {
             reg.installing?.addEventListener('statechange', e => {
               if (e.target.state === 'installed' && navigator.serviceWorker.controller) {
-                // Nova versão disponível — mostra toast se app estiver pronto
                 window._swUpdateReady = true;
               }
             });
           });
+          // Registra periodic sync se suportado (Chrome Android)
+          if('periodicSync' in reg){
+            navigator.permissions.query({name:'periodic-background-sync'}).then(status=>{
+              if(status.state==='granted'){
+                reg.periodicSync.register('finapp-check',{minInterval:12*60*60*1000}).catch(()=>{});
+              }
+            }).catch(()=>{});
+          }
         })
         .catch(err => console.warn('[PWA] SW não registrado:', err));
     }
@@ -116,8 +202,8 @@ self.addEventListener('fetch',e=>{
         .dark{--bg:#0f172a;--bg2:#1e293b;--bg3:#111827;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--nav-bg:#1e293b;--input-bg:#0f172a;--card-bg:#1e293b;}
         html.dark body{background:var(--bg)!important;color:var(--text)!important;}
         html.dark .bg-white{background:var(--card-bg)!important;}
-        html.dark .bg-slate-50,html.dark .bg-gray-50{background:var(--bg3)!important;}
-        html.dark .bg-slate-100,html.dark .bg-gray-100{background:var(--bg2)!important;}
+        html.dark .bg-gray-50,html.dark .bg-gray-50{background:var(--bg3)!important;}
+        html.dark .bg-gray-100,html.dark .bg-gray-100{background:var(--bg2)!important;}
         html.dark .border-gray-100,html.dark .border-gray-200{border-color:var(--border)!important;}
         html.dark .text-gray-800,html.dark .text-gray-900{color:var(--text)!important;}
         html.dark .text-gray-600,html.dark .text-gray-700{color:var(--text2)!important;}
@@ -132,12 +218,12 @@ self.addEventListener('fetch',e=>{
         html.dark .tab-active{color:#60a5fa!important;border-color:#3b82f6!important;}
         html.dark .bg-amber-50{background:#1c1409!important;}
         html.dark .bg-emerald-50{background:#052e16!important;}
-        html.dark .bg-red-50{background:#1c0a09!important;}
-        html.dark .bg-blue-50{background:#0c1a2e!important;}
-        html.dark .bg-indigo-50{background:#0d1117!important;}
         html.dark .bg-rose-50{background:#1c0a09!important;}
-        html.dark .bg-violet-50{background:#130b1e!important;}
-        html.dark .bg-slate-50{background:var(--bg3)!important;}
+        html.dark .bg-blue-50{background:#0c1a2e!important;}
+        html.dark .bg-blue-50{background:#0d1117!important;}
+        html.dark .bg-rose-50{background:#1c0a09!important;}
+        html.dark .bg-blue-50-rec{background:#130b1e!important;}
+        html.dark .bg-gray-50{background:var(--bg3)!important;}
         html.dark .divide-gray-50>*{border-color:var(--border)!important;}
         html.dark .shadow-sm{box-shadow:0 1px 3px rgba(0,0,0,.4)!important;}
         html.dark .bg-gradient-to-r.from-violet-600{/* keep gradient */}
@@ -157,11 +243,11 @@ self.addEventListener('fetch',e=>{
         html.dark #login-screen{ background:unset; }
         /* dark: notif dropdown */
         html.dark #notif-dropdown{ background:var(--card-bg)!important; border-color:var(--border)!important; }
-        html.dark #notif-dropdown .bg-slate-50{ background:var(--bg2)!important; }
+        html.dark #notif-dropdown .bg-gray-50{ background:var(--bg2)!important; }
         /* dark: insight cards in analytics */
-        html.dark .bg-indigo-50.border-indigo-100{ background:#0d1117!important; }
+        html.dark .bg-blue-50.border-blue-100{ background:#0d1117!important; }
         html.dark .bg-rose-50.border-rose-100{ background:#1c0a09!important; }
-        html.dark .text-indigo-900{ color:#a5b4fc!important; }
+        html.dark .text-blue-900{ color:#a5b4fc!important; }
         html.dark .text-rose-900{ color:#fda4af!important; }
         /* dark: quick buttons */
         html.dark .quick-btn{ filter:brightness(.85); }
@@ -206,9 +292,21 @@ self.addEventListener('fetch',e=>{
         #dashboard-screen {
             padding-top: 0;
         }
+        /* ── CALENDÁRIO ── */
+        .cal-cell { min-height: 72px; border-right:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; padding:4px; position:relative; cursor:pointer; transition:background .15s; }
+        .cal-cell:hover { background:#f8fafc; }
+        .cal-cell:nth-child(7n) { border-right:none; }
+        .cal-cell.outro-mes .cal-dia { color:#d1d5db; }
+        .cal-cell.hoje .cal-dia-num { background:#2563eb; color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; }
+        .cal-dia { font-size:12px; font-weight:700; color:#374151; padding:2px 0 3px 2px; line-height:1; }
+        .cal-chip { font-size:10px; font-weight:700; border-radius:6px; padding:2px 5px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; display:block; line-height:1.4; }
+        .cal-chip.desp { background:#ffe4e6; color:#e11d48; }
+        .cal-chip.rec  { background:#d1fae5; color:#059669; }
+        .cal-chip.mais { background:#f1f5f9; color:#64748b; font-size:9px; text-align:center; }
+        @media(max-width:640px){ .cal-cell{ min-height:56px; } .cal-chip{ font-size:9px; padding:1px 3px; } }
     </style>
 </head>
-<body class="bg-slate-50 text-gray-800 min-h-screen">
+<body class="bg-gray-50 text-gray-800 min-h-screen">
 
 <!-- Toast -->
 <div id="toast-container" class="fixed top-4 right-4 z-[300] flex flex-col gap-2 pointer-events-none"></div>
@@ -219,7 +317,7 @@ self.addEventListener('fetch',e=>{
         <p id="confirm-msg" class="text-gray-800 font-bold text-base text-center mb-5">Tem certeza?</p>
         <div class="flex gap-3">
             <button id="confirm-no"  class="flex-1 py-3 rounded-xl border-2 border-gray-200 font-bold text-gray-600 hover:bg-gray-50 transition">Cancelar</button>
-            <button id="confirm-yes" class="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition">Confirmar</button>
+            <button id="confirm-yes" class="flex-1 py-3 rounded-xl bg-rose-500 text-white font-bold hover:bg-rose-600 transition">Confirmar</button>
         </div>
     </div>
 </div>
@@ -239,6 +337,21 @@ self.addEventListener('fetch',e=>{
     </div>
 </div>
 
+<!-- Banner permissão notificações -->
+<div id="notif-perm-banner" class="hidden fixed bottom-24 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-slate-800 text-white rounded-2xl shadow-2xl p-4 z-[51] fade-in">
+    <div class="flex items-start gap-3 mb-3">
+        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl shrink-0">🔔</div>
+        <div class="flex-1 min-w-0">
+            <p class="font-black text-sm">Ativar notificações</p>
+            <p class="text-gray-400 text-xs mt-0.5">Receba avisos de vencimentos e receitas planejadas diretamente no seu celular.</p>
+        </div>
+    </div>
+    <div class="flex gap-2">
+        <button id="notif-perm-aceitar" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-black text-sm hover:bg-blue-700 active:scale-95 transition">🔔 Ativar</button>
+        <button id="notif-perm-recusar" class="px-4 py-2 bg-white/10 rounded-xl text-sm font-bold hover:bg-white/20 active:scale-95 transition">Agora não</button>
+    </div>
+</div>
+
 <!-- FAB -->
 <button id="btn-fab" class="hidden fixed bottom-6 right-5 bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-2xl hover:bg-blue-700 active:scale-95 transition-all z-40">+</button>
 
@@ -247,16 +360,16 @@ self.addEventListener('fetch',e=>{
     <div class="bg-white p-7 rounded-2xl shadow-2xl w-full max-w-md fade-in text-center">
         <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg text-3xl">💰</div>
         <h1 class="text-3xl font-black text-gray-900">FinApp <span class="text-blue-600">PRO</span></h1>
-        <p class="text-slate-400 mt-1 mb-6 text-sm font-medium">Inteligência Financeira Pessoal</p>
+        <p class="text-gray-400 mt-1 mb-6 text-sm font-medium">Inteligência Financeira Pessoal</p>
         <form id="auth-form" class="space-y-4 text-left">
             <div><label class="label-xs">E-mail</label><input type="email" id="auth-email" autocomplete="email" class="input-field" required></div>
             <div><label class="label-xs">Senha</label><input type="password" id="auth-password" autocomplete="current-password" class="input-field" minlength="6" required></div>
             <div class="flex flex-col gap-3 pt-1">
                 <button type="submit" id="btn-login" class="w-full bg-blue-600 text-white py-3.5 rounded-xl hover:bg-blue-700 active:scale-95 transition font-bold shadow-md flex items-center justify-center"><span id="login-btn-text">Acessar</span></button>
-                <button type="button" id="btn-register" class="w-full bg-slate-100 text-gray-700 py-3.5 rounded-xl hover:bg-slate-200 active:scale-95 transition font-bold">Criar Conta</button>
+                <button type="button" id="btn-register" class="w-full bg-gray-100 text-gray-700 py-3.5 rounded-xl hover:bg-gray-200 active:scale-95 transition font-bold">Criar Conta</button>
             </div>
         </form>
-        <p id="login-error" class="hidden text-red-500 text-sm font-medium mt-3 text-center"></p>
+        <p id="login-error" class="hidden text-rose-500 text-sm font-medium mt-3 text-center"></p>
     </div>
 </div>
 
@@ -271,16 +384,16 @@ self.addEventListener('fetch',e=>{
                 </div>
                 <div class="flex items-center gap-2 sm:gap-3">
                     <div class="relative">
-                        <button id="btn-notif" class="relative p-2 text-xl text-gray-500 hover:text-blue-600 active:scale-90 transition">🔔<span id="notif-badge" class="hidden absolute top-0.5 right-0.5 bg-red-500 text-white text-[8px] font-black min-w-[16px] h-4 px-1 rounded-full border-2 border-white flex items-center justify-center"></span></button>
+                        <button id="btn-notif" class="relative p-2 text-xl text-gray-500 hover:text-blue-600 active:scale-90 transition">🔔<span id="notif-badge" class="hidden absolute top-0.5 right-0.5 bg-rose-500 text-white text-[8px] font-black min-w-[16px] h-4 px-1 rounded-full border-2 border-white flex items-center justify-center"></span></button>
                         <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 fade-in overflow-hidden">
-                            <div class="p-3 border-b border-gray-100 bg-slate-50 flex items-center justify-between"><h3 class="font-bold text-sm text-gray-800">🧠 Alertas</h3><button id="btn-limpar-notif" class="text-xs text-gray-400 hover:text-gray-600">Fechar</button></div>
+                            <div class="p-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between"><h3 class="font-bold text-sm text-gray-800">🧠 Alertas</h3><button id="btn-limpar-notif" class="text-xs text-gray-400 hover:text-gray-600">Fechar</button></div>
                             <ul id="lista-notificacoes" class="divide-y divide-gray-50 text-sm max-h-80 overflow-y-auto"></ul>
                         </div>
                     </div>
                     <button id="btn-nova-transacao-nav" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 active:scale-95 transition font-bold shadow-sm hidden sm:flex items-center gap-1 text-sm">+ Lançar</button>
                     <button id="btn-dark" title="Alternar modo escuro" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none">🌙</button>
                     <span id="user-email-display" class="text-xs text-gray-400 hidden lg:block max-w-[120px] truncate font-medium"></span>
-                    <button id="btn-logout" class="text-xs text-gray-400 hover:text-red-500 font-bold transition px-1">Sair</button>
+                    <button id="btn-logout" class="text-xs text-gray-400 hover:text-rose-500 font-bold transition px-1">Sair</button>
                 </div>
             </div>
         </div>
@@ -294,9 +407,9 @@ self.addEventListener('fetch',e=>{
                     <button data-tab="operacao"    class="tab-btn pb-2.5 px-3 tab-active   text-sm whitespace-nowrap transition-colors">📊 Operacional</button>
                     <button data-tab="contas"      class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏦 Contas</button>
                     <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">💳 Cartões</button>
+                    <button data-tab="calendario"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📅 Calendário</button>
                     <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📈 Patrimônio</button>
                     <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🎯 Metas</button>
-                    <button data-tab="categorias"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏷️ Categorias</button>
                 </div>
             </div>
             <div class="flex bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden shrink-0 w-full sm:w-auto">
@@ -327,14 +440,17 @@ self.addEventListener('fetch',e=>{
                     <p class="text-blue-200 text-xs font-bold uppercase tracking-wider">Saldo do Mês</p>
                     <p class="text-2xl sm:text-3xl font-black text-white mt-1 mono leading-tight" id="val-saldo-mes">R$ 0,00</p>
                     <p class="text-xs text-blue-300 mb-2">Entradas − Saídas confirmadas</p>
-                    <div class="bg-blue-700 text-blue-100 px-3 py-2 rounded-lg text-xs font-bold flex justify-between"><span>📅 Previsão fim mês</span><span id="val-saldo-proj" class="mono">R$ 0,00</span></div>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="bg-blue-700 text-blue-100 px-3 py-2 rounded-lg text-xs font-bold flex justify-between flex-1"><span>📅 Previsão fim mês</span><span id="val-saldo-proj" class="mono">R$ 0,00</span></div>
+                        <span id="val-saldo-var" class="text-xs font-black mono whitespace-nowrap"></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Gráficos de pizza -->
+            <!-- Gráficos: pizza despesas + linha evolução 7 dias -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
-                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Despesas por Categoria</h2>
+                    <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-1">Despesas por Categoria</h2>
                     <p class="text-xs text-gray-300 mb-3">Mês selecionado · confirmadas</p>
                     <div class="relative" style="height:220px">
                         <canvas id="pizza-despesas"></canvas>
@@ -342,11 +458,16 @@ self.addEventListener('fetch',e=>{
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
-                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Receitas por Categoria</h2>
-                    <p class="text-xs text-gray-300 mb-3">Mês selecionado · confirmadas</p>
-                    <div class="relative" style="height:220px">
-                        <canvas id="pizza-receitas"></canvas>
-                        <p id="pizza-receitas-vazio" class="hidden absolute inset-0 flex items-center justify-center text-gray-300 text-sm font-medium">Sem receitas no mês</p>
+                    <div class="flex items-start justify-between mb-1">
+                        <div>
+                            <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider">Evolução das Despesas</h2>
+                            <p class="text-xs text-gray-300 mt-0.5">Últimos 7 dias · confirmadas</p>
+                        </div>
+                        <span id="linha7-total" class="text-xs font-black text-rose-500 mono bg-rose-50 px-2 py-1 rounded-lg"></span>
+                    </div>
+                    <div class="relative mt-3" style="height:200px">
+                        <canvas id="linha-7dias"></canvas>
+                        <p id="linha-7dias-vazio" class="hidden absolute inset-0 flex items-center justify-center text-gray-300 text-sm font-medium">Sem despesas nos últimos 7 dias</p>
                     </div>
                 </div>
             </div>
@@ -376,7 +497,7 @@ self.addEventListener('fetch',e=>{
                                 <option value="valor-asc">Valor ↑</option>
                                 <option value="cat-asc">Categoria A-Z</option>
                             </select>
-                            <span id="contador-transacoes" class="text-xs text-gray-400 bg-slate-100 px-2 py-1 rounded-full font-medium"></span>
+                            <span id="contador-transacoes" class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full font-medium"></span>
                         </div>
                     </div>
                     <ul class="space-y-2.5" id="lista-transacoes"></ul>
@@ -393,7 +514,7 @@ self.addEventListener('fetch',e=>{
                         <button id="btn-exportar-pdf" class="px-3 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-bold hover:bg-rose-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap">
                             <span>📄</span><span class="hidden sm:inline">PDF</span>
                         </button>
-                        <label id="btn-importar-csv" class="px-3 py-2 bg-violet-50 text-violet-700 border border-violet-200 rounded-xl font-bold hover:bg-violet-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap cursor-pointer">
+                        <label id="btn-importar-csv" class="px-3 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl font-bold hover:bg-blue-100 active:scale-95 transition flex items-center gap-1 text-sm whitespace-nowrap cursor-pointer">
                             <span>📥</span><span class="hidden sm:inline">Importar</span><input type="file" id="input-importar-csv" accept=".csv,.txt" class="hidden">
                         </label>
                     </div>
@@ -427,7 +548,7 @@ self.addEventListener('fetch',e=>{
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mt-4">
                 <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
                     <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider">↔️ Transferências entre Contas</h2>
-                    <button id="btn-nova-transferencia" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-indigo-700 active:scale-95 transition">+ Transferir</button>
+                    <button id="btn-nova-transferencia" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 active:scale-95 transition">+ Transferir</button>
                 </div>
                 <ul id="lista-transferencias" class="space-y-2.5 max-h-72 overflow-y-auto"></ul>
             </div>
@@ -459,60 +580,82 @@ self.addEventListener('fetch',e=>{
             <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 sm:p-6 mb-4 text-white shadow-lg">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div class="flex-1 min-w-0">
-                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">💼 Patrimônio Líquido Acumulado</p>
+                        <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">💼 Patrimônio Líquido Acumulado</p>
                         <p class="text-4xl sm:text-5xl font-black mono leading-none" id="pat-liquido-total">R$ 0,00</p>
-                        <p class="text-slate-400 text-xs mt-2">Soma de todo o histórico confirmado (receitas − despesas)</p>
+                        <p class="text-gray-400 text-xs mt-2">Soma de todo o histórico confirmado (receitas − despesas)</p>
                     </div>
                     <div class="flex flex-row sm:flex-col gap-3 sm:gap-2 sm:text-right shrink-0">
                         <div class="bg-white/10 rounded-xl px-4 py-3 flex-1 sm:flex-none">
-                            <p class="text-slate-400 text-xs font-bold uppercase">vs Mês Anterior</p>
+                            <p class="text-gray-400 text-xs font-bold uppercase">vs Mês Anterior</p>
                             <p class="font-black text-xl mono mt-0.5" id="pat-var-mes">—</p>
                         </div>
                         <div class="bg-white/10 rounded-xl px-4 py-3 flex-1 sm:flex-none">
-                            <p class="text-slate-400 text-xs font-bold uppercase">Sobra do Mês</p>
+                            <p class="text-gray-400 text-xs font-bold uppercase">Sobra do Mês</p>
                             <p class="font-black text-xl mono mt-0.5" id="pat-sobra-mes">R$ 0,00</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- KPIs -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+            <!-- KPIs — 4 cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
                 <div class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-blue-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">💰 Saldo Atual nas Contas</p>
-                    <p class="text-2xl font-black mono leading-tight" id="pat-saldo-contas">R$ 0,00</p>
-                    <p class="text-xs text-gray-400 mt-1">Soma real de todas as contas cadastradas</p>
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">💰 Saldo nas Contas</p>
+                    <p class="text-xl sm:text-2xl font-black mono leading-tight" id="pat-saldo-contas">R$ 0,00</p>
+                    <p class="text-xs text-gray-400 mt-1">Soma real de todas as contas</p>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-emerald-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📈 Total Recebido</p>
-                    <p class="text-2xl font-black text-emerald-600 mono leading-tight" id="pat-total-receitas">R$ 0,00</p>
-                    <p class="text-xs text-gray-400 mt-1">Todas as receitas confirmadas</p>
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📈 Entradas</p>
+                    <p class="text-xl sm:text-2xl font-black text-emerald-600 mono leading-tight" id="pat-total-receitas">R$ 0,00</p>
+                    <p class="text-xs text-gray-400 mt-1" id="pat-rec-label">Mês selecionado</p>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-rose-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📉 Total Gasto</p>
-                    <p class="text-2xl font-black text-rose-600 mono leading-tight" id="pat-total-despesas">R$ 0,00</p>
-                    <p class="text-xs text-gray-400 mt-1">Todas as despesas confirmadas</p>
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📉 Saídas</p>
+                    <p class="text-xl sm:text-2xl font-black text-rose-600 mono leading-tight" id="pat-total-despesas">R$ 0,00</p>
+                    <p class="text-xs text-gray-400 mt-1" id="pat-desp-label">Mês selecionado</p>
+                </div>
+                <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-sm p-4 text-white">
+                    <p class="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">🏁 Fim do Mês</p>
+                    <p class="text-xl sm:text-2xl font-black mono leading-tight" id="pat-fim-mes">R$ 0,00</p>
+                    <p class="text-blue-300 text-xs mt-1">Contas + sobra do mês</p>
                 </div>
             </div>
 
             <!-- Gráfico evolução patrimônio (linha) -->
             <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100 mb-4">
-                <div class="flex items-start justify-between mb-1">
+                <div class="flex items-start justify-between mb-3">
                     <div>
                         <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider">Evolução do Patrimônio</h2>
                         <p class="text-xs text-gray-300 mt-0.5">Saldo acumulado mês a mês (sobras somadas)</p>
                     </div>
-                    <span class="text-xs text-gray-300 font-medium">12 meses</span>
+                    <div class="flex gap-1" id="periodo-linha-btns">
+                        <button data-meses="3"  class="pat-periodo-btn px-2 py-1 rounded-lg text-xs font-bold text-gray-400 hover:bg-gray-100 transition">3m</button>
+                        <button data-meses="6"  class="pat-periodo-btn px-2 py-1 rounded-lg text-xs font-bold text-gray-400 hover:bg-gray-100 transition">6m</button>
+                        <button data-meses="12" class="pat-periodo-btn px-2 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 transition">12m</button>
+                        <button data-meses="24" class="pat-periodo-btn px-2 py-1 rounded-lg text-xs font-bold text-gray-400 hover:bg-gray-100 transition">24m</button>
+                        <button data-meses="0"  class="pat-periodo-btn px-2 py-1 rounded-lg text-xs font-bold text-gray-400 hover:bg-gray-100 transition">Tudo</button>
+                    </div>
                 </div>
-                <div class="relative h-56 sm:h-64 mt-3">
+                <div class="relative h-56 sm:h-64">
                     <canvas id="lineChartPatrimonio"></canvas>
                 </div>
             </div>
 
             <!-- Gráfico barras Receita vs Despesa -->
             <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100 mb-4">
-                <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-1">Receita vs Despesa</h2>
-                <p class="text-xs text-gray-300 mb-3">Últimos 12 meses · valores confirmados</p>
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider">Receita vs Despesa</h2>
+                        <p class="text-xs text-gray-300 mt-0.5">Valores confirmados por mês</p>
+                    </div>
+                    <div class="flex gap-1" id="periodo-bar-btns">
+                        <button data-meses="3"  class="pat-periodo-btn-bar px-2 py-1 rounded-lg text-xs font-bold text-gray-400 hover:bg-gray-100 transition">3m</button>
+                        <button data-meses="6"  class="pat-periodo-btn-bar px-2 py-1 rounded-lg text-xs font-bold text-gray-400 hover:bg-gray-100 transition">6m</button>
+                        <button data-meses="12" class="pat-periodo-btn-bar px-2 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 transition">12m</button>
+                        <button data-meses="24" class="pat-periodo-btn-bar px-2 py-1 rounded-lg text-xs font-bold text-gray-400 hover:bg-gray-100 transition">24m</button>
+                        <button data-meses="0"  class="pat-periodo-btn-bar px-2 py-1 rounded-lg text-xs font-bold text-gray-400 hover:bg-gray-100 transition">Tudo</button>
+                    </div>
+                </div>
                 <div class="relative h-52 sm:h-64">
                     <canvas id="barChartPatrimonio"></canvas>
                 </div>
@@ -522,6 +665,42 @@ self.addEventListener('fetch',e=>{
             <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-gray-100">
                 <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-4">Resultado por Mês</h2>
                 <div id="tabela-saldo-mensal" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <!-- ════ CALENDÁRIO ════ -->
+        <div id="view-calendario" class="hidden fade-in">
+            <!-- Header de navegação -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                    <button id="cal-prev" class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 active:scale-90 transition text-gray-500 font-black text-lg">‹</button>
+                    <div class="text-center">
+                        <h2 id="cal-titulo" class="text-base font-black text-gray-800"></h2>
+                        <p id="cal-resumo" class="text-xs text-gray-400 mt-0.5"></p>
+                    </div>
+                    <button id="cal-next" class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 active:scale-90 transition text-gray-500 font-black text-lg">›</button>
+                </div>
+                <!-- Cabeçalho dias da semana -->
+                <div class="grid grid-cols-7 border-b border-gray-100">
+                    <div class="py-2 text-center text-[10px] font-black text-gray-400 uppercase tracking-wider">Dom</div>
+                    <div class="py-2 text-center text-[10px] font-black text-gray-400 uppercase tracking-wider">Seg</div>
+                    <div class="py-2 text-center text-[10px] font-black text-gray-400 uppercase tracking-wider">Ter</div>
+                    <div class="py-2 text-center text-[10px] font-black text-gray-400 uppercase tracking-wider">Qua</div>
+                    <div class="py-2 text-center text-[10px] font-black text-gray-400 uppercase tracking-wider">Qui</div>
+                    <div class="py-2 text-center text-[10px] font-black text-gray-400 uppercase tracking-wider">Sex</div>
+                    <div class="py-2 text-center text-[10px] font-black text-gray-400 uppercase tracking-wider">Sáb</div>
+                </div>
+                <!-- Grade dos dias -->
+                <div id="cal-grid" class="grid grid-cols-7"></div>
+            </div>
+
+            <!-- Painel detalhe do dia selecionado -->
+            <div id="cal-detalhe" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 id="cal-detalhe-titulo" class="font-black text-gray-800 text-sm"></h3>
+                    <button id="cal-fechar-detalhe" class="text-gray-300 hover:text-rose-400 text-xl leading-none active:scale-90 transition">×</button>
+                </div>
+                <ul id="cal-detalhe-lista" class="space-y-2"></ul>
             </div>
         </div>
 
@@ -536,39 +715,6 @@ self.addEventListener('fetch',e=>{
         </div>
 
         <!-- ════ CATEGORIAS ════ -->
-        <div id="view-categorias" class="hidden fade-in">
-            <div class="flex justify-between items-start mb-4 gap-3">
-                <div><h2 class="text-lg font-black text-gray-800">🏷️ Categorias Personalizadas</h2><p class="text-sm text-gray-400 mt-0.5">Crie suas próprias categorias de receita e despesa.</p></div>
-                <button id="btn-nova-categoria" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 active:scale-95 transition shadow-sm whitespace-nowrap">+ Nova Categoria</button>
-            </div>
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 mb-4 text-amber-800 text-sm font-medium flex items-start gap-3">
-                <span class="text-xl shrink-0 mt-0.5">💡</span>
-                <span>As categorias personalizadas ficam disponíveis no campo <strong>Categoria</strong> ao lançar transações. As categorias padrão continuam ativas.</span>
-            </div>
-            <!-- Categorias padrão -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4">
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Categorias Padrão</h3>
-                <div class="flex flex-wrap gap-2">
-                    <span class="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-xl text-xs font-bold">🍽️ Alimentação</span>
-                    <span class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-xl text-xs font-bold">🚗 Transporte</span>
-                    <span class="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-xl text-xs font-bold">🏠 Moradia</span>
-                    <span class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">💳 Cartão de Crédito</span>
-                    <span class="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-xl text-xs font-bold">🎮 Lazer</span>
-                    <span class="px-3 py-1.5 bg-red-100 text-red-700 rounded-xl text-xs font-bold">❤️ Saúde</span>
-                    <span class="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold">📚 Educação</span>
-                    <span class="px-3 py-1.5 bg-pink-100 text-pink-700 rounded-xl text-xs font-bold">📱 Assinaturas</span>
-                    <span class="px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold">💼 Salário/Vendas</span>
-                    <span class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold">📦 Outros</span>
-                </div>
-            </div>
-            <!-- Categorias personalizadas -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Suas Categorias</h3>
-                <div id="lista-cats-custom" class="flex flex-wrap gap-2 min-h-[40px]"></div>
-                <div id="cats-custom-vazio" class="text-xs text-gray-400 mt-2">Nenhuma categoria personalizada criada ainda.</div>
-            </div>
-        </div>
-
     </main>
 
     <!-- Print area for PDF -->
@@ -579,7 +725,7 @@ self.addEventListener('fetch',e=>{
 <div id="modal-transacao" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-lg sm:rounded-2xl shadow-2xl border-t-4 border-blue-600 overflow-y-auto" style="max-height:92vh">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 id="modal-titulo" class="text-lg font-black text-gray-800">Novo Lançamento</h2><button id="btn-fechar-modal" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 id="modal-titulo" class="text-lg font-black text-gray-800">Novo Lançamento</h2><button id="btn-fechar-modal" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
             <form id="form-transacao" class="space-y-3.5">
                 <input type="hidden" id="input-edit-id">
                 <div class="grid grid-cols-2 gap-3">
@@ -594,13 +740,19 @@ self.addEventListener('fetch',e=>{
                     <div><label class="label-xs">Data</label><input type="date" id="input-data" class="input-field" required></div>
                     <div><label class="label-xs">Conta (opcional)</label><select id="input-conta" class="input-field"><option value="">-- Sem conta --</option></select></div>
                 </div>
-                <div><label class="label-xs">Categoria</label><select id="input-categoria" class="input-field">
-                    <option value="Alimentação">🍽️ Alimentação</option><option value="Transporte">🚗 Transporte</option>
-                    <option value="Moradia">🏠 Moradia</option><option value="Cartão de Crédito">💳 Cartão de Crédito</option>
-                    <option value="Lazer">🎮 Lazer</option><option value="Saúde">❤️ Saúde</option>
-                    <option value="Educação">📚 Educação</option><option value="Assinaturas">📱 Assinaturas</option>
-                    <option value="Salário/Vendas">💼 Salário/Vendas</option><option value="Outros">📦 Outros</option>
-                </select></div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="label-xs">Categoria</label>
+                        <button type="button" id="btn-abrir-nova-cat" class="text-xs text-blue-600 font-bold hover:text-blue-700 active:scale-95 transition flex items-center gap-1">＋ Nova categoria</button>
+                    </div>
+                    <select id="input-categoria" class="input-field">
+                        <option value="Alimentação">🍽️ Alimentação</option><option value="Transporte">🚗 Transporte</option>
+                        <option value="Moradia">🏠 Moradia</option><option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                        <option value="Lazer">🎮 Lazer</option><option value="Saúde">❤️ Saúde</option>
+                        <option value="Educação">📚 Educação</option><option value="Assinaturas">📱 Assinaturas</option>
+                        <option value="Salário/Vendas">💼 Salário/Vendas</option><option value="Outros">📦 Outros</option>
+                    </select>
+                </div>
                 <div id="cartao-select-wrap" class="hidden"><label class="label-xs">💳 Cartão vinculado</label><select id="input-cartao" class="input-field"><option value="">-- Nenhum --</option></select></div>
                 <div><label class="label-xs">Descrição</label>
                     <input type="text" id="input-desc" placeholder="Ex: Supermercado Atacadão" class="input-field" autocomplete="off" required>
@@ -608,11 +760,11 @@ self.addEventListener('fetch',e=>{
                 <div><label class="label-xs">Tags <span class="normal-case font-normal text-gray-300">(vírgula)</span></label><input type="text" id="input-tags" placeholder="nubank, viagem, fixo" class="input-field"></div>
 
                 <!-- Toggle Recorrente -->
-                <div id="recorrente-wrap" class="border border-indigo-200 bg-indigo-50 rounded-xl p-3">
+                <div id="recorrente-wrap" class="border border-blue-200 bg-blue-50 rounded-xl p-3">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-black text-indigo-700 uppercase tracking-wider">🔁 Lançamento Recorrente</p>
-                            <p class="text-xs text-indigo-400 mt-0.5">Repetir todo mês automaticamente</p>
+                            <p class="text-xs font-black text-blue-700 uppercase tracking-wider">🔁 Lançamento Recorrente</p>
+                            <p class="text-xs text-blue-400 mt-0.5">Repetir todo mês automaticamente</p>
                         </div>
                         <button type="button" id="btn-toggle-recorrente" class="w-12 h-6 rounded-full bg-gray-200 relative transition-colors duration-200 focus:outline-none" role="switch" aria-checked="false">
                             <span id="toggle-rec-knob" class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200"></span>
@@ -634,7 +786,7 @@ self.addEventListener('fetch',e=>{
 <div id="modal-conta" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-blue-500">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 id="conta-modal-titulo" class="text-lg font-black text-gray-800">🏦 Nova Conta</h2><button id="btn-fechar-modal-conta" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 id="conta-modal-titulo" class="text-lg font-black text-gray-800">🏦 Nova Conta</h2><button id="btn-fechar-modal-conta" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
             <form id="form-conta" class="space-y-3.5">
                 <input type="hidden" id="conta-edit-id">
                 <div><label class="label-xs">Nome da Conta</label><input type="text" id="conta-nome" placeholder="Ex: Nubank, Bradesco, Carteira" class="input-field" autocomplete="off" required></div>
@@ -661,10 +813,10 @@ self.addEventListener('fetch',e=>{
 
 <!-- ════ MODAL TRANSFERÊNCIA ════ -->
 <div id="modal-transferencia" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-    <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-indigo-500">
+    <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-blue-500">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">↔️ Transferência entre Contas</h2><button id="btn-fechar-modal-transf" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
-            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-4 text-xs text-indigo-700 font-medium">💡 Transferências <strong>não afetam</strong> o total consolidado — apenas movimentam saldo entre contas.</div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">↔️ Transferência entre Contas</h2><button id="btn-fechar-modal-transf" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 text-xs text-blue-700 font-medium">💡 Transferências <strong>não afetam</strong> o total consolidado — apenas movimentam saldo entre contas.</div>
             <form id="form-transferencia" class="space-y-3.5">
                 <div><label class="label-xs">De (Conta Origem)</label><select id="transf-origem" class="input-field" required><option value="">Selecione...</option></select></div>
                 <div><label class="label-xs">Para (Conta Destino)</label><select id="transf-destino" class="input-field" required><option value="">Selecione...</option></select></div>
@@ -673,7 +825,7 @@ self.addEventListener('fetch',e=>{
                     <div><label class="label-xs">Data</label><input type="date" id="transf-data" class="input-field" required></div>
                 </div>
                 <div><label class="label-xs">Descrição (opcional)</label><input type="text" id="transf-desc" placeholder="Ex: Reserva de emergência" class="input-field" autocomplete="off"></div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-xl hover:bg-indigo-700 active:scale-95 transition font-black shadow-md">Confirmar Transferência</button>
+                <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md">Confirmar Transferência</button>
             </form>
         </div>
     </div>
@@ -683,7 +835,7 @@ self.addEventListener('fetch',e=>{
 <div id="modal-cartao" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-rose-500">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">💳 Novo Cartão</h2><button id="btn-fechar-modal-cartao" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">💳 Novo Cartão</h2><button id="btn-fechar-modal-cartao" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
             <form id="form-cartao" class="space-y-3.5">
                 <div><label class="label-xs">Nome do Cartão</label><input type="text" id="cartao-nome" placeholder="Ex: Nubank, Itaú Platinum" class="input-field" autocomplete="off" required></div>
                 <div class="grid grid-cols-2 gap-3">
@@ -702,7 +854,7 @@ self.addEventListener('fetch',e=>{
 <div id="modal-meta" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-blue-600">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🎯 Nova Meta</h2><button id="btn-fechar-modal-meta" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🎯 Nova Meta</h2><button id="btn-fechar-modal-meta" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
             <form id="form-meta" class="space-y-3.5">
                 <div><label class="label-xs">Categoria</label><select id="meta-categoria" class="input-field">
                     <option value="Alimentação">🍽️ Alimentação</option><option value="Transporte">🚗 Transporte</option>
@@ -720,10 +872,10 @@ self.addEventListener('fetch',e=>{
 
 
 <!-- ════ MODAL NOVA CATEGORIA ════ -->
-<div id="modal-categoria" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+<div id="modal-categoria" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-blue-500">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🏷️ Nova Categoria</h2><button id="btn-fechar-modal-cat" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🏷️ Nova Categoria</h2><button id="btn-fechar-modal-cat" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
             <form id="form-categoria" class="space-y-3.5">
                 <div><label class="label-xs">Nome da Categoria</label><input type="text" id="cat-nome" placeholder="Ex: Pet, Filhos, Freelance" class="input-field" autocomplete="off" required maxlength="30"></div>
                 <div class="grid grid-cols-2 gap-3">
@@ -732,10 +884,10 @@ self.addEventListener('fetch',e=>{
                 </div>
                 <div><label class="label-xs">Cor</label>
                     <div class="flex gap-2 flex-wrap mt-1">
-                        <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-orange-100 text-orange-700" class="sr-only"><span class="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-xl text-xs font-bold block">Laranja</span></label>
-                        <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-pink-100 text-pink-700" class="sr-only"><span class="px-3 py-1.5 bg-pink-100 text-pink-700 rounded-xl text-xs font-bold block">Rosa</span></label>
-                        <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-teal-100 text-teal-700" class="sr-only"><span class="px-3 py-1.5 bg-teal-100 text-teal-700 rounded-xl text-xs font-bold block">Verde</span></label>
-                        <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-violet-100 text-violet-700" class="sr-only"><span class="px-3 py-1.5 bg-violet-100 text-violet-700 rounded-xl text-xs font-bold block">Roxo</span></label>
+                        <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-amber-100 text-amber-700" class="sr-only"><span class="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-xl text-xs font-bold block">Laranja</span></label>
+                        <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-rose-100 text-rose-700" class="sr-only"><span class="px-3 py-1.5 bg-rose-100 text-rose-700 rounded-xl text-xs font-bold block">Rosa</span></label>
+                        <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-emerald-100 text-emerald-700" class="sr-only"><span class="px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold block">Verde</span></label>
+                        <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-blue-100 text-blue-700" class="sr-only"><span class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-xl text-xs font-bold block">Roxo</span></label>
                         <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-sky-100 text-sky-700" class="sr-only" checked><span class="px-3 py-1.5 bg-sky-100 text-sky-700 rounded-xl text-xs font-bold block">Azul</span></label>
                         <label class="cursor-pointer"><input type="radio" name="cat-cor" value="bg-gray-200 text-gray-700" class="sr-only"><span class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-xl text-xs font-bold block">Cinza</span></label>
                     </div>
@@ -748,16 +900,16 @@ self.addEventListener('fetch',e=>{
 
 <!-- ════ MODAL IMPORTAR CSV ════ -->
 <div id="modal-importar" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-    <div class="modal-inner bg-white w-full sm:max-w-2xl sm:rounded-2xl shadow-2xl border-t-4 border-violet-500" style="max-height:92vh">
+    <div class="modal-inner bg-white w-full sm:max-w-2xl sm:rounded-2xl shadow-2xl border-t-4 border-blue-500" style="max-height:92vh">
         <div class="p-4 sm:p-6 overflow-y-auto" style="max-height:92vh">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">📥 Importar Extrato CSV</h2><button id="btn-fechar-modal-imp" class="text-gray-300 hover:text-red-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
-            <div class="bg-violet-50 border border-violet-200 rounded-xl p-3 mb-4 text-violet-800 text-xs font-medium">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">📥 Importar Extrato CSV</h2><button id="btn-fechar-modal-imp" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="bg-blue-50 border border-bluelet-200 rounded-xl p-3 mb-4 text-blue-800 text-xs font-medium">
                 <strong>Formato esperado:</strong> colunas Data, Descrição, Valor. Valor negativo = despesa, positivo = receita. Separador vírgula ou ponto-e-vírgula. Primeira linha pode ser cabeçalho.
             </div>
             <div id="import-preview" class="mb-4"></div>
             <div id="import-acoes" class="hidden flex gap-3">
                 <button id="btn-import-cancelar" class="flex-1 py-3 rounded-xl border-2 border-gray-200 font-bold text-gray-600 hover:bg-gray-50 transition">Cancelar</button>
-                <button id="btn-import-confirmar" class="flex-1 py-3 rounded-xl bg-violet-600 text-white font-bold hover:bg-violet-700 transition">✅ Importar <span id="import-count"></span> transações</button>
+                <button id="btn-import-confirmar" class="flex-1 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition">✅ Importar <span id="import-count"></span> transações</button>
             </div>
         </div>
     </div>
@@ -767,7 +919,7 @@ self.addEventListener('fetch',e=>{
 <div id="modal-firestore-regras" class="hidden fixed inset-0 bg-black/70 overlay flex items-center justify-center z-[250] px-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 fade-in">
         <div class="flex items-start gap-4 mb-5">
-            <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-2xl shrink-0">🔒</div>
+            <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-2xl shrink-0">🔒</div>
             <div>
                 <h2 class="text-lg font-black text-gray-900">Permissão negada pelo Firebase</h2>
                 <p class="text-sm text-gray-500 mt-1">As regras de segurança do Firestore precisam ser atualizadas para permitir leitura e escrita nas coleções do app.</p>
@@ -775,7 +927,7 @@ self.addEventListener('fetch',e=>{
         </div>
 
         <div class="bg-slate-900 rounded-xl p-4 mb-5 font-mono text-xs text-emerald-400 overflow-x-auto">
-            <p class="text-slate-400 mb-2">// Cole isto no Firebase Console → Firestore → Regras</p>
+            <p class="text-gray-400 mb-2">// Cole isto no Firebase Console → Firestore → Regras</p>
             <pre>rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -842,7 +994,7 @@ const fmtData  = d => d ? d.split('-').reverse().join('/') : '';
 const hojeStr  = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 
 // Cores por conta
-const CORES = { blue:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, emerald:{bg:'bg-emerald-600',text:'text-white',chip:'bg-emerald-100 text-emerald-800'}, violet:{bg:'bg-violet-600',text:'text-white',chip:'bg-violet-100 text-violet-800'}, rose:{bg:'bg-rose-600',text:'text-white',chip:'bg-rose-100 text-rose-800'}, amber:{bg:'bg-amber-500',text:'text-white',chip:'bg-amber-100 text-amber-800'}, slate:{bg:'bg-slate-600',text:'text-white',chip:'bg-slate-200 text-slate-800'} };
+const CORES = { blue:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, emerald:{bg:'bg-emerald-600',text:'text-white',chip:'bg-emerald-100 text-emerald-800'}, violet:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, rose:{bg:'bg-rose-600',text:'text-white',chip:'bg-rose-100 text-rose-800'}, amber:{bg:'bg-amber-500',text:'text-white',chip:'bg-amber-100 text-amber-800'}, slate:{bg:'bg-slate-600',text:'text-white',chip:'bg-gray-200 text-slate-800'} };
 const TIPO_ICONE = { corrente:'🏦', poupanca:'💰', investimento:'📈', carteira:'👜', outro:'📦' };
 
 // ── INIT FILTROS ──────────────────────────────────────────────────────────────
@@ -852,14 +1004,14 @@ for(let y=anoAtual-3;y<=anoAtual+2;y++){ const o=document.createElement('option'
 // ── TOAST & CONFIRM ───────────────────────────────────────────────────────────
 function toast(msg, tipo='sucesso'){
     const c=$id('toast-container'), el=document.createElement('div');
-    el.className=`${{sucesso:'bg-emerald-500',erro:'bg-red-500',aviso:'bg-amber-500',info:'bg-blue-500'}[tipo]||'bg-emerald-500'} text-white px-4 py-3 rounded-xl shadow-lg fade-in font-bold text-sm max-w-xs pointer-events-auto`;
+    el.className=`${{sucesso:'bg-emerald-500',erro:'bg-rose-500',aviso:'bg-amber-500',info:'bg-blue-500'}[tipo]||'bg-emerald-500'} text-white px-4 py-3 rounded-xl shadow-lg fade-in font-bold text-sm max-w-xs pointer-events-auto`;
     el.innerText=msg; c.appendChild(el);
     setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); },3500);
 }
 function confirmar(msg){ return new Promise(r=>{ const m=$id('confirm-modal'); $id('confirm-msg').innerText=msg; m.classList.remove('hidden'); const y=$id('confirm-yes'),n=$id('confirm-no'); const done=v=>{ m.classList.add('hidden'); y.onclick=n.onclick=null; r(v); }; y.onclick=()=>done(true); n.onclick=()=>done(false); }); }
 
 // ── TABS ─────────────────────────────────────────────────────────────────────
-const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', patrimonio:'view-patrimonio', metas:'view-metas', categorias:'view-categorias' };
+const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', calendario:'view-calendario', patrimonio:'view-patrimonio', metas:'view-metas' };
 function setTab(ativa){
     document.querySelectorAll('.tab-btn').forEach(b=>b.className=b.className.replace('tab-active','tab-inactive'));
     document.querySelectorAll('[id^="view-"]').forEach(v=>v.classList.add('hidden'));
@@ -871,12 +1023,12 @@ function setTab(ativa){
     if(ativa==='metas')      atualizarMetas();
     if(ativa==='contas')     renderizarContas();
     if(ativa==='cartoes')    renderizarCartoes();
-    if(ativa==='categorias') renderizarCategoriasCustom();
+    if(ativa==='calendario') renderizarCalendario();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 
 // ── MODAIS HELPERS ────────────────────────────────────────────────────────────
-const todosModais = ['modal-transacao','modal-conta','modal-transferencia','modal-cartao','modal-meta','modal-categoria','modal-importar'];
+const todosModais = ['modal-transacao','modal-conta','modal-transferencia','modal-cartao','modal-meta','modal-importar'];
 function fecharTodosModais(){ todosModais.forEach(id=>$id(id)?.classList.add('hidden')); }
 todosModais.forEach(id=>{ const m=$id(id); if(m) m.addEventListener('click',e=>{ if(e.target===m) m.classList.add('hidden'); }); });
 $id('btn-fechar-modal').onclick       = ()=>$id('modal-transacao').classList.add('hidden');
@@ -884,7 +1036,19 @@ $id('btn-fechar-modal-conta').onclick = ()=>$id('modal-conta').classList.add('hi
 $id('btn-fechar-modal-transf').onclick= ()=>$id('modal-transferencia').classList.add('hidden');
 $id('btn-fechar-modal-cartao').onclick= ()=>$id('modal-cartao').classList.add('hidden');
 $id('btn-fechar-modal-meta').onclick  = ()=>$id('modal-meta').classList.add('hidden');
-$id('btn-fechar-modal-cat').onclick   = ()=>$id('modal-categoria').classList.add('hidden');
+$id('btn-fechar-modal-cat').onclick = ()=>{
+    $id('modal-categoria').classList.add('hidden');
+};
+
+// Abre modal de categoria a partir do modal de lançamento
+$id('btn-abrir-nova-cat').addEventListener('click',()=>{
+    $id('form-categoria').reset();
+    // Pré-seleciona o tipo conforme o tipo de lançamento atual
+    const tipoAtual=$id('input-tipo').value;
+    if(tipoAtual) $id('cat-tipo').value=tipoAtual==='receita'?'receita':'despesa';
+    $id('modal-categoria').classList.remove('hidden');
+    setTimeout(()=>$id('cat-nome').focus(),150);
+});
 $id('btn-fechar-modal-imp').onclick   = ()=>$id('modal-importar').classList.add('hidden');
 const _btnRegras=$id('btn-fechar-regras'); if(_btnRegras) _btnRegras.onclick=()=>$id('modal-firestore-regras').classList.add('hidden');
 
@@ -980,6 +1144,8 @@ onAuthStateChanged(auth, user=>{
         iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom();
         // Auto-lança recorrentes do dia após dados carregarem
         setTimeout(()=>aplicarRecorrentesAuto(), 3000);
+        // Exibe banner de notificações (se ainda não pediu)
+        setTimeout(()=>window._exibirBannerNotif?.(), 6000);
     }else{
         // Cancela todos os listeners ativos antes de limpar o estado
         _unsubscribers.forEach(unsub=>{ try{ unsub(); }catch(_){} });
@@ -1019,8 +1185,10 @@ function iniciarSincronizacao(){
             const vCa=!$id('view-cartoes').classList.contains('hidden');
             if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
             if(!$id('view-metas').classList.contains('hidden'))      atualizarMetas();
+            if(!$id('view-calendario').classList.contains('hidden')) renderizarCalendario();
             if(vC) renderizarContas();
             if(vCa) renderizarCartoes();
+            atualizarAgendamentoNotificacoes();
         }, err=>erroFirestore(err,'transacoes'))
     );
     _unsubscribers.push(
@@ -1149,7 +1317,7 @@ function renderizarContas(){
             </div>
             <div class="bg-white p-3 flex gap-2">
                 <button onclick="editarConta('${c.id}')" class="flex-1 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-lg transition active:scale-95">✏️ Editar</button>
-                <button onclick="deletarConta('${c.id}')" class="flex-1 py-2 text-xs font-bold text-red-400 hover:bg-red-50 rounded-lg transition active:scale-95">🗑️ Excluir</button>
+                <button onclick="deletarConta('${c.id}')" class="flex-1 py-2 text-xs font-bold text-rose-400 hover:bg-rose-50 rounded-lg transition active:scale-95">🗑️ Excluir</button>
             </div>
         </div>`;
     });
@@ -1160,14 +1328,14 @@ function renderizarContas(){
     trs.forEach(tr=>{
         const orig=contas.find(c=>c.id===tr.contaOrigemId)?.nome||'Conta';
         const dest=contas.find(c=>c.id===tr.contaDestinoId)?.nome||'Conta';
-        lt.innerHTML+=`<li class="flex items-center justify-between p-3 rounded-xl bg-slate-50">
+        lt.innerHTML+=`<li class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
             <div class="flex items-center gap-3 min-w-0">
                 <span class="text-xl shrink-0">↔️</span>
                 <div class="min-w-0"><p class="font-bold text-gray-800 text-sm truncate">${orig} → ${dest}</p><p class="text-xs text-gray-400">${fmtData(tr.data)}${tr.desc?' · '+tr.desc:''}</p></div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <span class="font-black mono text-sm text-indigo-600">${fmt(tr.valor)}</span>
-                <button onclick="deletarTransferencia('${tr.id}')" class="text-xs text-red-400 hover:text-red-600 active:scale-90 transition p-1">🗑️</button>
+                <span class="font-black mono text-sm text-blue-600">${fmt(tr.valor)}</span>
+                <button onclick="deletarTransferencia('${tr.id}')" class="text-xs text-rose-400 hover:text-rose-600 active:scale-90 transition p-1">🗑️</button>
             </div>
         </li>`;
     });
@@ -1234,7 +1402,7 @@ function renderizarCartoes(){
         // Gastos do mês neste cartão
         const gastosMes=transacoes.filter(t=>{ const[a,m]=t.data.split('-'); return t.cartaoId===c.id&&t.tipo==='despesa'&&t.status==='confirmada'&&parseInt(m)===mS&&parseInt(a)===aS; }).reduce((s,t)=>s+t.valor,0);
         const pctUso=c.limite>0?Math.min((gastosMes/c.limite)*100,100):0;
-        const corBarra=pctUso>=90?'bg-red-500':pctUso>=70?'bg-amber-400':'bg-emerald-500';
+        const corBarra=pctUso>=90?'bg-rose-500':pctUso>=70?'bg-amber-400':'bg-emerald-500';
         // Próxima fatura
         const hoje=new Date();
         const diaFechamento=parseInt(c.fechamento)||1;
@@ -1242,17 +1410,17 @@ function renderizarCartoes(){
         const diasParaFechar=((diaFechamento-hoje.getDate())%31+31)%31;
         cont.innerHTML+=`<div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-lg">
             <div class="flex justify-between items-start mb-4">
-                <div><p class="font-black text-xl">${c.nome}</p><p class="text-slate-400 text-xs mt-0.5">Fecha dia ${c.fechamento} · Vence dia ${c.vencimento}</p></div>
+                <div><p class="font-black text-xl">${c.nome}</p><p class="text-gray-400 text-xs mt-0.5">Fecha dia ${c.fechamento} · Vence dia ${c.vencimento}</p></div>
                 <span class="text-3xl">💳</span>
             </div>
             <div class="mb-3">
-                <div class="flex justify-between text-xs mb-1"><span class="text-slate-300">Gasto este mês</span><span class="font-black">${fmt(gastosMes)} / ${fmt(c.limite)}</span></div>
+                <div class="flex justify-between text-xs mb-1"><span class="text-gray-300">Gasto este mês</span><span class="font-black">${fmt(gastosMes)} / ${fmt(c.limite)}</span></div>
                 <div class="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden"><div class="${corBarra} h-2.5 rounded-full progress-bar" style="width:${pctUso}%"></div></div>
-                <p class="text-xs text-slate-400 mt-1">${(100-pctUso).toFixed(0)}% do limite disponível · Fecha em ${diasParaFechar===0?'hoje':`${diasParaFechar} dia(s)`}</p>
+                <p class="text-xs text-gray-400 mt-1">${(100-pctUso).toFixed(0)}% do limite disponível · Fecha em ${diasParaFechar===0?'hoje':`${diasParaFechar} dia(s)`}</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="lancarFatura('${c.id}')" class="flex-1 py-2 bg-white text-slate-800 rounded-xl font-bold text-xs hover:bg-slate-100 active:scale-95 transition">💸 Pagar Fatura</button>
-                <button onclick="deletarCartao('${c.id}')" class="px-3 py-2 bg-slate-700 text-red-400 rounded-xl font-bold text-xs hover:bg-slate-600 active:scale-95 transition">🗑️</button>
+                <button onclick="lancarFatura('${c.id}')" class="flex-1 py-2 bg-white text-slate-800 rounded-xl font-bold text-xs hover:bg-gray-100 active:scale-95 transition">💸 Pagar Fatura</button>
+                <button onclick="deletarCartao('${c.id}')" class="px-3 py-2 bg-slate-700 text-rose-400 rounded-xl font-bold text-xs hover:bg-slate-600 active:scale-95 transition">🗑️</button>
             </div>
         </div>`;
     });
@@ -1263,7 +1431,7 @@ function renderizarCartoes(){
     gastos.forEach(t=>{
         const cartao=cartoes.find(c=>c.id===t.cartaoId);
         const isP=t.status==='pendente';
-        lt.innerHTML+=`<li class="flex items-center justify-between p-3 rounded-xl ${isP?'bg-amber-50 border border-amber-200':'bg-slate-50'}">
+        lt.innerHTML+=`<li class="flex items-center justify-between p-3 rounded-xl ${isP?'bg-amber-50 border border-amber-200':'bg-gray-50'}">
             <div class="min-w-0 flex-1"><p class="font-bold text-gray-800 text-sm truncate">${t.desc}</p><p class="text-xs text-gray-400">${fmtData(t.data)} · ${cartao?.nome||'Cartão'} · ${t.categoria}</p></div>
             <div class="flex items-center gap-2 shrink-0">
                 <span class="${isP?'text-rose-400':'text-rose-600'} font-black text-sm mono">-${fmt(t.valor)}</span>
@@ -1399,11 +1567,11 @@ $id('input-importar-csv').addEventListener('change', e=>{
         }
         // Mostra preview
         const prev=$id('import-preview');
-        if(!importRows.length){ prev.innerHTML='<p class="text-red-500 text-sm font-medium">Nenhuma transação reconhecida. Verifique o formato do arquivo.</p>'; $id('import-acoes').classList.add('hidden'); return; }
+        if(!importRows.length){ prev.innerHTML='<p class="text-rose-500 text-sm font-medium">Nenhuma transação reconhecida. Verifique o formato do arquivo.</p>'; $id('import-acoes').classList.add('hidden'); return; }
         $id('import-count').innerText=importRows.length;
         $id('import-acoes').classList.remove('hidden');
         const linhasHtml=importRows.slice(0,10).map(r=>`<tr class="border-b border-gray-100"><td class="px-3 py-2 text-xs text-gray-500">${fmtData(r.data)}</td><td class="px-3 py-2 text-sm font-medium text-gray-800 max-w-[180px] truncate">${r.desc}</td><td class="px-3 py-2 text-xs">${r.tipo==='receita'?'Entrada':'Saída'}</td><td class="px-3 py-2 text-sm font-black mono ${r.tipo==='receita'?'text-emerald-600':'text-rose-600'}">${r.tipo==='receita'?'+':'-'}${fmt(r.valor)}</td></tr>`).join('');
-        prev.innerHTML=`<p class="text-xs text-gray-500 mb-2 font-medium">Pré-visualização (${Math.min(10,importRows.length)} de ${importRows.length}):</p><div class="overflow-x-auto rounded-xl border border-gray-100"><table class="w-full text-sm"><thead class="bg-slate-50"><tr><th class="px-3 py-2 text-left text-xs font-bold text-gray-500">Data</th><th class="px-3 py-2 text-left text-xs font-bold text-gray-500">Descrição</th><th class="px-3 py-2 text-left text-xs font-bold text-gray-500">Tipo</th><th class="px-3 py-2 text-left text-xs font-bold text-gray-500">Valor</th></tr></thead><tbody>${linhasHtml}</tbody></table></div>`;
+        prev.innerHTML=`<p class="text-xs text-gray-500 mb-2 font-medium">Pré-visualização (${Math.min(10,importRows.length)} de ${importRows.length}):</p><div class="overflow-x-auto rounded-xl border border-gray-100"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left text-xs font-bold text-gray-500">Data</th><th class="px-3 py-2 text-left text-xs font-bold text-gray-500">Descrição</th><th class="px-3 py-2 text-left text-xs font-bold text-gray-500">Tipo</th><th class="px-3 py-2 text-left text-xs font-bold text-gray-500">Valor</th></tr></thead><tbody>${linhasHtml}</tbody></table></div>`;
         $id('modal-importar').classList.remove('hidden');
     };
     reader.readAsText(file,'UTF-8');
@@ -1434,7 +1602,6 @@ function carregarCategoriasCustom(){
         onSnapshot(query(collection(db,'categorias'),where('userId','==',currentUser.uid)), snap=>{
             categoriasCustom=[]; snap.forEach(d=>categoriasCustom.push({id:d.id,...d.data()}));
             popularSelectsCategorias();
-            if(!$id('view-categorias').classList.contains('hidden')) renderizarCategoriasCustom();
         }, err=>erroFirestore(err,'categorias'))
     );
 }
@@ -1453,28 +1620,23 @@ function popularSelectsCategorias(){
         });
     });
 }
-function renderizarCategoriasCustom(){
-    const lista=$id('lista-cats-custom'), vazio=$id('cats-custom-vazio');
-    lista.innerHTML='';
-    if(!categoriasCustom.length){ vazio.style.display='block'; return; }
-    vazio.style.display='none';
-    categoriasCustom.forEach(c=>{
-        const chip=document.createElement('div');
-        chip.className=`flex items-center gap-1.5 px-3 py-1.5 ${c.cor||'bg-sky-100 text-sky-700'} rounded-xl text-xs font-bold`;
-        chip.innerHTML=`<span>${c.icone||'🏷️'} ${c.nome}</span><span class="text-[9px] opacity-60">${{despesa:'↓',receita:'↑',ambos:'↕'}[c.tipo]||'↕'}</span><button onclick="deletarCategoriaCustom('${c.id}')" class="ml-1 opacity-40 hover:opacity-100 transition text-xs leading-none">×</button>`;
-        lista.appendChild(chip);
-    });
-}
-$id('btn-nova-categoria').onclick=()=>{ $id('form-categoria').reset(); $id('modal-categoria').classList.remove('hidden'); };
 $id('form-categoria').addEventListener('submit', async e=>{
     e.preventDefault();
     const nome=$id('cat-nome').value.trim();
     if(!nome){ toast('Nome obrigatório.','aviso'); return; }
     if(categoriasCustom.find(c=>c.nome.toLowerCase()===nome.toLowerCase())){ toast('Categoria já existe.','aviso'); return; }
     const cor=document.querySelector('input[name="cat-cor"]:checked')?.value||'bg-sky-100 text-sky-700';
+    const icone=$id('cat-icone').value.trim()||'🏷️';
     try{
-        await addDoc(collection(db,'categorias'),{userId:currentUser.uid,nome,icone:$id('cat-icone').value.trim()||'🏷️',tipo:$id('cat-tipo').value,cor,criadoEm:new Date().toISOString()});
-        toast('🏷️ Categoria criada!'); $id('modal-categoria').classList.add('hidden');
+        await addDoc(collection(db,'categorias'),{userId:currentUser.uid,nome,icone,tipo:$id('cat-tipo').value,cor,criadoEm:new Date().toISOString()});
+        toast('🏷️ Categoria criada!');
+        $id('modal-categoria').classList.add('hidden');
+        // Seleciona a nova categoria automaticamente no select de lançamento
+        const sel=$id('input-categoria');
+        if(sel){
+            // Aguarda o onSnapshot popular o select (popularSelectsCategorias)
+            setTimeout(()=>{ sel.value=nome; },400);
+        }
     }catch(err){ erroFirestore(err,'categoria'); }
 });
 window.deletarCategoriaCustom=async id=>{ if(!await confirmar('Remover esta categoria?'))return; try{ await deleteDoc(doc(db,'categorias',id)); toast('Categoria removida.'); }catch(err){ erroFirestore(err,'delete'); } };
@@ -1492,14 +1654,36 @@ function atualizarDashboard(){
     const saldoMes=rR-dR;
     const elSM=$id('val-saldo-mes');
     elSM.innerText=fmt(saldoMes);
-    elSM.className=`text-2xl sm:text-3xl font-black mt-1 mono leading-tight ${saldoMes>=0?'text-white':'text-red-300'}`;
+    elSM.className=`text-2xl sm:text-3xl font-black mt-1 mono leading-tight ${saldoMes>=0?'text-white':'text-rose-300'}`;
     $id('val-saldo-proj').innerText=fmt(rR-dR+rP-dP);
+    // Variação % vs mês anterior
+    const elVar=$id('val-saldo-var');
+    if(elVar){
+        let mA2=mS-1, aA2=aS; if(mA2===0){mA2=12;aA2--;}
+        const chA2=`${aA2}-${String(mA2).padStart(2,'0')}`;
+        let rAnt=0,dAnt=0;
+        transacoes.forEach(t=>{
+            if(t.status!=='confirmada'||t.tipo==='transferencia') return;
+            const[a,m]=t.data.split('-');
+            if(parseInt(m)===mA2&&parseInt(a)===aA2){
+                if(t.tipo==='receita') rAnt+=t.valor; else dAnt+=t.valor;
+            }
+        });
+        const saldoAnt=rAnt-dAnt;
+        if(saldoAnt!==0){
+            const varPct=((saldoMes-saldoAnt)/Math.abs(saldoAnt))*100;
+            elVar.innerText=`${varPct>=0?'↑':' ↓'}${Math.abs(varPct).toFixed(1)}%`;
+            elVar.className=`text-xs font-black mono whitespace-nowrap ${varPct>=0?'text-emerald-300':'text-rose-300'}`;
+        } else {
+            elVar.innerText='';
+        }
+    }
     atualizarSaldosMini();
     // Comprometimento
     if(rR>0){
         const pct=Math.min((dR/rR)*100,100);
         $id('barra-comprometimento').style.width=pct+'%';
-        $id('barra-comprometimento').className=`h-3 rounded-full progress-bar ${pct>=90?'bg-red-500':pct>=80?'bg-amber-400':'bg-emerald-500'}`;
+        $id('barra-comprometimento').className=`h-3 rounded-full progress-bar ${pct>=90?'bg-rose-500':pct>=80?'bg-amber-400':'bg-emerald-500'}`;
         $id('pct-comprometido-label').innerText=pct.toFixed(0)+'%';
         $id('comprometimento-msg').innerText=pct>=90?`🚨 ${pct.toFixed(1)}% da renda comprometida!`:pct>=80?`⚠️ ${pct.toFixed(1)}% da renda em despesas.`:`✅ ${pct.toFixed(1)}% — dentro do esperado.`;
     }else{ $id('barra-comprometimento').style.width='0%'; $id('pct-comprometido-label').innerText='—'; $id('comprometimento-msg').innerText='Sem receitas confirmadas neste mês.'; }
@@ -1509,9 +1693,9 @@ function atualizarDashboard(){
     if(!vencs.length){ lv.innerHTML='<p class="text-xs text-amber-600 py-2 text-center">Sem pendências 🎉</p>'; }
     vencs.sort((a,b)=>a.data.localeCompare(b.data)).forEach(t=>{
         const at=t.data<hojeStr();
-        lv.innerHTML+=`<li class="p-3 rounded-xl border ${at?'bg-red-50 border-red-200':'bg-white border-amber-200'} shadow-sm">
+        lv.innerHTML+=`<li class="p-3 rounded-xl border ${at?'bg-rose-50 border-rose-200':'bg-white border-amber-200'} shadow-sm">
             <div class="flex justify-between items-start gap-2 mb-1"><span class="font-bold text-gray-800 text-sm leading-tight">${t.desc}</span><span class="text-rose-600 font-black text-sm mono shrink-0">${fmt(t.valor)}</span></div>
-            <div class="flex justify-between items-center"><span class="text-xs ${at?'text-red-500 font-bold':'text-gray-400'}">📅 ${fmtData(t.data)}</span><button onclick="alterarStatus('${t.id}','confirmada')" class="text-xs bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold active:scale-90 transition">PAGO</button></div>
+            <div class="flex justify-between items-center"><span class="text-xs ${at?'text-rose-500 font-bold':'text-gray-400'}">📅 ${fmtData(t.data)}</span><button onclick="alterarStatus('${t.id}','confirmada')" class="text-xs bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold active:scale-90 transition">PAGO</button></div>
         </li>`;
     });
     // Extrato paginado
@@ -1539,13 +1723,13 @@ function atualizarDashboard(){
         const contaChip=conta?`<span class="conta-chip ${cor.chip} text-[9px]">${TIPO_ICONE[conta.tipo]||'🏦'} ${conta.nome}</span>`:'';
         const cartaoChip=cartao?`<span class="conta-chip bg-gray-200 text-gray-700 text-[9px]">💳 ${cartao.nome}</span>`:'';
         const isTransf=t.tipo==='transferencia';
-        lt.innerHTML+=`<li class="flex items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border-2 gap-2 sm:gap-3 transition ${isTransf?'border-indigo-200 bg-indigo-50':isP?'border-amber-200 bg-amber-50':'border-gray-100 bg-white'}">
+        lt.innerHTML+=`<li class="flex items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border-2 gap-2 sm:gap-3 transition ${isTransf?'border-blue-200 bg-blue-50':isP?'border-amber-200 bg-amber-50':'border-gray-100 bg-white'}">
             <div class="flex flex-col flex-1 min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
                     <span class="text-gray-900 font-black text-sm sm:text-base truncate max-w-[160px] sm:max-w-none">${t.desc}</span>
                     ${tagHtml}${contaChip}${cartaoChip}
                     ${isP?'<span class="text-[8px] bg-amber-300 text-amber-900 px-1.5 py-0.5 rounded-full font-black uppercase">⏳</span>':''}
-                    ${isTransf?'<span class="text-[8px] bg-indigo-200 text-indigo-700 px-1.5 py-0.5 rounded-full font-black uppercase">↔️</span>':''}
+                    ${isTransf?'<span class="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase">↔️</span>':''}
                 </div>
                 <span class="text-xs text-gray-400">📅 ${fmtData(t.data)} · 🏷️ ${t.categoria}</span>
             </div>
@@ -1554,7 +1738,7 @@ function atualizarDashboard(){
                 ${!isTransf?`<div class="flex gap-1">
                     ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-2 py-1.5 rounded-lg font-bold text-xs active:scale-90 transition">✔</button>`:`<button onclick="alterarStatus('${t.id}','pendente')" class="text-xs text-gray-300 hover:text-amber-500 px-1 py-1.5">↩</button>`}
                     <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-blue-100 active:scale-90 transition">✏️</button>
-                    <button onclick="deletarTransacao('${t.id}')" class="bg-red-50 text-red-400 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-red-100 active:scale-90 transition">🗑️</button>
+                    <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-rose-100 active:scale-90 transition">🗑️</button>
                 </div>`:''}
             </div>
         </li>`;
@@ -1568,21 +1752,21 @@ $id('btn-pag-ant').onclick  = ()=>{ paginaAtual--; atualizarDashboard(); $id('li
 $id('btn-pag-prox').onclick = ()=>{ paginaAtual++; atualizarDashboard(); $id('lista-transacoes').scrollIntoView({behavior:'smooth',block:'start'}); };
 
 // ── GRÁFICOS DE PIZZA ─────────────────────────────────────────────────────────
-let pizzaDesp=null, pizzaRec=null;
-const PIZZA_CORES=['#f43f5e','#f59e0b','#3b82f6','#10b981','#8b5cf6','#64748b','#ec4899','#14b8a6','#f97316','#06b6d4'];
+let pizzaDesp=null, linha7Inst=null;
+const PIZZA_CORES=['#f43f5e','#f59e0b','#3b82f6','#10b981','#8b5cf6','#64748b','#e11d48','#d97706','#0284c7','#059669'];
 
 function atualizarPizzas(){
+    Chart.defaults.font.family="'DM Sans',sans-serif";
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
-    const catDesp={}, catRec={};
+    const catDesp={};
     transacoes.forEach(t=>{
-        if(t.status!=='confirmada'||t.tipo==='transferencia') return;
+        if(t.status!=='confirmada'||t.tipo!=='despesa') return;
         const[a,m]=t.data.split('-');
         if(parseInt(m)!==mS||parseInt(a)!==aS) return;
-        if(t.tipo==='despesa') catDesp[t.categoria]=(catDesp[t.categoria]||0)+t.valor;
-        else catRec[t.categoria]=(catRec[t.categoria]||0)+t.valor;
+        catDesp[t.categoria]=(catDesp[t.categoria]||0)+t.valor;
     });
 
-    // Pizza despesas
+    // ── Donut — Despesas por Categoria ──────────────────────────────────────
     const elD=$id('pizza-despesas'), vzD=$id('pizza-despesas-vazio');
     if(pizzaDesp){ pizzaDesp.destroy(); pizzaDesp=null; }
     if(!Object.keys(catDesp).length){
@@ -1590,43 +1774,107 @@ function atualizarPizzas(){
     } else {
         vzD.classList.add('hidden');
         const totalD=Object.values(catDesp).reduce((a,b)=>a+b,0);
+        const sorted=Object.entries(catDesp).sort((a,b)=>b[1]-a[1]);
         pizzaDesp=new Chart(elD.getContext('2d'),{
             type:'doughnut',
             data:{
-                labels:Object.keys(catDesp).map((k,i)=>`${k} (${((catDesp[k]/totalD)*100).toFixed(0)}%)`),
-                datasets:[{data:Object.values(catDesp),backgroundColor:PIZZA_CORES,borderWidth:2,borderColor:'#fff',hoverOffset:6}]
+                labels:sorted.map(([k,v])=>`${k} (${((v/totalD)*100).toFixed(0)}%)`),
+                datasets:[{
+                    data:sorted.map(([,v])=>v),
+                    backgroundColor:PIZZA_CORES,
+                    borderWidth:2,
+                    borderColor:'#fff',
+                    hoverOffset:8
+                }]
             },
             options:{
                 responsive:true,maintainAspectRatio:false,
-                cutout:'58%',
+                cutout:'60%',
                 plugins:{
-                    legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:6}},
+                    legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:7}},
                     tooltip:{callbacks:{label:c=>`  ${fmt(c.raw)}  (${((c.raw/totalD)*100).toFixed(1)}%)`}}
                 }
             }
         });
     }
 
-    // Pizza receitas
-    const elR=$id('pizza-receitas'), vzR=$id('pizza-receitas-vazio');
-    if(pizzaRec){ pizzaRec.destroy(); pizzaRec=null; }
-    if(!Object.keys(catRec).length){
-        vzR.classList.remove('hidden');
+    // ── Linha — Evolução das Despesas (últimos 7 dias) ───────────────────────
+    const elL=$id('linha-7dias'), vzL=$id('linha-7dias-vazio');
+    const totSpan=$id('linha7-total');
+    if(linha7Inst){ linha7Inst.destroy(); linha7Inst=null; }
+
+    // Gera os 7 dias a partir de hoje
+    const hoje=new Date();
+    const dias=[], labels=[], valores=[];
+    for(let i=6;i>=0;i--){
+        const d=new Date(hoje.getFullYear(),hoje.getMonth(),hoje.getDate()-i);
+        const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const label=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+        dias.push(ds); labels.push(label);
+        const total=transacoes.filter(t=>t.data===ds&&t.tipo==='despesa'&&t.status==='confirmada').reduce((s,t)=>s+t.valor,0);
+        valores.push(total);
+    }
+
+    const totalSemana=valores.reduce((a,b)=>a+b,0);
+    totSpan.innerText=totalSemana>0?fmt(totalSemana):'';
+
+    const temDados=valores.some(v=>v>0);
+    if(!temDados){
+        vzL.classList.remove('hidden');
+        totSpan.innerText='';
     } else {
-        vzR.classList.add('hidden');
-        const totalR=Object.values(catRec).reduce((a,b)=>a+b,0);
-        pizzaRec=new Chart(elR.getContext('2d'),{
-            type:'doughnut',
+        vzL.classList.add('hidden');
+        // Gradiente fill igual à imagem
+        linha7Inst=new Chart(elL.getContext('2d'),{
+            type:'line',
             data:{
-                labels:Object.keys(catRec).map((k,i)=>`${k} (${((catRec[k]/totalR)*100).toFixed(0)}%)`),
-                datasets:[{data:Object.values(catRec),backgroundColor:['#10b981','#3b82f6','#f59e0b','#8b5cf6','#f43f5e','#64748b','#ec4899','#14b8a6','#f97316','#06b6d4'],borderWidth:2,borderColor:'#fff',hoverOffset:6}]
+                labels,
+                datasets:[{
+                    label:'Despesas',
+                    data:valores,
+                    borderColor:'#f43f5e',
+                    borderWidth:2.5,
+                    pointBackgroundColor:'#f43f5e',
+                    pointRadius:4,
+                    pointHoverRadius:7,
+                    fill:true,
+                    backgroundColor:(ctx)=>{
+                        const canvas=ctx.chart.canvas;
+                        const gradient=canvas.getContext('2d').createLinearGradient(0,0,0,canvas.height);
+                        gradient.addColorStop(0,'rgba(244,63,94,0.25)');
+                        gradient.addColorStop(1,'rgba(244,63,94,0.0)');
+                        return gradient;
+                    },
+                    tension:0.4
+                }]
             },
             options:{
                 responsive:true,maintainAspectRatio:false,
-                cutout:'58%',
                 plugins:{
-                    legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:6}},
-                    tooltip:{callbacks:{label:c=>`  ${fmt(c.raw)}  (${((c.raw/totalR)*100).toFixed(1)}%)`}}
+                    legend:{display:false},
+                    tooltip:{
+                        callbacks:{
+                            label:c=>c.raw>0?`  ${fmt(c.raw)}`:'  R$ 0,00',
+                            title:c=>`📅 ${c[0].label}`
+                        },
+                        backgroundColor:'#1e293b',
+                        titleColor:'#94a3b8',
+                        bodyColor:'#f8fafc',
+                        cornerRadius:10,
+                        padding:10
+                    }
+                },
+                scales:{
+                    y:{
+                        beginAtZero:true,
+                        ticks:{callback:v=>v===0?'0':fmt(v),font:{size:9},maxTicksLimit:5},
+                        grid:{color:'rgba(0,0,0,0.04)'},
+                        border:{dash:[4,4]}
+                    },
+                    x:{
+                        grid:{display:false},
+                        ticks:{font:{size:10},color:'#94a3b8'}
+                    }
                 }
             }
         });
@@ -1639,129 +1887,144 @@ function atualizarPatrimonio(){
 
     // ── Agrupa por mês ──────────────────────────────────────────────────────
     const porMes={};
-    let totalRec=0, totalDesp=0;
+    let totalRecHist=0, totalDespHist=0;
     transacoes.forEach(t=>{
         if(t.status!=='confirmada'||t.tipo==='transferencia') return;
         const[ano,mes]=t.data.split('-'), ch=`${ano}-${mes}`;
         if(!porMes[ch]) porMes[ch]={r:0,d:0};
-        if(t.tipo==='receita'){totalRec+=t.valor; porMes[ch].r+=t.valor;}
-        else{totalDesp+=t.valor; porMes[ch].d+=t.valor;}
+        if(t.tipo==='receita'){totalRecHist+=t.valor; porMes[ch].r+=t.valor;}
+        else{totalDespHist+=t.valor; porMes[ch].d+=t.valor;}
     });
     const mesesOrd=Object.keys(porMes).sort();
 
-    // ── Patrimônio líquido acumulado (sobras somadas) ────────────────────────
-    const patrimonioLiquido=totalRec-totalDesp;
+    // ── Patrimônio líquido acumulado ─────────────────────────────────────────
+    const patrimonioLiquido=totalRecHist-totalDespHist;
     const elPL=$id('pat-liquido-total');
     elPL.innerText=fmt(patrimonioLiquido);
     elPL.className=`text-4xl sm:text-5xl font-black mono leading-none ${patrimonioLiquido>=0?'text-white':'text-rose-400'}`;
 
-    // ── Sobra do mês atual (filtro-mes/filtro-ano) ───────────────────────────
+    // ── Mês/ano selecionado ──────────────────────────────────────────────────
     const mSel=parseInt($id('filtro-mes').value), aSel=parseInt($id('filtro-ano').value);
     const chSel=`${aSel}-${String(mSel).padStart(2,'0')}`;
-    const sobraMes=(porMes[chSel]?.r||0)-(porMes[chSel]?.d||0);
+    const recMesSel=porMes[chSel]?.r||0;
+    const despMesSel=porMes[chSel]?.d||0;
+    const sobraMes=recMesSel-despMesSel;
+    const nomeMes=`${mesesNomes[mSel-1]} ${aSel}`;
+
+    // ── Sobra do mês (hero) ──────────────────────────────────────────────────
     const elSobra=$id('pat-sobra-mes');
     elSobra.innerText=(sobraMes>=0?'+':'')+fmt(sobraMes);
     elSobra.className=`font-black text-xl mono mt-0.5 ${sobraMes>=0?'text-emerald-400':'text-rose-400'}`;
 
-    // ── Variação % vs mês anterior ───────────────────────────────────────────
+    // ── Variação % vs mês anterior (hero) ────────────────────────────────────
     let mAnt=mSel-1, aAnt=aSel; if(mAnt===0){mAnt=12;aAnt--;}
     const chAnt=`${aAnt}-${String(mAnt).padStart(2,'0')}`;
     const sobraAnt=(porMes[chAnt]?.r||0)-(porMes[chAnt]?.d||0);
     const elVar=$id('pat-var-mes');
     if(sobraAnt!==0){
         const varPct=((sobraMes-sobraAnt)/Math.abs(sobraAnt))*100;
-        const sinal=varPct>=0?'↑ +':'↓ ';
-        elVar.innerText=`${sinal}${Math.abs(varPct).toFixed(1)}%`;
+        elVar.innerText=`${varPct>=0?'↑ +':'↓ '}${Math.abs(varPct).toFixed(1)}%`;
         elVar.className=`font-black text-xl mono mt-0.5 ${varPct>=0?'text-emerald-400':'text-rose-400'}`;
     } else if(sobraMes>0){
         elVar.innerText='↑ novo'; elVar.className='font-black text-xl mono mt-0.5 text-emerald-400';
     } else {
-        elVar.innerText='—'; elVar.className='font-black text-xl mono mt-0.5 text-slate-400';
+        elVar.innerText='—'; elVar.className='font-black text-xl mono mt-0.5 text-gray-400';
     }
 
-    // ── Saldo real nas contas ────────────────────────────────────────────────
+    // ── KPIs ─────────────────────────────────────────────────────────────────
+    // Saldo real nas contas
     const totalContas=contas.reduce((sum,c)=>sum+calcularSaldoConta(c.id),0);
     const elSC=$id('pat-saldo-contas');
     elSC.innerText=fmt(totalContas);
-    elSC.className=`text-2xl font-black mono leading-tight ${totalContas>=0?'text-blue-600':'text-rose-600'}`;
+    elSC.className=`text-xl sm:text-2xl font-black mono leading-tight ${totalContas>=0?'text-blue-600':'text-rose-600'}`;
 
-    $id('pat-total-receitas').innerText=fmt(totalRec);
-    $id('pat-total-despesas').innerText=fmt(totalDesp);
+    // Entradas e saídas do mês selecionado
+    $id('pat-total-receitas').innerText=fmt(recMesSel);
+    $id('pat-total-despesas').innerText=fmt(despMesSel);
+    $id('pat-rec-label').innerText=nomeMes;
+    $id('pat-desp-label').innerText=nomeMes;
 
-    // ── Últimos 12 meses para gráficos ───────────────────────────────────────
-    const hoje=new Date();
-    const labels12=[], recs12=[], desps12=[], acum12=[];
-    let acumulado=0;
-    // Calcula acumulado até 13 meses atrás (ponto de partida)
-    Object.keys(porMes).sort().forEach(ch=>{
-        const d=new Date(parseInt(ch.split('-')[0]), parseInt(ch.split('-')[1])-1, 1);
-        const limiteInicio=new Date(hoje.getFullYear(), hoje.getMonth()-12, 1);
-        if(d < limiteInicio) acumulado += (porMes[ch].r - porMes[ch].d);
-    });
-    for(let i=11;i>=0;i--){
-        const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
-        const ch=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        const r=porMes[ch]?.r||0, dep=porMes[ch]?.d||0;
-        acumulado+=(r-dep);
-        labels12.push(`${mesesNomes[d.getMonth()].substring(0,3)}/${String(d.getFullYear()).substring(2)}`);
-        recs12.push(r); desps12.push(dep); acum12.push(acumulado);
+    // Patrimônio ao fim do mês = saldo atual nas contas + sobra do mês
+    const fimMes=totalContas+sobraMes;
+    const elFim=$id('pat-fim-mes');
+    elFim.innerText=fmt(fimMes);
+    elFim.className=`text-xl sm:text-2xl font-black mono leading-tight ${fimMes>=0?'text-white':'text-rose-300'}`;
+
+    // ── Gera série para gráficos ─────────────────────────────────────────────
+    function gerarSerie(nMeses){
+        const hoje=new Date();
+        const labels=[], recs=[], desps=[], acums=[];
+        let acumulado=0;
+        // Calcula acumulado até o início do período
+        if(nMeses>0){
+            const limite=new Date(hoje.getFullYear(),hoje.getMonth()-nMeses+1,1);
+            mesesOrd.forEach(ch=>{
+                const[a,m]=ch.split('-');
+                const d=new Date(parseInt(a),parseInt(m)-1,1);
+                if(d<limite) acumulado+=(porMes[ch].r-porMes[ch].d);
+            });
+        }
+        const total=nMeses>0?nMeses:mesesOrd.length||1;
+        const inicio=nMeses>0
+            ? new Date(hoje.getFullYear(),hoje.getMonth()-nMeses+1,1)
+            : (mesesOrd.length ? new Date(parseInt(mesesOrd[0].split('-')[0]),parseInt(mesesOrd[0].split('-')[1])-1,1) : new Date());
+        let cur=new Date(inicio.getFullYear(),inicio.getMonth(),1);
+        const fim=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+        while(cur<=fim){
+            const ch=`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}`;
+            const r=porMes[ch]?.r||0, d=porMes[ch]?.d||0;
+            acumulado+=(r-d);
+            labels.push(`${mesesNomes[cur.getMonth()].substring(0,3)}/${String(cur.getFullYear()).substring(2)}`);
+            recs.push(r); desps.push(d); acums.push(acumulado);
+            cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);
+        }
+        return {labels,recs,desps,acums};
     }
 
-    // ── Gráfico linha — evolução do patrimônio ───────────────────────────────
+    // ── Gráfico linha — evolução patrimônio ──────────────────────────────────
+    const nMesesLinha=parseInt($id('periodo-linha-btns')?.querySelector('.bg-blue-100')?.dataset.meses??12)||12;
+    const serL=gerarSerie(nMesesLinha);
     const ctxLine=$id('lineChartPatrimonio').getContext('2d');
-    if(window._patLineInst){ window._patLineInst.destroy(); }
+    if(window._patLineInst) window._patLineInst.destroy();
     window._patLineInst=new Chart(ctxLine,{
         type:'line',
         data:{
-            labels:labels12,
+            labels:serL.labels,
             datasets:[{
-                label:'Patrimônio Acumulado',
-                data:acum12,
-                borderColor:'#3b82f6',
-                backgroundColor:'rgba(59,130,246,.08)',
-                fill:true,
-                tension:.4,
-                pointBackgroundColor:acum12.map(v=>v>=0?'#3b82f6':'#f43f5e'),
-                pointRadius:4,
-                pointHoverRadius:6,
-                borderWidth:2.5
+                label:'Patrimônio Acumulado',data:serL.acums,
+                borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.08)',
+                fill:true,tension:.4,
+                pointBackgroundColor:serL.acums.map(v=>v>=0?'#3b82f6':'#f43f5e'),
+                pointRadius:4,pointHoverRadius:6,borderWidth:2.5
             }]
         },
         options:{
             responsive:true,maintainAspectRatio:false,
-            plugins:{
-                legend:{display:false},
-                tooltip:{callbacks:{label:c=>`Patrimônio: ${fmt(c.raw)}`}}
-            },
+            plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`Patrimônio: ${fmt(c.raw)}`}}},
             scales:{
-                y:{
-                    ticks:{callback:v=>fmt(v),font:{size:10}},
-                    grid:{color:'rgba(0,0,0,.04)'},
-                    border:{dash:[4,4]}
-                },
+                y:{ticks:{callback:v=>fmt(v),font:{size:10}},grid:{color:'rgba(0,0,0,.04)'},border:{dash:[4,4]}},
                 x:{grid:{display:false},ticks:{font:{size:9}}}
             }
         }
     });
 
     // ── Gráfico barras — Receita vs Despesa ──────────────────────────────────
+    const nMesesBar=parseInt($id('periodo-bar-btns')?.querySelector('.bg-blue-100')?.dataset.meses??12)||12;
+    const serB=gerarSerie(nMesesBar);
     const ctx=$id('barChartPatrimonio').getContext('2d');
     if(barInst) barInst.destroy();
     barInst=new Chart(ctx,{
         type:'bar',
         data:{
-            labels:labels12,
+            labels:serB.labels,
             datasets:[
-                {label:'Receitas',data:recs12,backgroundColor:'rgba(16,185,129,.8)',borderRadius:4,borderSkipped:false},
-                {label:'Despesas',data:desps12,backgroundColor:'rgba(244,63,94,.7)',borderRadius:4,borderSkipped:false}
+                {label:'Receitas',data:serB.recs,backgroundColor:'rgba(16,185,129,.8)',borderRadius:4,borderSkipped:false},
+                {label:'Despesas',data:serB.desps,backgroundColor:'rgba(244,63,94,.7)',borderRadius:4,borderSkipped:false}
             ]
         },
         options:{
             responsive:true,maintainAspectRatio:false,
-            plugins:{
-                legend:{labels:{font:{size:11},boxWidth:12}},
-                tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}
-            },
+            plugins:{legend:{labels:{font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}},
             scales:{
                 y:{ticks:{callback:v=>fmt(v),font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}},
                 x:{grid:{display:false},ticks:{font:{size:9}}}
@@ -1772,23 +2035,18 @@ function atualizarPatrimonio(){
     // ── Tabela mensal com variação % ─────────────────────────────────────────
     const tab=$id('tabela-saldo-mensal'); tab.innerHTML='';
     if(!mesesOrd.length){ tab.innerHTML='<p class="text-gray-300 text-sm text-center py-4">Sem dados registrados</p>'; return; }
-
-    // Cabeçalho
     tab.innerHTML=`<div class="grid grid-cols-4 gap-2 px-3 pb-2 border-b border-gray-100">
         <span class="text-xs font-black text-gray-400 uppercase tracking-wider">Mês</span>
         <span class="text-xs font-black text-gray-400 uppercase tracking-wider text-right">Receitas</span>
         <span class="text-xs font-black text-gray-400 uppercase tracking-wider text-right">Despesas</span>
         <span class="text-xs font-black text-gray-400 uppercase tracking-wider text-right">Sobra / Var%</span>
     </div>`;
-
     mesesOrd.slice().reverse().forEach((ch,idx,arr)=>{
         const[ano,mes]=ch.split('-');
-        const saldo=porMes[ch].r-porMes[ch].d;
-        const pos=saldo>=0;
-        // Variação vs mês anterior
-        const chPrev=arr[idx+1]; // array já revertido, então próximo é o anterior
+        const saldo=porMes[ch].r-porMes[ch].d, pos=saldo>=0;
+        const chPrev=arr[idx+1];
         let varHtml='';
-        if(chPrev && porMes[chPrev]){
+        if(chPrev&&porMes[chPrev]){
             const saldoPrev=porMes[chPrev].r-porMes[chPrev].d;
             if(saldoPrev!==0){
                 const v=((saldo-saldoPrev)/Math.abs(saldoPrev))*100;
@@ -1796,23 +2054,34 @@ function atualizarPatrimonio(){
             }
         }
         const isSel=(parseInt(mes)===mSel&&parseInt(ano)===aSel);
-        tab.innerHTML+=`<div class="grid grid-cols-4 gap-2 items-center px-3 py-2.5 rounded-xl ${isSel?'bg-blue-50 border border-blue-100':'hover:bg-slate-50'} transition">
+        tab.innerHTML+=`<div class="grid grid-cols-4 gap-2 items-center px-3 py-2.5 rounded-xl ${isSel?'bg-blue-50 border border-blue-100':'hover:bg-gray-50'} transition">
             <div class="flex items-center gap-2">
                 <div class="w-1.5 h-7 rounded-full ${pos?'bg-emerald-400':'bg-rose-400'} shrink-0"></div>
-                <div>
-                    <p class="font-bold text-gray-800 text-sm leading-tight">${mesesNomes[parseInt(mes)-1].substring(0,3)}</p>
-                    <p class="text-[10px] text-gray-400">${ano}</p>
-                </div>
+                <div><p class="font-bold text-gray-800 text-sm leading-tight">${mesesNomes[parseInt(mes)-1].substring(0,3)}</p><p class="text-[10px] text-gray-400">${ano}</p></div>
             </div>
             <p class="text-sm font-bold text-emerald-600 mono text-right">${fmt(porMes[ch].r)}</p>
             <p class="text-sm font-bold text-rose-500 mono text-right">${fmt(porMes[ch].d)}</p>
-            <div class="text-right">
-                <p class="text-sm font-black mono ${pos?'text-emerald-600':'text-rose-600'}">${pos?'+':''}${fmt(saldo)}</p>
-                ${varHtml}
-            </div>
+            <div class="text-right"><p class="text-sm font-black mono ${pos?'text-emerald-600':'text-rose-600'}">${pos?'+':''}${fmt(saldo)}</p>${varHtml}</div>
         </div>`;
     });
 }
+
+// Botões de período dos gráficos
+(()=>{
+    function setupPeriodoBtns(seletor, callback){
+        document.querySelectorAll(seletor).forEach(btn=>{
+            btn.addEventListener('click',()=>{
+                document.querySelectorAll(seletor).forEach(b=>{
+                    b.className=b.className.replace('bg-blue-100 text-blue-700','text-gray-400 hover:bg-gray-100');
+                });
+                btn.className=btn.className.replace('text-gray-400 hover:bg-gray-100','bg-blue-100 text-blue-700');
+                callback();
+            });
+        });
+    }
+    setupPeriodoBtns('.pat-periodo-btn',    ()=>{ if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio(); });
+    setupPeriodoBtns('.pat-periodo-btn-bar',()=>{ if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio(); });
+})();
 
 // ── METAS ─────────────────────────────────────────────────────────────────────
 function carregarMetas(){ _unsubscribers.push(onSnapshot(query(collection(db,'metas'),where('userId','==',currentUser.uid)),snap=>{ metas=[]; snap.forEach(d=>metas.push({id:d.id,...d.data()})); if(!$id('view-metas').classList.contains('hidden')) atualizarMetas(); }, err=>erroFirestore(err,'metas'))); }
@@ -1826,9 +2095,9 @@ function atualizarMetas(){
     vazio.classList.add('hidden');
     metas.sort((a,b)=>a.categoria.localeCompare(b.categoria)).forEach(meta=>{
         const gasto=gastosCat[meta.categoria]||0, pct=Math.min((gasto/meta.valor)*100,100), restante=meta.valor-gasto, estourou=gasto>meta.valor;
-        const corBarra=pct>=100?'bg-red-500':pct>=80?'bg-amber-400':'bg-emerald-500';
-        const corCard=estourou?'border-red-300 bg-red-50':pct>=80?'border-amber-300 bg-amber-50':'border-gray-100 bg-white';
-        cont.innerHTML+=`<div class="rounded-2xl border-2 ${corCard} p-4 sm:p-5 shadow-sm"><div class="flex justify-between items-start mb-3"><div><div class="flex items-center gap-2"><span class="text-lg">${estourou?'🔴':pct>=80?'⚠️':'✅'}</span><p class="font-black text-gray-800">${meta.categoria}</p></div><p class="text-xs text-gray-400 mt-0.5 mono">${fmt(gasto)} de ${fmt(meta.valor)}</p></div><div class="text-right"><p class="font-black text-2xl mono ${estourou?'text-red-600':pct>=80?'text-amber-600':'text-gray-700'}">${pct.toFixed(0)}%</p><p class="text-xs ${estourou?'text-red-500 font-bold':'text-gray-400'}">${estourou?`+${fmt(Math.abs(restante))} acima`:`${fmt(restante)} livres`}</p></div></div><div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden mb-2"><div class="h-3 rounded-full progress-bar ${corBarra}" style="width:${pct}%"></div></div><div class="flex justify-end"><button onclick="deletarMeta('${meta.id}')" class="text-xs text-gray-300 hover:text-red-500 font-bold transition">Remover</button></div></div>`;
+        const corBarra=pct>=100?'bg-rose-500':pct>=80?'bg-amber-400':'bg-emerald-500';
+        const corCard=estourou?'border-rose-300 bg-rose-50':pct>=80?'border-amber-300 bg-amber-50':'border-gray-100 bg-white';
+        cont.innerHTML+=`<div class="rounded-2xl border-2 ${corCard} p-4 sm:p-5 shadow-sm"><div class="flex justify-between items-start mb-3"><div><div class="flex items-center gap-2"><span class="text-lg">${estourou?'🔴':pct>=80?'⚠️':'✅'}</span><p class="font-black text-gray-800">${meta.categoria}</p></div><p class="text-xs text-gray-400 mt-0.5 mono">${fmt(gasto)} de ${fmt(meta.valor)}</p></div><div class="text-right"><p class="font-black text-2xl mono ${estourou?'text-rose-600':pct>=80?'text-amber-600':'text-gray-700'}">${pct.toFixed(0)}%</p><p class="text-xs ${estourou?'text-rose-500 font-bold':'text-gray-400'}">${estourou?`+${fmt(Math.abs(restante))} acima`:`${fmt(restante)} livres`}</p></div></div><div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden mb-2"><div class="h-3 rounded-full progress-bar ${corBarra}" style="width:${pct}%"></div></div><div class="flex justify-end"><button onclick="deletarMeta('${meta.id}')" class="text-xs text-gray-300 hover:text-rose-500 font-bold transition">Remover</button></div></div>`;
     });
 }
 $id('btn-nova-meta').onclick=()=>{ $id('form-meta').reset(); $id('modal-meta').classList.remove('hidden'); };
@@ -1864,7 +2133,7 @@ function gerenciarNotificacoes(){
     if(recMes>0){ const pct=(despMes/recMes)*100; if(pct>90)alertas.push({tipo:'erro',titulo:'Orçamento Estourando!',desc:`${pct.toFixed(1)}% da renda comprometida.`,icone:'🚨'}); else if(pct>80)alertas.push({tipo:'alerta',titulo:'Alerta de Orçamento',desc:`${pct.toFixed(1)}% comprometido.`,icone:'⚠️'}); }
     for(let c in catAtual){ if(catAnt[c]>0){ const p=((catAtual[c]-catAnt[c])/catAnt[c])*100; if(p>40&&catAtual[c]>100) alertas.push({tipo:'alerta',titulo:'Gasto Fora do Padrão',desc:`${c} subiu ${p.toFixed(0)}% vs mês anterior.`,icone:'📈'}); } }
     const badge=$id('notif-badge'), lista=$id('lista-notificacoes'); lista.innerHTML='';
-    if(alertas.length){ badge.innerText=alertas.length; badge.classList.remove('hidden'); alertas.forEach(a=>{ const bg=a.tipo==='erro'?'bg-red-50':a.tipo==='aviso'?'bg-amber-50':'bg-orange-50'; lista.innerHTML+=`<li class="p-3 ${bg} border-b border-gray-50 last:border-none"><div class="flex gap-2.5 items-start"><span class="text-base">${a.icone}</span><div><p class="font-bold text-gray-800 text-xs">${a.titulo}</p><p class="text-xs text-gray-500 mt-0.5">${a.desc}</p></div></div></li>`; }); }
+    if(alertas.length){ badge.innerText=alertas.length; badge.classList.remove('hidden'); alertas.forEach(a=>{ const bg=a.tipo==='erro'?'bg-rose-50':a.tipo==='aviso'?'bg-amber-50':'bg-amber-50'; lista.innerHTML+=`<li class="p-3 ${bg} border-b border-gray-50 last:border-none"><div class="flex gap-2.5 items-start"><span class="text-base">${a.icone}</span><div><p class="font-bold text-gray-800 text-xs">${a.titulo}</p><p class="text-xs text-gray-500 mt-0.5">${a.desc}</p></div></div></li>`; }); }
     else{ badge.classList.add('hidden'); lista.innerHTML='<li class="p-5 text-center text-gray-300 text-sm">Tudo tranquilo ✌️</li>'; }
 }
 
@@ -1888,7 +2157,7 @@ function carregarRecorrentes(){
     btn.addEventListener('click',()=>{
         ativo=!ativo;
         btn.setAttribute('aria-checked', ativo);
-        btn.classList.toggle('bg-indigo-500', ativo);
+        btn.classList.toggle('bg-blue-500', ativo);
         btn.classList.toggle('bg-gray-200', !ativo);
         knob.style.transform = ativo ? 'translateX(24px)' : 'translateX(0)';
         fields.classList.toggle('hidden', !ativo);
@@ -1902,7 +2171,7 @@ function carregarRecorrentes(){
     window._resetToggleRec=()=>{
         ativo=false;
         btn.setAttribute('aria-checked','false');
-        btn.classList.remove('bg-indigo-500'); btn.classList.add('bg-gray-200');
+        btn.classList.remove('bg-blue-500'); btn.classList.add('bg-gray-200');
         knob.style.transform='translateX(0)';
         fields.classList.add('hidden');
     };
@@ -1936,15 +2205,277 @@ async function aplicarRecorrentesAuto(){
     if(criados>0) toast(`🔁 ${criados} recorrente(s) lançada(s) automaticamente!`,'info');
 }
 
+// ── CALENDÁRIO ───────────────────────────────────────────────────────────────
+let _calAno=0, _calMes=0; // mês atual do calendário (1-12)
+
+(()=>{
+    const hoje=new Date();
+    _calAno=hoje.getFullYear(); _calMes=hoje.getMonth()+1;
+})();
+
+function renderizarCalendario(){
+    const hoje=new Date();
+    const strHoje=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+
+    // Título e resumo
+    $id('cal-titulo').innerText=`${mesesNomes[_calMes-1]} ${_calAno}`;
+
+    // KPIs do mês do calendário
+    const chMes=`${_calAno}-${String(_calMes).padStart(2,'0')}`;
+    let rMes=0, dMes=0;
+    transacoes.forEach(t=>{
+        if(t.status!=='confirmada'||t.tipo==='transferencia') return;
+        if(!t.data.startsWith(chMes)) return;
+        if(t.tipo==='receita') rMes+=t.valor; else dMes+=t.valor;
+    });
+    const saldo=rMes-dMes;
+    $id('cal-resumo').innerHTML=`<span class="text-emerald-600 font-black">+${fmt(rMes)}</span> &nbsp;·&nbsp; <span class="text-rose-500 font-black">-${fmt(dMes)}</span> &nbsp;·&nbsp; <span class="${saldo>=0?'text-blue-600':'text-rose-600'} font-black">${saldo>=0?'+':''}${fmt(saldo)}</span>`;
+
+    // Monta o índice dia → transações
+    const porDia={};
+    transacoes.forEach(t=>{
+        if(t.tipo==='transferencia') return;
+        if(!t.data.startsWith(chMes)) return;
+        if(!porDia[t.data]) porDia[t.data]=[];
+        porDia[t.data].push(t);
+    });
+
+    // Primeiro dia do mês e total de dias
+    const primeiroDia=new Date(_calAno,_calMes-1,1).getDay(); // 0=Dom
+    const diasNoMes=new Date(_calAno,_calMes,0).getDate();
+    const diasMesAnt=new Date(_calAno,_calMes-1,0).getDate();
+
+    const grid=$id('cal-grid'); grid.innerHTML='';
+
+    // Células do mês anterior (cinza)
+    for(let i=0;i<primeiroDia;i++){
+        const d=diasMesAnt-primeiroDia+1+i;
+        const cel=document.createElement('div');
+        cel.className='cal-cell outro-mes';
+        cel.innerHTML=`<div class="cal-dia"><span class="cal-dia-num">${String(d).padStart(2,'0')}</span></div>`;
+        grid.appendChild(cel);
+    }
+
+    // Células do mês atual
+    for(let d=1;d<=diasNoMes;d++){
+        const ds=`${_calAno}-${String(_calMes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isHoje=ds===strHoje;
+        const cel=document.createElement('div');
+        cel.className=`cal-cell${isHoje?' hoje':''}`;
+
+        // Número do dia
+        const numEl=`<div class="cal-dia"><span class="cal-dia-num">${String(d).padStart(2,'0')}</span></div>`;
+
+        // Chips de transações
+        const ts=porDia[ds]||[];
+        // Separa despesas e receitas, ordena por valor desc
+        const desps=ts.filter(t=>t.tipo==='despesa').sort((a,b)=>b.valor-a.valor);
+        const recs =ts.filter(t=>t.tipo==='receita').sort((a,b)=>b.valor-a.valor);
+        const all=[...desps,...recs];
+
+        let chipsHtml='';
+        const MAX_CHIPS=2;
+        all.slice(0,MAX_CHIPS).forEach(t=>{
+            const cls=t.tipo==='despesa'?'desp':'rec';
+            const pref=t.tipo==='despesa'?'-':'+';
+            chipsHtml+=`<span class="cal-chip ${cls}">${pref}${fmt(t.valor)}</span>`;
+        });
+        if(all.length>MAX_CHIPS){
+            chipsHtml+=`<span class="cal-chip mais">+${all.length-MAX_CHIPS} mais</span>`;
+        }
+
+        cel.innerHTML=numEl+chipsHtml;
+
+        // Click — abre painel de detalhe
+        if(ts.length>0){
+            cel.addEventListener('click',()=>abrirDetalheCalendario(ds, ts));
+        }
+        grid.appendChild(cel);
+    }
+
+    // Células do próximo mês para completar a última linha
+    const totalCelulas=primeiroDia+diasNoMes;
+    const restantes=(7-(totalCelulas%7))%7;
+    for(let i=1;i<=restantes;i++){
+        const cel=document.createElement('div');
+        cel.className='cal-cell outro-mes';
+        cel.innerHTML=`<div class="cal-dia"><span class="cal-dia-num">${String(i).padStart(2,'0')}</span></div>`;
+        grid.appendChild(cel);
+    }
+
+    // Esconde detalhe ao trocar mês
+    $id('cal-detalhe').classList.add('hidden');
+}
+
+function abrirDetalheCalendario(ds, ts){
+    const [ano,mes,dia]=ds.split('-');
+    const diasSem=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const dow=new Date(parseInt(ano),parseInt(mes)-1,parseInt(dia)).getDay();
+    $id('cal-detalhe-titulo').innerText=`${diasSem[dow]}, ${String(dia).padStart(2,'0')} de ${mesesNomes[parseInt(mes)-1]} de ${ano}`;
+
+    const lista=$id('cal-detalhe-lista'); lista.innerHTML='';
+    // Ordena: despesas primeiro, depois receitas; ambas por valor desc
+    const sorted=[...ts].sort((a,b)=>{
+        if(a.tipo!==b.tipo) return a.tipo==='despesa'?-1:1;
+        return b.valor-a.valor;
+    });
+    sorted.forEach(t=>{
+        const isDesp=t.tipo==='despesa';
+        const isPend=t.status==='pendente';
+        lista.innerHTML+=`<li class="flex items-center justify-between gap-3 py-2 border-b border-gray-50 last:border-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-2 h-2 rounded-full shrink-0 ${isDesp?'bg-rose-500':'bg-emerald-500'}"></div>
+                <div class="min-w-0">
+                    <p class="text-sm font-bold text-gray-800 truncate">${t.desc||'—'}</p>
+                    <p class="text-xs text-gray-400">${t.categoria}${isPend?' · ⏳ Pendente':''}</p>
+                </div>
+            </div>
+            <span class="font-black mono text-sm shrink-0 ${isDesp?'text-rose-600':'text-emerald-600'}">${isDesp?'-':'+'}${fmt(t.valor)}</span>
+        </li>`;
+    });
+
+    const det=$id('cal-detalhe');
+    det.classList.remove('hidden');
+    det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// Navegação do calendário
+$id('cal-prev').addEventListener('click',()=>{
+    _calMes--; if(_calMes<1){_calMes=12;_calAno--;}
+    renderizarCalendario();
+});
+$id('cal-next').addEventListener('click',()=>{
+    _calMes++; if(_calMes>12){_calMes=1;_calAno++;}
+    renderizarCalendario();
+});
+$id('cal-fechar-detalhe').addEventListener('click',()=>$id('cal-detalhe').classList.add('hidden'));
+
 // ── FILTROS GERAIS ────────────────────────────────────────────────────────────
 function onFiltroChange(){
     paginaAtual=0; atualizarDashboard(); gerenciarNotificacoes();
     if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
     if(!$id('view-metas').classList.contains('hidden'))      atualizarMetas();
     if(!$id('view-cartoes').classList.contains('hidden'))    renderizarCartoes();
+    if(!$id('view-calendario').classList.contains('hidden')) renderizarCalendario();
 }
 $id('filtro-mes').addEventListener('change',onFiltroChange);
 $id('filtro-ano').addEventListener('change',onFiltroChange);
+
+// ── PUSH NOTIFICATIONS ────────────────────────────────────────────────────────
+const NOTIF_DISMISSED_KEY='finapp-notif-dismissed';
+
+// Monta lista de alertas do dia atual e dos próximos 2 dias
+function montarAlertasNotificacao(){
+    const hoje=new Date();
+    const alertas=[];
+    for(let delta=0;delta<=2;delta++){
+        const d=new Date(hoje.getFullYear(),hoje.getMonth(),hoje.getDate()+delta);
+        const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const label=delta===0?'Hoje':delta===1?'Amanhã':`Em ${delta} dias`;
+        transacoes.forEach(t=>{
+            if(t.data!==ds||t.status!=='pendente'||t.tipo==='transferencia') return;
+            const isDesp=t.tipo==='despesa';
+            alertas.push({
+                id:`notif-${t.id}-${ds}`,
+                data:ds,
+                titulo: isDesp
+                    ? `${delta===0?'⏰ Vence hoje':'📅 '+label}: ${t.desc}`
+                    : `💰 ${label}: ${t.desc}`,
+                corpo: isDesp
+                    ? `Despesa de R$ ${t.valor.toFixed(2).replace('.',',')} vence ${delta===0?'hoje':label.toLowerCase()}. Lembre de confirmar!`
+                    : `Receita de R$ ${t.valor.toFixed(2).replace('.',',')} esperada ${delta===0?'hoje':label.toLowerCase()}.`,
+                tipo: isDesp?'despesa':'receita',
+                disparado:false
+            });
+        });
+    }
+    return alertas;
+}
+
+// Envia alertas para o SW
+async function agendarNotificacoesSW(){
+    if(!('serviceWorker' in navigator)) return;
+    const reg=await navigator.serviceWorker.ready;
+    if(!reg.active) return;
+    const alertas=montarAlertasNotificacao();
+    reg.active.postMessage({tipo:'AGENDAR_NOTIFICACOES', alertas});
+}
+
+// Dispara notificação imediata enquanto app está aberto (foreground)
+async function dispararNotifForeground(alerta){
+    if(Notification.permission!=='granted') return;
+    new Notification(alerta.titulo,{
+        body:alerta.corpo,
+        icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="38" fill="%232563eb"/><text x="96" y="130" font-size="110" text-anchor="middle" fill="white">💰</text></svg>',
+        tag:alerta.id,
+        renotify:false
+    });
+}
+
+// Verifica e dispara alertas do dia quando o app está aberto
+function verificarAlertasDoDia(){
+    if(Notification.permission!=='granted') return;
+    const hoje=new Date();
+    const strHoje=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+    const disparados=JSON.parse(localStorage.getItem('finapp-notif-disparadas')||'[]');
+    const alertas=montarAlertasNotificacao().filter(a=>a.data===strHoje);
+    alertas.forEach(a=>{
+        if(!disparados.includes(a.id)){
+            dispararNotifForeground(a);
+            disparados.push(a.id);
+        }
+    });
+    // Limpa IDs de dias anteriores
+    const novosDisparados=disparados.filter(id=>id.includes(strHoje));
+    localStorage.setItem('finapp-notif-disparadas',JSON.stringify(novosDisparados));
+}
+
+// Solicitar permissão e ativar notificações
+async function ativarNotificacoes(){
+    if(!('Notification' in window)){ toast('Notificações não suportadas neste dispositivo.','aviso'); return false; }
+    const perm=await Notification.requestPermission();
+    if(perm==='granted'){
+        localStorage.setItem('finapp-notif-ativa','1');
+        $id('notif-perm-banner').classList.add('hidden');
+        await agendarNotificacoesSW();
+        verificarAlertasDoDia();
+        toast('🔔 Notificações ativadas!','sucesso');
+        return true;
+    } else {
+        toast('Permissão de notificação negada. Habilite nas configurações do celular.','aviso');
+        return false;
+    }
+}
+
+// Banner de permissão
+(()=>{
+    const banner=$id('notif-perm-banner');
+    const aceitar=$id('notif-perm-aceitar');
+    const recusar=$id('notif-perm-recusar');
+
+    aceitar?.addEventListener('click',()=>ativarNotificacoes());
+    recusar?.addEventListener('click',()=>{
+        banner.classList.add('hidden');
+        localStorage.setItem(NOTIF_DISMISSED_KEY,'1');
+    });
+
+    // Mostra banner após login se ainda não pediu permissão
+    window._exibirBannerNotif=()=>{
+        if(!('Notification' in window)) return;
+        if(Notification.permission==='granted') return; // já ativou
+        if(Notification.permission==='denied') return;  // já negou no browser
+        if(localStorage.getItem(NOTIF_DISMISSED_KEY)) return; // dispensou
+        if(localStorage.getItem('finapp-notif-ativa')) return; // já ativa
+        setTimeout(()=>banner.classList.remove('hidden'), 5000);
+    };
+})();
+
+// Agenda no SW toda vez que as transações mudam (chamado após onSnapshot)
+function atualizarAgendamentoNotificacoes(){
+    if(Notification.permission!=='granted') return;
+    agendarNotificacoesSW();
+    verificarAlertasDoDia();
+}
 
 // ── PWA: INSTALL PROMPT ───────────────────────────────────────────────────────
 let _pwaPrompt = null;
