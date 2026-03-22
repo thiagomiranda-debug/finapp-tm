@@ -304,6 +304,10 @@ async function verificarEDisparar(){
         .cal-chip.rec  { background:#d1fae5; color:#059669; }
         .cal-chip.mais { background:#f1f5f9; color:#64748b; font-size:9px; text-align:center; }
         @media(max-width:640px){ .cal-cell{ min-height:56px; } .cal-chip{ font-size:9px; padding:1px 3px; } }
+        /* ── ONBOARDING ── */
+        .ob-slide { transition: opacity .3s, transform .3s; }
+        .ob-slide.hidden { opacity:0; pointer-events:none; }
+        .ob-slide:not(.hidden) { display:flex !important; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
@@ -358,18 +362,346 @@ async function verificarEDisparar(){
 <!-- ═══════════ LOGIN ═══════════ -->
 <div id="login-screen" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-4">
     <div class="bg-white p-7 rounded-2xl shadow-2xl w-full max-w-md fade-in text-center">
-        <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg text-3xl">💰</div>
+        <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg text-4xl">💰</div>
         <h1 class="text-3xl font-black text-gray-900">FinApp <span class="text-blue-600">PRO</span></h1>
         <p class="text-gray-400 mt-1 mb-6 text-sm font-medium">Inteligência Financeira Pessoal</p>
-        <form id="auth-form" class="space-y-4 text-left">
-            <div><label class="label-xs">E-mail</label><input type="email" id="auth-email" autocomplete="email" class="input-field" required></div>
-            <div><label class="label-xs">Senha</label><input type="password" id="auth-password" autocomplete="current-password" class="input-field" minlength="6" required></div>
-            <div class="flex flex-col gap-3 pt-1">
-                <button type="submit" id="btn-login" class="w-full bg-blue-600 text-white py-3.5 rounded-xl hover:bg-blue-700 active:scale-95 transition font-bold shadow-md flex items-center justify-center"><span id="login-btn-text">Acessar</span></button>
-                <button type="button" id="btn-register" class="w-full bg-gray-100 text-gray-700 py-3.5 rounded-xl hover:bg-gray-200 active:scale-95 transition font-bold">Criar Conta</button>
+
+        <!-- Abas Login / Cadastro -->
+        <div class="flex bg-gray-100 rounded-xl p-1 mb-5 gap-1">
+            <button id="tab-login" class="flex-1 py-2.5 rounded-lg text-sm font-black bg-white text-gray-800 shadow-sm transition">Entrar</button>
+            <button id="tab-cadastro" class="flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-400 transition hover:text-gray-600">Criar Conta</button>
+        </div>
+
+        <!-- Formulário Login -->
+        <form id="auth-form-login" class="space-y-4 text-left">
+            <div>
+                <label class="label-xs">E-mail</label>
+                <input type="email" id="auth-email-login" autocomplete="email" placeholder="seu@email.com" class="input-field" required>
             </div>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="label-xs">Senha</label>
+                    <button type="button" id="btn-esqueci-senha" class="text-xs text-blue-600 font-bold hover:text-blue-700 transition">Esqueci a senha</button>
+                </div>
+                <input type="password" id="auth-password-login" autocomplete="current-password" placeholder="••••••••" class="input-field" minlength="6" required>
+            </div>
+            <button type="submit" id="btn-login" class="w-full bg-blue-600 text-white py-3.5 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md flex items-center justify-center gap-2 mt-2">
+                <span id="login-btn-text">Acessar minha conta</span>
+            </button>
         </form>
+
+        <!-- Formulário Cadastro -->
+        <form id="auth-form-cadastro" class="hidden space-y-4 text-left">
+            <div>
+                <label class="label-xs">Nome</label>
+                <input type="text" id="auth-nome" autocomplete="name" placeholder="Como podemos te chamar?" class="input-field" required>
+            </div>
+            <div>
+                <label class="label-xs">E-mail</label>
+                <input type="email" id="auth-email-cad" autocomplete="email" placeholder="seu@email.com" class="input-field" required>
+            </div>
+            <div>
+                <label class="label-xs">Senha <span class="font-normal text-gray-300">(mín. 6 caracteres)</span></label>
+                <input type="password" id="auth-password-cad" autocomplete="new-password" placeholder="••••••••" class="input-field" minlength="6" required>
+            </div>
+            <!-- Aceite dos termos -->
+            <label class="flex items-start gap-3 cursor-pointer group">
+                <input type="checkbox" id="aceite-termos" class="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer" required>
+                <span class="text-xs text-gray-500 leading-relaxed">
+                    Li e concordo com os
+                    <button type="button" id="btn-ver-termos" class="text-blue-600 font-bold hover:underline">Termos de Uso</button>
+                    e a
+                    <button type="button" id="btn-ver-privacidade" class="text-blue-600 font-bold hover:underline">Política de Privacidade</button>
+                </span>
+            </label>
+            <button type="submit" id="btn-register" class="w-full bg-emerald-600 text-white py-3.5 rounded-xl hover:bg-emerald-700 active:scale-95 transition font-black shadow-md">
+                Criar minha conta grátis 🚀
+            </button>
+        </form>
+
         <p id="login-error" class="hidden text-rose-500 text-sm font-medium mt-3 text-center"></p>
+        <div class="text-gray-300 text-xs mt-5 text-center space-y-1">
+            <p>Seus dados ficam seguros e só você tem acesso.</p>
+            <p>
+                <button type="button" id="btn-ver-termos-2" class="hover:text-gray-500 underline transition">Termos de Uso</button>
+                &nbsp;·&nbsp;
+                <button type="button" id="btn-ver-privacidade-2" class="hover:text-gray-500 underline transition">Política de Privacidade</button>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- ════ MODAL TERMOS DE USO ════ -->
+<div id="modal-termos" class="hidden fixed inset-0 bg-black/70 overlay flex items-center justify-center z-[350] px-4 py-6">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col fade-in" style="max-height:90vh">
+        <div class="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
+            <div>
+                <h2 class="text-lg font-black text-gray-900">📄 Termos de Uso</h2>
+                <p class="text-xs text-gray-400 mt-0.5">FinApp PRO — última atualização: março de 2026</p>
+            </div>
+            <button id="btn-fechar-termos" class="text-gray-300 hover:text-rose-400 text-3xl leading-none active:scale-90 transition">&times;</button>
+        </div>
+        <div class="overflow-y-auto p-5 space-y-4 text-sm text-gray-600 leading-relaxed">
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">1. Aceitação dos Termos</h3>
+                <p>Ao criar uma conta e utilizar o FinApp PRO, você declara ter lido, compreendido e concordado com estes Termos de Uso. Caso não concorde, não utilize o aplicativo.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">2. Descrição do Serviço</h3>
+                <p>O FinApp PRO é um aplicativo web progressivo (PWA) gratuito de gestão financeira pessoal. Permite o registro de receitas, despesas, contas bancárias, metas orçamentárias e acompanhamento de patrimônio. O serviço é fornecido "como está", sem garantia de disponibilidade ininterrupta.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">3. Cadastro e Responsabilidade da Conta</h3>
+                <p>Você é responsável por manter a confidencialidade de suas credenciais de acesso (e-mail e senha). Qualquer atividade realizada com sua conta é de sua responsabilidade. Em caso de acesso não autorizado, notifique-nos imediatamente através dos canais de suporte.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">4. Uso Adequado</h3>
+                <p>Você concorda em utilizar o FinApp PRO somente para fins pessoais e lícitos. É vedado:</p>
+                <ul class="list-disc ml-4 mt-1 space-y-1">
+                    <li>Utilizar o aplicativo para fins comerciais sem autorização prévia</li>
+                    <li>Tentar acessar dados de outros usuários</li>
+                    <li>Realizar engenharia reversa, cópia ou redistribuição do código</li>
+                    <li>Sobrecarregar intencionalmente os servidores do aplicativo</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">5. Dados Financeiros</h3>
+                <p>Os dados inseridos no aplicativo são de sua propriedade. O FinApp PRO não realiza análise, compartilhamento ou venda de seus dados financeiros. As informações são armazenadas de forma segura no Firebase (Google) com criptografia em trânsito e em repouso.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">6. Limitação de Responsabilidade</h3>
+                <p>O FinApp PRO é uma ferramenta de organização financeira pessoal e <strong>não constitui serviço de consultoria financeira, bancária ou de investimentos</strong>. As decisões financeiras são de exclusiva responsabilidade do usuário. Não nos responsabilizamos por perdas financeiras decorrentes do uso ou mau uso do aplicativo.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">7. Disponibilidade e Alterações</h3>
+                <p>Reservamo-nos o direito de modificar, suspender ou encerrar o serviço a qualquer momento, com ou sem aviso prévio. Também podemos atualizar estes Termos — a versão mais recente estará sempre disponível no aplicativo. O uso continuado após alterações constitui aceitação dos novos termos.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">8. Exclusão de Conta</h3>
+                <p>Você pode solicitar a exclusão de sua conta e de todos os dados associados a qualquer momento. Após a exclusão, os dados serão removidos permanentemente dos nossos servidores em até 30 dias.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">9. Lei Aplicável</h3>
+                <p>Estes Termos são regidos pelas leis brasileiras. Fica eleito o foro da comarca do domicílio do usuário para dirimir quaisquer controvérsias.</p>
+            </section>
+
+        </div>
+        <div class="p-4 border-t border-gray-100 shrink-0">
+            <button id="btn-fechar-termos-2" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black hover:bg-blue-700 active:scale-95 transition text-sm">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════ MODAL POLÍTICA DE PRIVACIDADE ════ -->
+<div id="modal-privacidade" class="hidden fixed inset-0 bg-black/70 overlay flex items-center justify-center z-[350] px-4 py-6">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col fade-in" style="max-height:90vh">
+        <div class="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
+            <div>
+                <h2 class="text-lg font-black text-gray-900">🔒 Política de Privacidade</h2>
+                <p class="text-xs text-gray-400 mt-0.5">FinApp PRO — em conformidade com a LGPD (Lei 13.709/2018)</p>
+            </div>
+            <button id="btn-fechar-privacidade" class="text-gray-300 hover:text-rose-400 text-3xl leading-none active:scale-90 transition">&times;</button>
+        </div>
+        <div class="overflow-y-auto p-5 space-y-4 text-sm text-gray-600 leading-relaxed">
+
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-blue-700 text-xs font-medium">
+                🛡️ O FinApp PRO foi desenvolvido com privacidade como princípio. Não vendemos, alugamos nem compartilhamos seus dados com terceiros para fins comerciais.
+            </div>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">1. Controlador dos Dados</h3>
+                <p>O responsável pelo tratamento dos seus dados pessoais é o desenvolvedor do FinApp PRO. Para exercer seus direitos como titular de dados, entre em contato pelo suporte do aplicativo.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">2. Dados que Coletamos</h3>
+                <p>Coletamos apenas o necessário para o funcionamento do aplicativo:</p>
+                <ul class="list-disc ml-4 mt-1 space-y-1">
+                    <li><strong>Dados de cadastro:</strong> nome e endereço de e-mail</li>
+                    <li><strong>Dados financeiros:</strong> receitas, despesas, contas, metas e categorias que você insere voluntariamente</li>
+                    <li><strong>Dados de uso:</strong> preferências do aplicativo (tema, filtros) armazenados localmente no seu dispositivo</li>
+                </ul>
+                <p class="mt-2">Não coletamos localização, contatos, câmera, microfone nem qualquer dado sensível além do que você insere diretamente.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">3. Finalidade do Tratamento</h3>
+                <p>Seus dados são utilizados exclusivamente para:</p>
+                <ul class="list-disc ml-4 mt-1 space-y-1">
+                    <li>Autenticação e identificação da sua conta</li>
+                    <li>Armazenamento e recuperação das suas informações financeiras</li>
+                    <li>Envio de notificações sobre vencimentos (apenas com sua autorização)</li>
+                    <li>Envio de e-mail de recuperação de senha (quando solicitado por você)</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">4. Base Legal (LGPD, Art. 7º)</h3>
+                <p>O tratamento dos seus dados é fundamentado em:</p>
+                <ul class="list-disc ml-4 mt-1 space-y-1">
+                    <li><strong>Consentimento</strong> — para cadastro e uso do aplicativo</li>
+                    <li><strong>Execução de contrato</strong> — para fornecer as funcionalidades do serviço</li>
+                    <li><strong>Legítimo interesse</strong> — para segurança e prevenção de fraudes</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">5. Armazenamento e Segurança</h3>
+                <p>Seus dados são armazenados no <strong>Firebase (Google Cloud)</strong>, com servidores localizados nos Estados Unidos. O Firebase adota criptografia TLS em trânsito e AES-256 em repouso. As regras de segurança do Firestore garantem que somente você pode acessar seus próprios dados.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">6. Compartilhamento de Dados</h3>
+                <p>Seus dados <strong>não são compartilhados, vendidos ou alugados</strong> a terceiros. O único processador envolvido é o Google Firebase, que atua como subprocessador sob as políticas de privacidade do Google, em conformidade com o GDPR e padrões internacionais.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">7. Retenção de Dados</h3>
+                <p>Seus dados são mantidos enquanto sua conta estiver ativa. Ao solicitar a exclusão da conta, todos os dados pessoais e financeiros serão removidos permanentemente em até 30 dias.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">8. Seus Direitos (LGPD, Art. 18)</h3>
+                <p>Como titular dos dados, você tem direito a:</p>
+                <ul class="list-disc ml-4 mt-1 space-y-1">
+                    <li><strong>Acesso</strong> — saber quais dados temos sobre você</li>
+                    <li><strong>Correção</strong> — atualizar dados incompletos ou incorretos</li>
+                    <li><strong>Portabilidade</strong> — exportar seus dados em CSV a qualquer momento</li>
+                    <li><strong>Eliminação</strong> — solicitar a exclusão de todos os seus dados</li>
+                    <li><strong>Revogação do consentimento</strong> — cancelar sua conta a qualquer momento</li>
+                    <li><strong>Informação</strong> — ser informado sobre o uso dos seus dados</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">9. Cookies e Armazenamento Local</h3>
+                <p>O FinApp PRO utiliza <strong>localStorage</strong> do navegador para salvar preferências como tema escuro, filtros e configurações de notificação. Não utilizamos cookies de rastreamento ou publicidade.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">10. Menores de Idade</h3>
+                <p>O FinApp PRO não é destinado a menores de 18 anos. Não coletamos intencionalmente dados de menores. Se identificarmos que um menor cadastrou-se no serviço, a conta será removida.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">11. Alterações nesta Política</h3>
+                <p>Podemos atualizar esta Política periodicamente. Alterações significativas serão comunicadas via notificação no aplicativo. O uso continuado após notificação constitui aceitação da nova política.</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-gray-800 mb-1">12. Contato e DPO</h3>
+                <p>Para exercer seus direitos ou para qualquer questão relacionada à privacidade dos seus dados, entre em contato pelo suporte disponível no aplicativo. Responderemos em até 15 dias úteis.</p>
+            </section>
+
+        </div>
+        <div class="p-4 border-t border-gray-100 shrink-0">
+            <button id="btn-fechar-privacidade-2" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black hover:bg-blue-700 active:scale-95 transition text-sm">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Recuperar Senha -->
+<div id="modal-reset-senha" class="hidden fixed inset-0 bg-black/60 overlay flex items-center justify-center z-[300] px-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 fade-in">
+        <div class="text-center mb-5">
+            <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">🔑</div>
+            <h2 class="text-lg font-black text-gray-900">Recuperar senha</h2>
+            <p class="text-sm text-gray-400 mt-1">Digite seu e-mail e enviaremos um link para redefinir sua senha.</p>
+        </div>
+        <div class="space-y-4">
+            <input type="email" id="reset-email" placeholder="seu@email.com" class="input-field" autocomplete="email">
+            <button id="btn-enviar-reset" class="w-full bg-blue-600 text-white py-3.5 rounded-xl font-black hover:bg-blue-700 active:scale-95 transition flex items-center justify-center gap-2">
+                <span id="reset-btn-text">Enviar link de recuperação</span>
+            </button>
+            <button id="btn-cancelar-reset" class="w-full bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 active:scale-95 transition text-sm">Cancelar</button>
+            <p id="reset-msg" class="hidden text-sm font-medium text-center"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Onboarding -->
+<div id="onboarding-screen" class="hidden fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 z-[400] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md fade-in overflow-hidden">
+        <!-- Barra de progresso -->
+        <div class="flex gap-1 p-4">
+            <div id="ob-step-1" class="h-1.5 flex-1 rounded-full bg-blue-600 transition-all"></div>
+            <div id="ob-step-2" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all"></div>
+            <div id="ob-step-3" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all"></div>
+            <div id="ob-step-4" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all"></div>
+        </div>
+
+        <!-- Slides -->
+        <div id="ob-slides" class="relative overflow-hidden" style="min-height:380px">
+
+            <!-- Slide 1 — Bem-vindo -->
+            <div id="ob-slide-1" class="ob-slide absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+                <div class="w-24 h-24 bg-blue-600 rounded-3xl flex items-center justify-center text-5xl mb-6 shadow-xl">💰</div>
+                <h2 class="text-2xl font-black text-gray-900 mb-3">Bem-vindo ao FinApp PRO</h2>
+                <p class="text-gray-500 leading-relaxed">Sua inteligência financeira pessoal. Controle receitas, despesas, contas e evolua seu patrimônio — tudo num só lugar.</p>
+                <div class="mt-6 flex flex-wrap justify-center gap-2">
+                    <span class="px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold">📊 Dashboards</span>
+                    <span class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-xl text-xs font-bold">💳 Cartões</span>
+                    <span class="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-xl text-xs font-bold">🎯 Metas</span>
+                    <span class="px-3 py-1.5 bg-rose-100 text-rose-700 rounded-xl text-xs font-bold">📅 Calendário</span>
+                    <span class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold">🔁 Recorrentes</span>
+                </div>
+            </div>
+
+            <!-- Slide 2 — Lançamentos -->
+            <div id="ob-slide-2" class="ob-slide absolute inset-0 hidden flex-col items-center justify-center text-center p-8">
+                <div class="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center text-4xl mb-6">📝</div>
+                <h2 class="text-2xl font-black text-gray-900 mb-3">Lance em segundos</h2>
+                <p class="text-gray-500 leading-relaxed mb-5">Toque no botão <strong class="text-blue-600">+</strong> para registrar qualquer entrada ou saída. Suporte a parcelamento, recorrentes automáticos e categorias personalizadas.</p>
+                <div class="bg-gray-50 rounded-2xl p-4 text-left w-full space-y-2.5">
+                    <div class="flex items-center gap-3"><span class="text-lg">💸</span><p class="text-sm text-gray-700 font-medium">Parcelamento em até 12x</p></div>
+                    <div class="flex items-center gap-3"><span class="text-lg">🔁</span><p class="text-sm text-gray-700 font-medium">Despesas recorrentes automáticas</p></div>
+                    <div class="flex items-center gap-3"><span class="text-lg">🏷️</span><p class="text-sm text-gray-700 font-medium">Categorias personalizadas</p></div>
+                </div>
+            </div>
+
+            <!-- Slide 3 — Patrimônio -->
+            <div id="ob-slide-3" class="ob-slide absolute inset-0 hidden flex-col items-center justify-center text-center p-8">
+                <div class="w-20 h-20 bg-blue-100 rounded-3xl flex items-center justify-center text-4xl mb-6">📈</div>
+                <h2 class="text-2xl font-black text-gray-900 mb-3">Acompanhe seu patrimônio</h2>
+                <p class="text-gray-500 leading-relaxed mb-5">Visualize a evolução do seu saldo mês a mês, compare receitas vs despesas e entenda para onde seu dinheiro vai.</p>
+                <div class="bg-slate-800 rounded-2xl p-4 text-white w-full">
+                    <p class="text-gray-400 text-xs font-bold uppercase mb-1">Patrimônio acumulado</p>
+                    <p class="text-3xl font-black text-emerald-400 mono">R$ 12.450,00</p>
+                    <p class="text-emerald-400 text-xs mt-1">↑ +8.3% vs mês anterior</p>
+                </div>
+            </div>
+
+            <!-- Slide 4 — Começar -->
+            <div id="ob-slide-4" class="ob-slide absolute inset-0 hidden flex-col items-center justify-center text-center p-8">
+                <div class="w-20 h-20 bg-amber-100 rounded-3xl flex items-center justify-center text-4xl mb-6">🚀</div>
+                <h2 class="text-2xl font-black text-gray-900 mb-3">Tudo pronto!</h2>
+                <p class="text-gray-500 leading-relaxed mb-5">Comece cadastrando suas contas bancárias. Isso permite que o app calcule seu saldo real e evolução patrimonial.</p>
+                <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-left w-full space-y-2">
+                    <p class="text-blue-700 font-black text-sm">💡 Sugestão de início:</p>
+                    <p class="text-blue-600 text-sm">1. Cadastre suas contas (Nubank, banco, carteira)</p>
+                    <p class="text-blue-600 text-sm">2. Lance suas receitas do mês</p>
+                    <p class="text-blue-600 text-sm">3. Registre suas despesas fixas como recorrentes</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegação -->
+        <div class="p-5 pt-2 flex items-center justify-between gap-3">
+            <button id="ob-skip" class="text-sm text-gray-300 font-medium hover:text-gray-500 transition">Pular</button>
+            <div class="flex gap-2 flex-1 justify-end">
+                <button id="ob-prev" class="hidden px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition">← Voltar</button>
+                <button id="ob-next" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-black text-sm hover:bg-blue-700 active:scale-95 transition shadow-md">Próximo →</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -717,6 +1049,16 @@ async function verificarEDisparar(){
         <!-- ════ CATEGORIAS ════ -->
     </main>
 
+    <!-- Rodapé legal -->
+    <footer class="text-center py-4 px-4">
+        <p class="text-xs text-gray-300">
+            FinApp PRO &copy; 2026 &nbsp;·&nbsp;
+            <button id="btn-termos-footer" class="hover:text-gray-500 underline transition">Termos de Uso</button>
+            &nbsp;·&nbsp;
+            <button id="btn-privacidade-footer" class="hover:text-gray-500 underline transition">Política de Privacidade</button>
+        </p>
+    </footer>
+
     <!-- Print area for PDF -->
     <div id="pdf-print-area" style="display:none; padding:24px; font-family:'DM Sans',sans-serif; font-size:13px;"></div>
 </div>
@@ -969,7 +1311,7 @@ service cloud.firestore {
 import { initializeApp }      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, where, writeBatch }
                                from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged }
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail }
                                from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = { apiKey:"AIzaSyADH_pBiUkSTE8WUXh8BDrFXgrmUMiYW-Q", authDomain:"finapp-tm.firebaseapp.com", projectId:"finapp-tm", storageBucket:"finapp-tm.firebasestorage.app", messagingSenderId:"33932963478", appId:"1:33932963478:web:c337fef255c41716dd5cb7" };
@@ -1138,41 +1480,193 @@ $id('btn-limpar-notif').onclick=()=>dropN.classList.add('hidden');
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, user=>{
     if(user){
-        currentUser=user; $id('user-email-display').innerText=user.email;
-        $id('login-screen').classList.add('hidden'); $id('dashboard-screen').classList.remove('hidden');
-        $id('btn-fab').classList.remove('hidden'); $id('input-data').value=hojeStr();
+        currentUser=user;
+        $id('user-email-display').innerText=user.email;
+        $id('login-screen').classList.add('hidden');
+        $id('onboarding-screen').classList.add('hidden');
+        $id('dashboard-screen').classList.remove('hidden');
+        $id('btn-fab').classList.remove('hidden');
+        $id('input-data').value=hojeStr();
         iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom();
-        // Auto-lança recorrentes do dia após dados carregarem
         setTimeout(()=>aplicarRecorrentesAuto(), 3000);
-        // Exibe banner de notificações (se ainda não pediu)
         setTimeout(()=>window._exibirBannerNotif?.(), 6000);
     }else{
-        // Cancela todos os listeners ativos antes de limpar o estado
         _unsubscribers.forEach(unsub=>{ try{ unsub(); }catch(_){} });
         _unsubscribers=[];
-        // Limpa estado local
         transacoes=[]; contas=[]; cartoes=[]; transferencias=[];
         metas=[]; categoriasCustom=[];
         currentUser=null;
         $id('dashboard-screen').classList.add('hidden');
+        $id('onboarding-screen').classList.add('hidden');
         $id('login-screen').classList.remove('hidden');
         $id('btn-fab').classList.add('hidden');
-        // Fecha qualquer modal aberto
         ['modal-transacao','modal-conta','modal-cartao','modal-meta','modal-categoria','modal-importar','modal-firestore-regras'].forEach(id=>$id(id)?.classList.add('hidden'));
     }
 });
-$id('auth-form').addEventListener('submit', async e=>{ e.preventDefault();
+
+// ── ABAS LOGIN / CADASTRO ────────────────────────────────────────────────────
+$id('tab-login').addEventListener('click',()=>{
+    $id('tab-login').className='flex-1 py-2.5 rounded-lg text-sm font-black bg-white text-gray-800 shadow-sm transition';
+    $id('tab-cadastro').className='flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-400 transition hover:text-gray-600';
+    $id('auth-form-login').classList.remove('hidden');
+    $id('auth-form-cadastro').classList.add('hidden');
+    $id('login-error').classList.add('hidden');
+});
+$id('tab-cadastro').addEventListener('click',()=>{
+    $id('tab-cadastro').className='flex-1 py-2.5 rounded-lg text-sm font-black bg-white text-gray-800 shadow-sm transition';
+    $id('tab-login').className='flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-400 transition hover:text-gray-600';
+    $id('auth-form-cadastro').classList.remove('hidden');
+    $id('auth-form-login').classList.add('hidden');
+    $id('login-error').classList.add('hidden');
+});
+
+// ── FORM LOGIN ────────────────────────────────────────────────────────────────
+$id('auth-form-login').addEventListener('submit', async e=>{ e.preventDefault();
     const btn=$id('btn-login'); btn.disabled=true; $id('login-btn-text').innerHTML='<span class="spinner"></span>';
     $id('login-error').classList.add('hidden');
-    try{ await signInWithEmailAndPassword(auth,$id('auth-email').value,$id('auth-password').value); }
-    catch(ex){ $id('login-error').innerText=ex.code==='auth/invalid-credential'?'E-mail ou senha incorretos.':'Erro ao entrar.'; $id('login-error').classList.remove('hidden'); }
-    finally{ btn.disabled=false; $id('login-btn-text').innerText='Acessar'; }
+    try{ await signInWithEmailAndPassword(auth,$id('auth-email-login').value,$id('auth-password-login').value); }
+    catch(ex){
+        const msg=ex.code==='auth/invalid-credential'||ex.code==='auth/wrong-password'||ex.code==='auth/user-not-found'
+            ?'E-mail ou senha incorretos.'
+            :'Erro ao entrar. Tente novamente.';
+        $id('login-error').innerText=msg; $id('login-error').classList.remove('hidden');
+    }
+    finally{ btn.disabled=false; $id('login-btn-text').innerText='Acessar minha conta'; }
 });
-$id('btn-register').addEventListener('click', async()=>{
-    try{ await createUserWithEmailAndPassword(auth,$id('auth-email').value,$id('auth-password').value); }
-    catch(ex){ $id('login-error').innerText=ex.code==='auth/email-already-in-use'?'E-mail já cadastrado.':'Erro ao criar conta.'; $id('login-error').classList.remove('hidden'); }
+
+// ── FORM CADASTRO ─────────────────────────────────────────────────────────────
+$id('auth-form-cadastro').addEventListener('submit', async e=>{ e.preventDefault();
+    const btn=$id('btn-register'); btn.disabled=true; btn.innerText='Criando conta...';
+    $id('login-error').classList.add('hidden');
+    try{
+        const cred=await createUserWithEmailAndPassword(auth,$id('auth-email-cad').value,$id('auth-password-cad').value);
+        // Marcar como novo usuário para exibir onboarding
+        localStorage.setItem('finapp-new-user','1');
+        // Após login bem-sucedido, onAuthStateChanged cuida do resto
+        // Mas aqui já mostramos o onboarding antes do dashboard
+        $id('login-screen').classList.add('hidden');
+        mostrarOnboarding();
+    }
+    catch(ex){
+        const msg=ex.code==='auth/email-already-in-use'?'E-mail já cadastrado. Tente entrar.'
+            :ex.code==='auth/weak-password'?'Senha muito fraca. Use ao menos 6 caracteres.'
+            :'Erro ao criar conta. Tente novamente.';
+        $id('login-error').innerText=msg; $id('login-error').classList.remove('hidden');
+        btn.disabled=false; btn.innerText='Criar minha conta grátis 🚀';
+    }
 });
+
+// ── RECUPERAÇÃO DE SENHA ──────────────────────────────────────────────────────
+$id('btn-esqueci-senha').addEventListener('click',()=>{
+    const email=$id('auth-email-login').value;
+    if(email) $id('reset-email').value=email;
+    $id('reset-msg').classList.add('hidden');
+    $id('modal-reset-senha').classList.remove('hidden');
+    setTimeout(()=>$id('reset-email').focus(),150);
+});
+$id('btn-cancelar-reset').addEventListener('click',()=>$id('modal-reset-senha').classList.add('hidden'));
+$id('modal-reset-senha').addEventListener('click',e=>{ if(e.target===$id('modal-reset-senha')) $id('modal-reset-senha').classList.add('hidden'); });
+
+$id('btn-enviar-reset').addEventListener('click', async()=>{
+    const email=$id('reset-email').value.trim();
+    const msg=$id('reset-msg');
+    if(!email){ msg.innerText='Digite seu e-mail.'; msg.className='text-sm font-medium text-center text-rose-500'; msg.classList.remove('hidden'); return; }
+    const btn=$id('btn-enviar-reset');
+    btn.disabled=true; $id('reset-btn-text').innerHTML='<span class="spinner"></span>';
+    try{
+        await sendPasswordResetEmail(auth, email);
+        msg.innerText='✅ Link enviado! Verifique sua caixa de entrada (e o spam).';
+        msg.className='text-sm font-medium text-center text-emerald-600';
+        msg.classList.remove('hidden');
+        setTimeout(()=>$id('modal-reset-senha').classList.add('hidden'),3500);
+    }catch(ex){
+        const txt=ex.code==='auth/user-not-found'?'E-mail não encontrado.':'Erro ao enviar. Tente novamente.';
+        msg.innerText=txt; msg.className='text-sm font-medium text-center text-rose-500'; msg.classList.remove('hidden');
+    }finally{ btn.disabled=false; $id('reset-btn-text').innerText='Enviar link de recuperação'; }
+});
+
 $id('btn-logout').addEventListener('click',()=>signOut(auth));
+
+// ── TERMOS & PRIVACIDADE ──────────────────────────────────────────────────────
+(()=>{
+    function abrirTermos(){ $id('modal-termos').classList.remove('hidden'); }
+    function fecharTermos(){ $id('modal-termos').classList.add('hidden'); }
+    function abrirPrivacidade(){ $id('modal-privacidade').classList.remove('hidden'); }
+    function fecharPrivacidade(){ $id('modal-privacidade').classList.add('hidden'); }
+
+    $id('btn-ver-termos')?.addEventListener('click', e=>{ e.preventDefault(); abrirTermos(); });
+    $id('btn-ver-termos-2')?.addEventListener('click', abrirTermos);
+    $id('btn-fechar-termos')?.addEventListener('click', fecharTermos);
+    $id('btn-fechar-termos-2')?.addEventListener('click', fecharTermos);
+    $id('modal-termos')?.addEventListener('click', e=>{ if(e.target===$id('modal-termos')) fecharTermos(); });
+
+    $id('btn-ver-privacidade')?.addEventListener('click', e=>{ e.preventDefault(); abrirPrivacidade(); });
+    $id('btn-ver-privacidade-2')?.addEventListener('click', abrirPrivacidade);
+    $id('btn-fechar-privacidade')?.addEventListener('click', fecharPrivacidade);
+    $id('btn-fechar-privacidade-2')?.addEventListener('click', fecharPrivacidade);
+    $id('modal-privacidade')?.addEventListener('click', e=>{ if(e.target===$id('modal-privacidade')) fecharPrivacidade(); });
+
+    // Rodapé do dashboard
+    $id('btn-termos-footer')?.addEventListener('click', abrirTermos);
+    $id('btn-privacidade-footer')?.addEventListener('click', abrirPrivacidade);
+})();
+
+// ── ONBOARDING ────────────────────────────────────────────────────────────────
+let _obStep=1;
+const OB_TOTAL=4;
+
+function mostrarOnboarding(){
+    _obStep=1;
+    $id('onboarding-screen').classList.remove('hidden');
+    renderizarObStep();
+}
+
+function renderizarObStep(){
+    for(let i=1;i<=OB_TOTAL;i++){
+        const slide=$id(`ob-slide-${i}`);
+        const stepBar=$id(`ob-step-${i}`);
+        if(i===_obStep){
+            slide.classList.remove('hidden');
+            stepBar.className='h-1.5 flex-1 rounded-full bg-blue-600 transition-all';
+        } else {
+            slide.classList.add('hidden');
+            stepBar.className='h-1.5 flex-1 rounded-full bg-gray-200 transition-all';
+        }
+    }
+    $id('ob-prev').classList.toggle('hidden', _obStep===1);
+    $id('ob-next').innerText=_obStep===OB_TOTAL?'Começar 🚀':'Próximo →';
+    $id('ob-skip').classList.toggle('hidden', _obStep===OB_TOTAL);
+}
+
+function fecharOnboarding(){
+    $id('onboarding-screen').classList.add('hidden');
+    localStorage.removeItem('finapp-new-user');
+    // Se não há dashboard visível, aguarda o onAuthStateChanged mostrar
+    if(!$id('dashboard-screen').classList.contains('hidden')) setTab('contas');
+}
+
+$id('ob-next').addEventListener('click',()=>{
+    if(_obStep<OB_TOTAL){ _obStep++; renderizarObStep(); }
+    else fecharOnboarding();
+});
+$id('ob-prev').addEventListener('click',()=>{
+    if(_obStep>1){ _obStep--; renderizarObStep(); }
+});
+$id('ob-skip').addEventListener('click',()=>fecharOnboarding());
+
+// Verifica se deve mostrar onboarding (novo usuário que acabou de logar)
+(()=>{
+    if(localStorage.getItem('finapp-new-user')==='1'){
+        // Aguarda auth state change resolver primeiro
+        const check=setInterval(()=>{
+            if(currentUser && !$id('dashboard-screen').classList.contains('hidden')){
+                clearInterval(check);
+                mostrarOnboarding();
+            }
+        },200);
+        setTimeout(()=>clearInterval(check),10000); // timeout segurança
+    }
+})();
 
 // ── SINCRONIZAÇÃO ─────────────────────────────────────────────────────────────
 function iniciarSincronizacao(){
