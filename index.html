@@ -308,6 +308,8 @@ async function verificarEDisparar(){
         .ob-slide { transition: opacity .3s, transform .3s; }
         .ob-slide.hidden { opacity:0; pointer-events:none; }
         .ob-slide:not(.hidden) { display:flex !important; }
+        html.dark .bg-emerald-50.border-emerald-100 { background:#052e16!important; border-color:#065f46!important; }
+        html.dark .bg-white.border-gray-100.overflow-hidden { background:var(--card-bg)!important; border-color:#1e293b!important; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
@@ -870,7 +872,7 @@ async function verificarEDisparar(){
                 <p id="patrimonio-total-contas" class="text-4xl font-black mono">R$ 0,00</p>
                 <p class="text-blue-300 text-xs mt-1">Soma do saldo atual de todas as contas</p>
             </div>
-            <div id="lista-contas-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5"></div>
+            <div id="lista-contas-container" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-5"></div>
             <div id="contas-vazio" class="hidden bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
                 <span class="text-4xl">🏦</span>
                 <p class="text-gray-400 font-medium mt-3">Nenhuma conta cadastrada.</p>
@@ -1800,18 +1802,35 @@ function renderizarContas(){
     contas.forEach(c=>{
         const saldo=calcularSaldoConta(c.id);
         const cor=CORES[c.cor||'blue'];
-        cont.innerHTML+=`<div class="rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-            <div class="${cor.bg} p-5 text-white">
-                <div class="flex justify-between items-start mb-3">
-                    <div><p class="text-xs font-bold opacity-70 uppercase tracking-wider">${c.nome}</p><p class="text-xs opacity-60 mt-0.5">${({corrente:'Conta Corrente',poupanca:'Poupança',investimento:'Investimento',carteira:'Carteira',outro:'Outro'}[c.tipo]||c.tipo)}</p></div>
-                    <span class="text-2xl">${TIPO_ICONE[c.tipo]||'🏦'}</span>
+        const tipoLabel={corrente:'Conta Corrente',poupanca:'Poupança',investimento:'Investimento',carteira:'Carteira',outro:'Outro'}[c.tipo]||c.tipo;
+        const saldoPos=saldo>=0;
+        cont.innerHTML+=`<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition hover:shadow-md hover:-translate-y-0.5 duration-200">
+            <!-- Topo colorido compacto -->
+            <div class="h-1.5 w-full ${cor.bg}"></div>
+            <div class="p-4">
+                <!-- Header: ícone + nome + tipo -->
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 ${cor.bg} rounded-xl flex items-center justify-center text-white text-base shrink-0 shadow-sm">
+                            ${TIPO_ICONE[c.tipo]||'🏦'}
+                        </div>
+                        <div>
+                            <p class="font-black text-gray-900 text-sm leading-tight tracking-tight">${c.nome}</p>
+                            <p class="text-xs text-gray-400 mt-0.5 font-medium">${tipoLabel}</p>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-3xl font-black mono">${fmt(saldo)}</p>
-                <p class="text-xs opacity-60 mt-1">Saldo atual</p>
-            </div>
-            <div class="bg-white p-3 flex gap-2">
-                <button onclick="editarConta('${c.id}')" class="flex-1 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 rounded-lg transition active:scale-95">✏️ Editar</button>
-                <button onclick="deletarConta('${c.id}')" class="flex-1 py-2 text-xs font-bold text-rose-400 hover:bg-rose-50 rounded-lg transition active:scale-95">🗑️ Excluir</button>
+                <!-- Saldo -->
+                <div class="mb-3">
+                    <p class="text-xs text-gray-400 font-medium mb-0.5">Saldo atual</p>
+                    <p class="text-xl font-black mono ${saldoPos?'text-gray-900':'text-rose-600'} leading-tight">${fmt(saldo)}</p>
+                </div>
+                <!-- Ações inline discretas -->
+                <div class="flex gap-2 pt-3 border-t border-gray-100">
+                    <button onclick="editarConta('${c.id}')" class="flex-1 py-1.5 text-xs font-bold text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition active:scale-95 flex items-center justify-center gap-1">✏️ Editar</button>
+                    <div class="w-px bg-gray-100"></div>
+                    <button onclick="deletarConta('${c.id}')" class="flex-1 py-1.5 text-xs font-bold text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition active:scale-95 flex items-center justify-center gap-1">🗑️ Excluir</button>
+                </div>
             </div>
         </div>`;
     });
@@ -2217,23 +2236,50 @@ function atualizarDashboard(){
         const contaChip=conta?`<span class="conta-chip ${cor.chip} text-[9px]">${TIPO_ICONE[conta.tipo]||'🏦'} ${conta.nome}</span>`:'';
         const cartaoChip=cartao?`<span class="conta-chip bg-gray-200 text-gray-700 text-[9px]">💳 ${cartao.nome}</span>`:'';
         const isTransf=t.tipo==='transferencia';
-        lt.innerHTML+=`<li class="flex items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border-2 gap-2 sm:gap-3 transition ${isTransf?'border-blue-200 bg-blue-50':isP?'border-amber-200 bg-amber-50':'border-gray-100 bg-white'}">
-            <div class="flex flex-col flex-1 min-w-0">
-                <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
-                    <span class="text-gray-900 font-black text-sm sm:text-base truncate max-w-[160px] sm:max-w-none">${t.desc}</span>
-                    ${tagHtml}${contaChip}${cartaoChip}
-                    ${isP?'<span class="text-[8px] bg-amber-300 text-amber-900 px-1.5 py-0.5 rounded-full font-black uppercase">⏳</span>':''}
-                    ${isTransf?'<span class="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase">↔️</span>':''}
+        const isRec=t.tipo==='receita';
+
+        // Paleta visual por tipo — fundo + barra lateral
+        let cardBg, barColor, valorCor;
+        if(isTransf){
+            cardBg='bg-blue-50 border-blue-100';
+            barColor='bg-blue-400';
+            valorCor='text-blue-600';
+        } else if(isP){
+            cardBg='bg-amber-50 border-amber-100';
+            barColor='bg-amber-400';
+            valorCor=isRec?'text-emerald-400':'text-rose-400';
+        } else if(isRec){
+            cardBg='bg-emerald-50 border-emerald-100';
+            barColor='bg-emerald-500';
+            valorCor='text-emerald-700';
+        } else {
+            cardBg='bg-white border-gray-100';
+            barColor='bg-rose-400';
+            valorCor='text-rose-600';
+        }
+
+        lt.innerHTML+=`<li class="flex items-stretch rounded-xl border overflow-hidden shadow-sm transition hover:shadow-md ${cardBg}">
+            <!-- Barra lateral colorida -->
+            <div class="w-1 shrink-0 ${barColor}"></div>
+            <!-- Conteúdo -->
+            <div class="flex items-start sm:items-center justify-between p-3 sm:p-4 gap-2 sm:gap-3 flex-1 min-w-0">
+                <div class="flex flex-col flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+                        <span class="text-gray-900 font-black text-sm sm:text-base truncate max-w-[160px] sm:max-w-none">${t.desc}</span>
+                        ${tagHtml}${contaChip}${cartaoChip}
+                        ${isP?'<span class="text-[8px] bg-amber-300 text-amber-900 px-1.5 py-0.5 rounded-full font-black uppercase">⏳ Pendente</span>':''}
+                        ${isTransf?'<span class="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase">↔️ Transf.</span>':''}
+                    </div>
+                    <span class="text-xs text-gray-400">📅 ${fmtData(t.data)} · 🏷️ ${t.categoria}</span>
                 </div>
-                <span class="text-xs text-gray-400">📅 ${fmtData(t.data)} · 🏷️ ${t.categoria}</span>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-                <span class="${t.tipo==='receita'?(isP?'text-emerald-400':'text-emerald-600'):(isP?'text-rose-400':'text-rose-600')} font-black text-base mono">${t.tipo==='receita'?'+':'-'}${fmt(t.valor)}</span>
-                ${!isTransf?`<div class="flex gap-1">
-                    ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-2 py-1.5 rounded-lg font-bold text-xs active:scale-90 transition">✔</button>`:`<button onclick="alterarStatus('${t.id}','pendente')" class="text-xs text-gray-300 hover:text-amber-500 px-1 py-1.5">↩</button>`}
-                    <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-blue-100 active:scale-90 transition">✏️</button>
-                    <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-rose-100 active:scale-90 transition">🗑️</button>
-                </div>`:''}
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="${valorCor} font-black text-base mono">${isRec?'+':isTransf?'':'-'}${fmt(t.valor)}</span>
+                    ${!isTransf?`<div class="flex gap-1">
+                        ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-2 py-1.5 rounded-lg font-bold text-xs active:scale-90 transition">✔</button>`:`<button onclick="alterarStatus('${t.id}','pendente')" class="text-xs text-gray-300 hover:text-amber-500 px-1 py-1.5">↩</button>`}
+                        <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-blue-100 active:scale-90 transition">✏️</button>
+                        <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-rose-100 active:scale-90 transition">🗑️</button>
+                    </div>`:''}
+                </div>
             </div>
         </li>`;
     });
