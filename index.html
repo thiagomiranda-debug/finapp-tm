@@ -113,7 +113,8 @@ async function verificarEDisparar(){
     if(!resp) return;
     const alertas=await resp.json();
     if(!alertas||!alertas.length) return;
-    const hoje=new Date().toISOString().slice(0,10);
+    const agora=new Date();
+    const hoje=\`\${agora.getFullYear()}-\${String(agora.getMonth()+1).padStart(2,'0')}-\${String(agora.getDate()).padStart(2,'0')}\`;
     const doHoje=alertas.filter(a=>a.data===hoje&&!a.disparado);
     for(const a of doHoje){
       await self.registration.showNotification(a.titulo,{
@@ -1098,6 +1099,14 @@ async function verificarEDisparar(){
                     </select>
                 </div>
                 <div id="cartao-select-wrap" class="hidden"><label class="label-xs">💳 Cartão vinculado</label><select id="input-cartao" class="input-field"><option value="">-- Nenhum --</option></select></div>
+                <div id="origem-lancamento-wrap">
+                    <label class="label-xs">Origem do lançamento</label>
+                    <select id="input-origem-lancamento" class="input-field">
+                        <option value="padrao">Lançamento normal</option>
+                        <option value="cartao">Compra no cartão</option>
+                        <option value="pagamento-fatura">Pagamento de fatura</option>
+                    </select>
+                </div>
                 <div><label class="label-xs">Descrição</label>
                     <input type="text" id="input-desc" placeholder="Ex: Supermercado Atacadão" class="input-field" autocomplete="off" required>
                 </div>
@@ -1336,6 +1345,35 @@ const mesAtual=new Date().getMonth()+1, anoAtual=new Date().getFullYear();
 const fmt      = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 const fmtData  = d => d ? d.split('-').reverse().join('/') : '';
 const hojeStr  = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const hasTag = (obj, tag) => (obj?.tags||[]).includes(tag);
+const isPagamentoFatura = t => t?.tipoRegistro==='pagamento-fatura' || hasTag(t,'pagamento-fatura');
+const isTransacaoCartao = t => t?.origemLancamento==='cartao' || !!t?.cartaoId;
+const getCompetencia = dataStr => dataStr ? dataStr.slice(0,7) : '';
+const formatDateLocal = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const addMonthsClamped = (dataStr, offset) => {
+    const [ano,mes,dia]=dataStr.split('-').map(Number);
+    const mesBase=(mes-1)+offset;
+    const anoDestino=ano+Math.floor(mesBase/12);
+    const mesDestino=((mesBase%12)+12)%12;
+    const ultimoDia=new Date(anoDestino,mesDestino+1,0).getDate();
+    return formatDateLocal(new Date(anoDestino,mesDestino,Math.min(dia,ultimoDia)));
+};
+const diasAteDiaDoMes = (diaAlvo, base=new Date()) => {
+    const diaSeguro=Math.max(1,Math.min(31,parseInt(diaAlvo)||1));
+    let ano=base.getFullYear();
+    let mes=base.getMonth();
+    let ultimoDia=new Date(ano,mes+1,0).getDate();
+    let dia=Math.min(diaSeguro, ultimoDia);
+    let prox=new Date(ano,mes,dia);
+    if(prox < new Date(ano,mes,base.getDate())){
+        mes++;
+        if(mes>11){ mes=0; ano++; }
+        ultimoDia=new Date(ano,mes+1,0).getDate();
+        dia=Math.min(diaSeguro, ultimoDia);
+        prox=new Date(ano,mes,dia);
+    }
+    return Math.round((prox - new Date(base.getFullYear(),base.getMonth(),base.getDate()))/86400000);
+};
 
 // Cores por conta
 const CORES = { blue:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, emerald:{bg:'bg-emerald-600',text:'text-white',chip:'bg-emerald-100 text-emerald-800'}, violet:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, rose:{bg:'bg-rose-600',text:'text-white',chip:'bg-rose-100 text-rose-800'}, amber:{bg:'bg-amber-500',text:'text-white',chip:'bg-amber-100 text-amber-800'}, slate:{bg:'bg-slate-600',text:'text-white',chip:'bg-gray-200 text-slate-800'} };
@@ -1419,41 +1457,77 @@ function popularSelectsCartoes(){
 }
 
 // ── MODAL TRANSAÇÃO ───────────────────────────────────────────────────────────
-// Mostrar campo cartão quando categoria = Cartão de Crédito
-$id('input-categoria').addEventListener('change', ()=>{
-    const isCartao = $id('input-categoria').value === 'Cartão de Crédito';
-    $id('cartao-select-wrap').classList.toggle('hidden', !isCartao);
+function syncLancamentoCartaoUI(){
+    const tipo=$id('input-tipo')?.value||'despesa';
+    const origemSel=$id('input-origem-lancamento');
+    const origem=origemSel?.value||'padrao';
+    const wrapCartao=$id('cartao-select-wrap');
+    const wrapRec=$id('recorrente-wrap');
+    const wrapOrigem=$id('origem-lancamento-wrap');
+    const usaCartao=tipo==='despesa' && (origem==='cartao' || origem==='pagamento-fatura');
+
+    if(wrapCartao) wrapCartao.classList.toggle('hidden', !usaCartao);
+    if(wrapRec) wrapRec.classList.toggle('hidden', origem==='pagamento-fatura');
+    if(wrapOrigem) wrapOrigem.classList.toggle('hidden', tipo!=='despesa');
+    if(!usaCartao) $id('input-cartao').value='';
+
+    if(!modoEdicao){
+        if(origem==='pagamento-fatura'){
+            $id('modal-titulo').innerText='Pagamento de Fatura';
+            $id('btn-submit-form').innerText='Salvar Pagamento';
+        }else if(origem==='cartao'){
+            $id('modal-titulo').innerText='Nova Compra no Cartão';
+            $id('btn-submit-form').innerText='Salvar Compra';
+        }else{
+            $id('modal-titulo').innerText='Novo Lançamento';
+            $id('btn-submit-form').innerText='Salvar Transação';
+        }
+    }
+}
+
+$id('input-origem-lancamento')?.addEventListener('change', syncLancamentoCartaoUI);
+$id('input-tipo')?.addEventListener('change', ()=>{
+    if($id('input-tipo').value!=='despesa') $id('input-origem-lancamento').value='padrao';
+    syncLancamentoCartaoUI();
 });
 
 function abrirModalNovo(){
     modoEdicao=false;
+    window._modalLancamentoEspecial=null;
+    window._editTransacaoOriginal=null;
     $id('modal-titulo').innerText='Novo Lançamento';
     $id('btn-submit-form').innerText='Salvar Transação';
     $id('form-transacao').reset();
     $id('input-edit-id').value='';
     $id('input-data').value=hojeStr();
+    $id('input-data').disabled=false;
     $id('parcelas-row').classList.remove('hidden');
-    $id('cartao-select-wrap').classList.add('hidden');
+    $id('input-origem-lancamento').value='padrao';
     $id('recorrente-wrap').classList.remove('hidden');
     if(window._resetToggleRec) window._resetToggleRec();
+    syncLancamentoCartaoUI();
     $id('modal-transacao').classList.remove('hidden');
 }
 function abrirModalEditar(t){
     modoEdicao=true;
+    window._modalLancamentoEspecial=null;
+    window._editTransacaoOriginal=t;
     $id('modal-titulo').innerText='Editar Lançamento';
     $id('btn-submit-form').innerText='Salvar Alterações';
     $id('input-edit-id').value=t.id;
     $id('input-tipo').value=t.tipo;
     $id('input-valor').value=t.valor;
     $id('input-data').value=t.data;
+    $id('input-data').disabled=!!t.recorrenteId;
     $id('input-categoria').value=t.categoria;
     $id('input-status').value=t.status;
     $id('input-desc').value=t.desc;
     $id('input-tags').value=(t.tags||[]).join(', ');
     $id('input-conta').value=t.contaId||'';
     $id('input-cartao').value=t.cartaoId||'';
+    $id('input-origem-lancamento').value=isPagamentoFatura(t)?'pagamento-fatura':(isTransacaoCartao(t)?'cartao':'padrao');
     $id('parcelas-row').classList.add('hidden');
-    $id('cartao-select-wrap').classList.toggle('hidden', t.categoria!=='Cartão de Crédito');
+    syncLancamentoCartaoUI();
     // Oculta bloco recorrente na edição
     $id('recorrente-wrap').classList.add('hidden');
     if(window._resetToggleRec) window._resetToggleRec();
@@ -1466,8 +1540,7 @@ window.abrirRapido = (tipo, categoria)=>{
     abrirModalNovo();
     $id('input-tipo').value=tipo;
     $id('input-categoria').value=categoria;
-    if(categoria==='Cartão de Crédito') $id('cartao-select-wrap').classList.remove('hidden');
-    else $id('cartao-select-wrap').classList.add('hidden');
+    syncLancamentoCartaoUI();
     setTimeout(()=>$id('input-valor').focus(), 200);
 };
 $id('btn-nova-transacao-nav').onclick = abrirModalNovo;
@@ -1699,26 +1772,33 @@ function iniciarSincronizacao(){
 $id('form-transacao').addEventListener('submit', async e=>{
     e.preventDefault();
     const btn=$id('btn-submit-form'); btn.disabled=true; btn.innerText='Salvando...';
-    const tags=$id('input-tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
+    const tagsInput=$id('input-tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
+    const origemSel=$id('input-origem-lancamento').value||'padrao';
+    const tipoRegistroEspecial=window._modalLancamentoEspecial?.tipoRegistro||null;
+    const tipoRegistro=tipoRegistroEspecial || (origemSel==='pagamento-fatura'?'pagamento-fatura':(origemSel==='cartao'?'cartao-compra':'padrao'));
+    const origemLancamento=tipoRegistro==='padrao'?'padrao':'cartao';
+    const tags=[...new Set([...tagsInput, ...(window._modalLancamentoEspecial?.tags||[])])];
     const contaId=$id('input-conta').value||null;
-    const cartaoId=$id('input-categoria').value==='Cartão de Crédito'?($id('input-cartao').value||null):null;
+    const cartaoId=origemLancamento==='cartao'?($id('input-cartao').value||null):null;
     const valorRaw=parseFloat($id('input-valor').value);
     if(!valorRaw||isNaN(valorRaw)||valorRaw<=0){ toast('Informe um valor válido.','aviso'); btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; return; }
     const dataVal=$id('input-data').value;
     if(!dataVal){ toast('Informe a data.','aviso'); btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; return; }
-    const payload={ userId:currentUser.uid, tipo:$id('input-tipo').value, data:dataVal, valor:valorRaw, desc:$id('input-desc').value.trim(), categoria:$id('input-categoria').value, status:$id('input-status').value, tags, contaId, cartaoId };
+    if(origemLancamento==='cartao' && !cartaoId){ toast('Selecione o cartão vinculado.','aviso'); btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; return; }
+    const payload={ userId:currentUser.uid, tipo:$id('input-tipo').value, data:dataVal, valor:valorRaw, desc:$id('input-desc').value.trim(), categoria:$id('input-categoria').value, status:$id('input-status').value, tags, contaId, cartaoId, origemLancamento, tipoRegistro };
     try{
         if(modoEdicao){
-            await updateDoc(doc(db,'transacoes',$id('input-edit-id').value),{...payload,atualizadoEm:new Date().toISOString()});
+            const original=window._editTransacaoOriginal||transacoes.find(x=>x.id===$id('input-edit-id').value)||{};
+            const payloadEdicao={
+                ...payload,
+                recorrenteId:original.recorrenteId||null,
+                competenciaRecorrencia:original.competenciaRecorrencia||null,
+                atualizadoEm:new Date().toISOString()
+            };
+            await updateDoc(doc(db,'transacoes',$id('input-edit-id').value),payloadEdicao);
             toast('✅ Atualizada!');
         }else{
             const par=parseInt($id('input-parcelas').value), vPar=payload.valor/par;
-            const [ano,mes,dia]=payload.data.split('-');
-            for(let i=0;i<par;i++){
-                const dt=new Date(parseInt(ano),parseInt(mes)-1+i,parseInt(dia));
-                const ds=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-                await addDoc(collection(db,'transacoes'),{...payload,valor:vPar,data:ds,status:(par>1&&i>0)?'pendente':payload.status,desc:payload.desc+(par>1?` (${i+1}/${par})`:''),criadoEm:new Date().toISOString()});
-            }
             // Salvar como recorrente se toggle ativo
             const recAtivo=$id('btn-toggle-recorrente')?.getAttribute('aria-checked')==='true';
             if(recAtivo && par===1){
@@ -1730,25 +1810,48 @@ $id('form-transacao').addEventListener('submit', async e=>{
                 }else{
                     // Salva o mês/ano de início explicitamente a partir da data do lançamento
                     const [anoLanc,mesLanc]=dataVal.split('-');
-                    await addDoc(collection(db,'recorrentes'),{
+                    const recorrentePayload={
                         userId:currentUser.uid, tipo:payload.tipo, valor:payload.valor,
                         dia:diaRec, categoria:payload.categoria, desc:payload.desc,
                         status:statusRec,
+                        contaId:payload.contaId||null,
+                        cartaoId:payload.cartaoId||null,
+                        origemLancamento:payload.origemLancamento||'padrao',
+                        tipoRegistro:payload.tipoRegistro||'padrao',
+                        tags:[...new Set(tags.filter(t=>t!=='recorrente'))],
                         mesInicio:parseInt(mesLanc),
                         anoInicio:parseInt(anoLanc),
                         criadoEm:new Date().toISOString()
+                    };
+                    const recRef=await addDoc(collection(db,'recorrentes'),recorrentePayload);
+                    const competenciaInicial=getCompetencia(dataVal);
+                    await addDoc(collection(db,'transacoes'),{
+                        ...payload,
+                        tags:[...new Set([...(payload.tags||[]),'recorrente'])],
+                        recorrenteId:recRef.id,
+                        competenciaRecorrencia:competenciaInicial,
+                        criadoEm:new Date().toISOString()
                     });
-                    setTimeout(()=>aplicarRecorrentesAuto(), 1500);
+                    await materializarRecorrencia({id:recRef.id,...recorrentePayload},{skipCompetencias:new Set([competenciaInicial])});
                     toast('✅ Salva e recorrente cadastrada! Lançando nos próximos meses... 🔁');
                 }
             }else{
+                for(let i=0;i<par;i++){
+                    const ds=addMonthsClamped(payload.data, i);
+                    await addDoc(collection(db,'transacoes'),{...payload,valor:vPar,data:ds,status:(par>1&&i>0)?'pendente':payload.status,desc:payload.desc+(par>1?` (${i+1}/${par})`:''),criadoEm:new Date().toISOString()});
+                }
                 toast(par>1?`✅ ${par}x lançadas!`:'✅ Salva!');
             }
         }
         $id('modal-transacao').classList.add('hidden'); e.target.reset(); $id('input-data').value=hojeStr();
+        window._editTransacaoOriginal=null;
         if(window._resetToggleRec) window._resetToggleRec();
     }catch(err){ console.error(err); toast('Erro ao salvar.','erro'); }
-    finally{ btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; }
+    finally{
+        btn.disabled=false;
+        btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação';
+        if(!modoEdicao) window._modalLancamentoEspecial=null;
+    }
 });
 window.deletarTransacao = async id=>{ if(!await confirmar('Excluir esta transação?')) return; try{ await deleteDoc(doc(db,'transacoes',id)); toast('🗑️ Removida.'); }catch(err){ erroFirestore(err,'del-transacao'); } };
 window.alterarStatus = async(id,s)=>{ try{ await updateDoc(doc(db,'transacoes',id),{status:s}); }catch(err){ erroFirestore(err,'status'); } };
@@ -1921,14 +2024,14 @@ function renderizarCartoes(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
     cartoes.forEach(c=>{
         // Gastos do mês neste cartão
-        const gastosMes=transacoes.filter(t=>{ const[a,m]=t.data.split('-'); return t.cartaoId===c.id&&t.tipo==='despesa'&&t.status==='confirmada'&&parseInt(m)===mS&&parseInt(a)===aS; }).reduce((s,t)=>s+t.valor,0);
+        const gastosMes=transacoes.filter(t=>{ const[a,m]=t.data.split('-'); return t.cartaoId===c.id&&t.tipo==='despesa'&&t.status==='confirmada'&&!isPagamentoFatura(t)&&parseInt(m)===mS&&parseInt(a)===aS; }).reduce((s,t)=>s+t.valor,0);
         const pctUso=c.limite>0?Math.min((gastosMes/c.limite)*100,100):0;
         const corBarra=pctUso>=90?'bg-rose-500':pctUso>=70?'bg-amber-400':'bg-emerald-500';
         // Próxima fatura
         const hoje=new Date();
         const diaFechamento=parseInt(c.fechamento)||1;
         const diaVencimento=parseInt(c.vencimento)||10;
-        const diasParaFechar=((diaFechamento-hoje.getDate())%31+31)%31;
+        const diasParaFechar=diasAteDiaDoMes(diaFechamento, hoje);
         cont.innerHTML+=`<div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-lg">
             <div class="flex justify-between items-start mb-4">
                 <div><p class="font-black text-xl">${c.nome}</p><p class="text-gray-400 text-xs mt-0.5">Fecha dia ${c.fechamento} · Vence dia ${c.vencimento}</p></div>
@@ -1947,7 +2050,7 @@ function renderizarCartoes(){
     });
     // Lista de gastos no cartão no mês
     const lt=$id('lista-gastos-cartao'); lt.innerHTML='';
-    const gastos=transacoes.filter(t=>{ const[a,m]=t.data.split('-'); return t.cartaoId&&parseInt(m)===mS&&parseInt(a)===aS&&t.tipo==='despesa'; }).sort((a,b)=>b.data.localeCompare(a.data));
+const gastos=transacoes.filter(t=>{ const[a,m]=t.data.split('-'); return isTransacaoCartao(t)&&t.cartaoId&&parseInt(m)===mS&&parseInt(a)===aS&&t.tipo==='despesa'&&!isPagamentoFatura(t); }).sort((a,b)=>b.data.localeCompare(a.data));
     if(!gastos.length){ lt.innerHTML='<p class="text-xs text-gray-400 text-center py-4">Nenhum gasto no cartão neste mês.</p>'; return; }
     gastos.forEach(t=>{
         const cartao=cartoes.find(c=>c.id===t.cartaoId);
@@ -1963,7 +2066,7 @@ function renderizarCartoes(){
 }
 
 // Lançar pagamento de fatura
-window.lancarFatura = id=>{ const c=cartoes.find(x=>x.id===id); if(!c)return; abrirModalNovo(); $id('input-tipo').value='despesa'; $id('input-categoria').value='Cartão de Crédito'; $id('cartao-select-wrap').classList.remove('hidden'); $id('input-cartao').value=id; $id('input-desc').value=`Fatura ${c.nome}`; $id('input-status').value='confirmada'; if(c.contaPagamentoId) $id('input-conta').value=c.contaPagamentoId; setTimeout(()=>$id('input-valor').focus(),200); };
+window.lancarFatura = id=>{ const c=cartoes.find(x=>x.id===id); if(!c)return; abrirModalNovo(); window._modalLancamentoEspecial={tags:['pagamento-fatura'],tipoRegistro:'pagamento-fatura'}; $id('input-tipo').value='despesa'; $id('input-origem-lancamento').value='pagamento-fatura'; $id('input-categoria').value='Cartão de Crédito'; $id('input-cartao').value=id; $id('input-desc').value=`Pagamento fatura ${c.nome}`; $id('input-status').value='confirmada'; if(c.contaPagamentoId) $id('input-conta').value=c.contaPagamentoId; syncLancamentoCartaoUI(); setTimeout(()=>$id('input-valor').focus(),200); };
 
 $id('btn-novo-cartao').onclick=()=>{ $id('form-cartao').reset(); $id('modal-cartao').classList.remove('hidden'); };
 $id('form-cartao').addEventListener('submit', async e=>{
@@ -1979,10 +2082,7 @@ window.deletarCartao=async id=>{ if(!await confirmar('Excluir este cartão?'))re
 function atualizarFiltroCategorias(){ /* não utilizado — filtros removidos do operacional */ }
 function getTransacoesFiltradas(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
-    return transacoes.filter(t=>{
-        const[a,m]=t.data.split('-');
-        return parseInt(m)===mS && parseInt(a)===aS;
-    });
+    return getTransacoesDoMesBase(transacoes, mS, aS);
 }
 
 
@@ -2061,29 +2161,76 @@ $id('btn-exportar-pdf').addEventListener('click',()=>{
 });
 
 // ── IMPORTAR CSV ──────────────────────────────────────────────────────────────
+function detectarSeparadorCsv(texto){
+    const primeiraLinha=(texto.split(/\r?\n/).find(l=>l.trim())||'');
+    let aspas=false, virgulas=0, pontosEVirgula=0;
+    for(const ch of primeiraLinha){
+        if(ch==='"') aspas=!aspas;
+        else if(!aspas && ch===',') virgulas++;
+        else if(!aspas && ch===';') pontosEVirgula++;
+    }
+    return pontosEVirgula>virgulas?';':',';
+}
+function parseCsvLine(linha, sep){
+    const cols=[]; let atual=''; let aspas=false;
+    for(let i=0;i<linha.length;i++){
+        const ch=linha[i];
+        if(ch==='"'){
+            if(aspas && linha[i+1]==='"'){ atual+='"'; i++; }
+            else aspas=!aspas;
+            continue;
+        }
+        if(ch===sep && !aspas){ cols.push(atual.trim()); atual=''; continue; }
+        atual+=ch;
+    }
+    cols.push(atual.trim());
+    return cols;
+}
+function parseCsvContent(texto){
+    const limpo=(texto||'').replace(/^\uFEFF/,'');
+    const sep=detectarSeparadorCsv(limpo);
+    const linhas=limpo.split(/\r?\n/).filter(l=>l.trim());
+    return { sep, rows: linhas.map(l=>parseCsvLine(l, sep)) };
+}
+function normalizarDataImportacao(valor){
+    const bruto=(valor||'').trim();
+    if(!bruto) return null;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(bruto)) return bruto;
+    if(/^\d{2}\/\d{2}\/\d{4}$/.test(bruto)){
+        const [d,m,y]=bruto.split('/');
+        return `${y}-${m}-${d}`;
+    }
+    return null;
+}
+function normalizarValorImportacao(valor){
+    const bruto=(valor||'').trim();
+    if(!bruto) return NaN;
+    const semMoeda=bruto.replace(/[R$\s]/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',', '.');
+    return parseFloat(semMoeda);
+}
 $id('input-importar-csv').addEventListener('change', e=>{
     const file=e.target.files[0]; if(!file) return;
     const reader=new FileReader();
     reader.onload=ev=>{
         const text=ev.target.result;
         // Detecta separador
-        const sep=text.includes(';')?';':',';
-        const linhas=text.trim().split(/\r?\n/).filter(l=>l.trim());
+        const {rows}=parseCsvContent(text);
+        if(!rows.length){
+            const prev=$id('import-preview');
+            prev.innerHTML='<p class="text-rose-500 text-sm font-medium">Arquivo vazio ou não reconhecido.</p>';
+            $id('import-acoes').classList.add('hidden');
+            return;
+        }
         // Detecta se tem cabeçalho (primeira célula não é data)
-        const primeira=linhas[0].split(sep)[0].trim();
-        const temCabecalho=isNaN(Date.parse(primeira.replace(/\//g,'-')));
-        const dados=temCabecalho?linhas.slice(1):linhas;
+        const temCabecalho=!normalizarDataImportacao(rows[0]?.[0]);
+        const dados=temCabecalho?rows.slice(1):rows;
         importRows=[];
-        for(const linha of dados){
-            const cols=linha.split(sep).map(c=>c.replace(/^"|"$/g,'').trim());
+        for(const cols of dados){
             if(cols.length<3)continue;
-            // Tenta parsear data (DD/MM/YYYY ou YYYY-MM-DD)
-            let dataStr=cols[0];
-            if(dataStr.includes('/')) { const[d,m,y]=dataStr.split('/'); dataStr=`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`; }
+            const dataStr=normalizarDataImportacao(cols[0]);
             const desc=cols[1]||'Importado';
-            const valRaw=cols[2]?.replace(/[R$\s]/g,'').replace(',','.');
-            const valor=parseFloat(valRaw);
-            if(isNaN(valor)||!dataStr.match(/^\d{4}-\d{2}-\d{2}$/))continue;
+            const valor=normalizarValorImportacao(cols[2]);
+            if(isNaN(valor)||!dataStr?.match(/^\d{4}-\d{2}-\d{2}$/))continue;
             importRows.push({ data:dataStr, desc, valor:Math.abs(valor), tipo:valor<0?'despesa':'receita', categoria:'Outros', status:'confirmada' });
         }
         // Mostra preview
@@ -2102,16 +2249,23 @@ $id('btn-import-cancelar').onclick=()=>{ $id('modal-importar').classList.add('hi
 $id('btn-import-confirmar').addEventListener('click', async()=>{
     if(!importRows.length) return;
     const btn=$id('btn-import-confirmar'); btn.disabled=true; btn.innerText='Importando...';
+    const totalImportacao=importRows.length;
     let ok=0;
     try{
-        for(const r of importRows){
-            await addDoc(collection(db,'transacoes'),{...r,userId:currentUser.uid,tags:['importado'],criadoEm:new Date().toISOString()});
-            ok++;
+        for(let i=0;i<importRows.length;i+=400){
+            const lote=importRows.slice(i,i+400);
+            const batch=writeBatch(db);
+            lote.forEach(r=>{
+                const ref=doc(collection(db,'transacoes'));
+                batch.set(ref,{...r,userId:currentUser.uid,tags:['importado'],criadoEm:new Date().toISOString()});
+            });
+            await batch.commit();
+            ok+=lote.length;
         }
         toast(`✅ ${ok} transações importadas!`);
         $id('modal-importar').classList.add('hidden'); importRows=[];
     }catch(err){ erroFirestore(err,'importar'); }
-    finally{ btn.disabled=false; btn.innerText=`✅ Importar ${importRows.length} transações`; }
+    finally{ btn.disabled=false; btn.innerText=`✅ Importar ${importRows.length||totalImportacao} transações`; }
 });
 
 // ── RESUMO SEMANAL ────────────────────────────────────────────────────────────
@@ -2162,13 +2316,55 @@ $id('form-categoria').addEventListener('submit', async e=>{
 });
 window.deletarCategoriaCustom=async id=>{ if(!await confirmar('Remover esta categoria?'))return; try{ await deleteDoc(doc(db,'categorias',id)); toast('Categoria removida.'); }catch(err){ erroFirestore(err,'delete'); } };
 
+function getTransacoesDoMesBase(lista, mes, ano){
+    return lista.filter(t=>{
+        const [a,m]=t.data.split('-');
+        return parseInt(m)===mes && parseInt(a)===ano;
+    });
+}
+
+function getTransacoesAnaliticasDoMes(lista, mes, ano){
+    return getTransacoesDoMesBase(lista, mes, ano).filter(t=>t.tipo!=='transferencia' && !isPagamentoFatura(t));
+}
+
+function calcularResumoDashboard(lista, mes, ano){
+    const todas=getTransacoesAnaliticasDoMes(lista, mes, ano);
+    let rR=0,dR=0,rP=0,dP=0;
+    todas.forEach(t=>{
+        if(t.tipo==='receita'){
+            if(t.status==='confirmada') rR+=t.valor;
+            else rP+=t.valor;
+        }else if(t.tipo==='despesa'){
+            if(t.status==='confirmada') dR+=t.valor;
+            else dP+=t.valor;
+        }
+    });
+
+    let mAnt=mes-1, aAnt=ano;
+    if(mAnt===0){ mAnt=12; aAnt--; }
+    const anterior=getTransacoesAnaliticasDoMes(lista, mAnt, aAnt).filter(t=>t.status==='confirmada');
+    let rAnt=0,dAnt=0;
+    anterior.forEach(t=>{ if(t.tipo==='receita') rAnt+=t.valor; else if(t.tipo==='despesa') dAnt+=t.valor; });
+
+    return {
+        todas,
+        receitasConfirmadas:rR,
+        despesasConfirmadas:dR,
+        receitasPendentes:rP,
+        despesasPendentes:dP,
+        saldoMes:rR-dR,
+        saldoProjetado:rR-dR+rP-dP,
+        saldoAnterior:rAnt-dAnt
+    };
+}
+
 
 function atualizarDashboard(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
-    const todas=transacoes.filter(t=>{ const[a,m]=t.data.split('-'); return parseInt(m)===mS&&parseInt(a)===aS&&t.tipo!=='transferencia'; });
+    const resumoDashboard=calcularResumoDashboard(transacoes, mS, aS);
+    const todas=resumoDashboard.todas;
     const filtradas=getTransacoesFiltradas();
-    let rR=0,dR=0,rP=0,dP=0;
-    todas.forEach(t=>{ if(t.tipo==='receita'){if(t.status==='confirmada')rR+=t.valor;else rP+=t.valor;}else if(t.tipo==='despesa'){if(t.status==='confirmada')dR+=t.valor;else dP+=t.valor;} });
+    const rR=resumoDashboard.receitasConfirmadas, dR=resumoDashboard.despesasConfirmadas, rP=resumoDashboard.receitasPendentes, dP=resumoDashboard.despesasPendentes;
     $id('val-receitas').innerText=fmt(rR); $id('val-receitas-pend').innerText=fmt(rP);
     $id('val-despesas').innerText=fmt(dR); $id('val-despesas-pend').innerText=fmt(dP);
     // Saldo do mês (receitas confirmadas - despesas confirmadas)
@@ -2180,17 +2376,7 @@ function atualizarDashboard(){
     // Variação % vs mês anterior
     const elVar=$id('val-saldo-var');
     if(elVar){
-        let mA2=mS-1, aA2=aS; if(mA2===0){mA2=12;aA2--;}
-        const chA2=`${aA2}-${String(mA2).padStart(2,'0')}`;
-        let rAnt=0,dAnt=0;
-        transacoes.forEach(t=>{
-            if(t.status!=='confirmada'||t.tipo==='transferencia') return;
-            const[a,m]=t.data.split('-');
-            if(parseInt(m)===mA2&&parseInt(a)===aA2){
-                if(t.tipo==='receita') rAnt+=t.valor; else dAnt+=t.valor;
-            }
-        });
-        const saldoAnt=rAnt-dAnt;
+        const saldoAnt=resumoDashboard.saldoAnterior;
         if(saldoAnt!==0){
             const varPct=((saldoMes-saldoAnt)/Math.abs(saldoAnt))*100;
             elVar.innerText=`${varPct>=0?'↑':' ↓'}${Math.abs(varPct).toFixed(1)}%`;
@@ -2270,27 +2456,29 @@ function atualizarDashboard(){
             <!-- Barra lateral colorida -->
             <div class="w-1 shrink-0 ${barColor}"></div>
             <!-- Conteúdo -->
-            <div class="flex flex-col flex-1 min-w-0 p-3 sm:p-4">
-                <!-- Linha principal: descrição + valor -->
-                <div class="flex items-start justify-between gap-2">
-                    <div class="flex flex-col min-w-0 flex-1">
-                        <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
-                            <span class="text-gray-900 font-black text-sm leading-tight truncate max-w-[170px] sm:max-w-none">${t.desc}</span>
-                            ${isP?'<span class="text-[8px] bg-amber-300 text-amber-900 px-1.5 py-0.5 rounded-full font-black uppercase">⏳</span>':''}
-                            ${isTransf?'<span class="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase">↔️</span>':''}
+            <div class="flex flex-col flex-1 min-w-0 px-3 py-2.5 sm:px-4 sm:py-3">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="text-gray-900 font-black text-[15px] leading-tight truncate">${t.desc}</span>
+                            ${isP?'<span class="text-[8px] bg-amber-300 text-amber-900 px-1.5 py-0.5 rounded-full font-black uppercase shrink-0">⏳</span>':''}
+                            ${isTransf?'<span class="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase shrink-0">↔️</span>':''}
                         </div>
-                        <span class="text-xs text-gray-400">📅 ${fmtData(t.data)} · 🏷️ ${t.categoria}</span>
-                        ${tagHtml||contaChip||cartaoChip?`<div class="flex flex-wrap gap-1 mt-1">${tagHtml}${contaChip}${cartaoChip}</div>`:''}
+                        <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                            <span class="text-[11px] text-gray-400 font-medium">${fmtData(t.data)}</span>
+                            <span class="text-[11px] text-gray-300">•</span>
+                            <span class="text-[11px] text-gray-400 font-medium truncate">${t.categoria}</span>
+                            ${contaChip||cartaoChip?`<span class="text-[11px] text-gray-300">•</span>${contaChip||cartaoChip}`:''}
+                        </div>
                     </div>
-                    <!-- Valor em destaque -->
-                    <span class="${valorCor} font-black text-xl mono shrink-0 leading-tight">${isRec?'+':isTransf?'':'-'}${fmt(t.valor)}</span>
+                    <span class="${valorCor} font-black text-lg sm:text-xl mono shrink-0 leading-tight">${isRec?'+':isTransf?'':'-'}${fmt(t.valor)}</span>
                 </div>
-                <!-- Botões em linha separada abaixo -->
-                ${!isTransf?`<div class="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-black/5 justify-end">
-                    ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs active:scale-90 transition flex items-center gap-1">✔ Confirmar</button>`
-                         :`<button onclick="alterarStatus('${t.id}','pendente')" class="text-xs text-gray-300 hover:text-amber-500 px-2 py-1.5 rounded-lg hover:bg-amber-50 transition">↩</button>`}
-                    <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-blue-100 active:scale-90 transition">✏️ Editar</button>
-                    <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-rose-100 active:scale-90 transition">🗑️</button>
+                ${tagHtml?`<div class="flex flex-wrap gap-1 mt-1.5">${tagHtml}</div>`:''}
+                ${!isTransf?`<div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-black/5 justify-end">
+                    ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] active:scale-90 transition">✔ Confirmar</button>`
+                         :`<button onclick="alterarStatus('${t.id}','pendente')" class="text-[11px] text-gray-300 hover:text-amber-500 px-2 py-1 rounded-lg hover:bg-amber-50 transition">↩</button>`}
+                    <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-2.5 py-1 rounded-lg font-bold text-[11px] hover:bg-blue-100 active:scale-90 transition">Editar</button>
+                    <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-2.5 py-1 rounded-lg font-bold text-[11px] hover:bg-rose-100 active:scale-90 transition">Excluir</button>
                 </div>`:''}
             </div>
         </li>`;
@@ -2312,7 +2500,7 @@ function atualizarPizzas(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
     const catDesp={};
     transacoes.forEach(t=>{
-        if(t.status!=='confirmada'||t.tipo!=='despesa') return;
+        if(t.status!=='confirmada'||t.tipo!=='despesa'||isPagamentoFatura(t)) return;
         const[a,m]=t.data.split('-');
         if(parseInt(m)!==mS||parseInt(a)!==aS) return;
         catDesp[t.categoria]=(catDesp[t.categoria]||0)+t.valor;
@@ -2441,7 +2629,7 @@ function atualizarPatrimonio(){
     const porMes={};
     let totalRecHist=0, totalDespHist=0;
     transacoes.forEach(t=>{
-        if(t.status!=='confirmada'||t.tipo==='transferencia') return;
+        if(t.status!=='confirmada'||t.tipo==='transferencia'||isPagamentoFatura(t)) return;
         const[ano,mes]=t.data.split('-'), ch=`${ano}-${mes}`;
         if(!porMes[ch]) porMes[ch]={r:0,d:0};
         if(t.tipo==='receita'){totalRecHist+=t.valor; porMes[ch].r+=t.valor;}
@@ -2667,7 +2855,7 @@ function gerenciarNotificacoes(){
         if(t.status==='pendente'&&t.tipo==='despesa'){
             const diff=Math.ceil((new Date(t.data+'T12:00:00').getTime()-hoje.getTime())/864e5);
             if(diff<0&&t.data!==strHoje) alertas.push({tipo:'erro',titulo:'Conta Atrasada!',desc:`${t.desc} venceu ${fmtData(t.data)} (${fmt(t.valor)})`,icone:'🔴'});
-            else if(diff>=0&&diff<=3) alertas.push({tipo:'aviso',titulo:t.categoria==='Cartão de Crédito'?'Fatura Vencendo':'Conta Vencendo',desc:`${t.desc} — ${diff===0?'HOJE':`em ${diff} dia(s)`} (${fmt(t.valor)})`,icone:'⏳'});
+        else if(diff>=0&&diff<=3) alertas.push({tipo:'aviso',titulo:isPagamentoFatura(t)?'Fatura Vencendo':'Conta Vencendo',desc:`${t.desc} — ${diff===0?'HOJE':`em ${diff} dia(s)`} (${fmt(t.valor)})`,icone:'⏳'});
         }
         if(a===aA&&m===mA){ if(t.tipo==='receita')recMes+=t.valor; if(t.tipo==='despesa'){despMes+=t.valor;catAtual[t.categoria]=(catAtual[t.categoria]||0)+t.valor;} }
         let mAnt2=mA-1,aAnt2=aA; if(mAnt2===0){mAnt2=12;aAnt2--;}
@@ -2697,6 +2885,68 @@ function carregarRecorrentes(){
         snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); },
         err=>erroFirestore(err,'recorrentes')
     ));
+}
+
+function getInicioRecorrencia(rec){
+    if(rec.mesInicio && rec.anoInicio) return {anoInicio:rec.anoInicio, mesInicio:rec.mesInicio};
+    const criadoEm=rec.criadoEm ? new Date(rec.criadoEm) : new Date();
+    return {anoInicio:criadoEm.getFullYear(), mesInicio:criadoEm.getMonth()+1};
+}
+
+function existeOcorrenciaRecorrente(rec, ds, competencia){
+    return transacoes.some(t=>
+        (t.recorrenteId===rec.id && t.competenciaRecorrencia===competencia) ||
+        (
+            t.data===ds &&
+            t.desc===rec.desc &&
+            t.tipo===rec.tipo &&
+            t.categoria===rec.categoria &&
+            (t.contaId||null)===(rec.contaId||null) &&
+            (t.cartaoId||null)===(rec.cartaoId||null)
+        )
+    );
+}
+
+async function materializarRecorrencia(rec, opts={}){
+    if(!rec?.id) return 0;
+    const hoje=new Date();
+    const {anoInicio, mesInicio}=getInicioRecorrencia(rec);
+    const skipCompetencias=opts.skipCompetencias||new Set();
+    const limiteMax=opts.limiteMax || new Date(hoje.getFullYear(), hoje.getMonth()+12, hoje.getDate());
+    let ano=anoInicio, mes=mesInicio, criados=0;
+
+    while(ano*12+mes <= (limiteMax.getFullYear()*12 + (limiteMax.getMonth()+1))){
+        const diasNoMes=new Date(ano,mes,0).getDate();
+        const dia=Math.min(rec.dia, diasNoMes);
+        const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+        const competencia=getCompetencia(ds);
+        const dataLanc=new Date(ano, mes-1, dia);
+
+        if(!skipCompetencias.has(competencia) && dataLanc<=limiteMax && !existeOcorrenciaRecorrente(rec, ds, competencia)){
+            await addDoc(collection(db,'transacoes'),{
+                userId:currentUser.uid,
+                tipo:rec.tipo,
+                data:ds,
+                valor:rec.valor,
+                desc:rec.desc,
+                categoria:rec.categoria,
+                status:rec.status,
+                contaId:rec.contaId||null,
+                cartaoId:rec.cartaoId||null,
+                origemLancamento:rec.origemLancamento||((rec.cartaoId||rec.tipoRegistro==='pagamento-fatura')?'cartao':'padrao'),
+                tipoRegistro:rec.tipoRegistro||((rec.cartaoId||hasTag(rec,'pagamento-fatura'))?'cartao-compra':'padrao'),
+                tags:[...new Set([...(rec.tags||[]),'recorrente'])],
+                recorrenteId:rec.id,
+                competenciaRecorrencia:competencia,
+                criadoEm:new Date().toISOString()
+            });
+            criados++;
+        }
+
+        mes++;
+        if(mes>12){ mes=1; ano++; }
+    }
+    return criados;
 }
 
 // Toggle visual
@@ -2729,68 +2979,14 @@ function carregarRecorrentes(){
     };
 })();
 
-// Auto-lançamento de recorrentes ao fazer login (dia atual)
+// Materialização idempotente de recorrentes por competência mensal
 async function aplicarRecorrentesAuto(){
     if(!recorrentes.length) return;
-    const hoje=new Date();
     let criados=0;
 
     for(const r of recorrentes){
-        // Usa mesInicio/anoInicio salvos explicitamente, senão fallback para criadoEm
-        let anoInicio, mesInicio;
-        if(r.mesInicio && r.anoInicio){
-            anoInicio=r.anoInicio;
-            mesInicio=r.mesInicio;
-        } else {
-            // Legado: usa criadoEm como referência
-            const criadoEm=r.criadoEm ? new Date(r.criadoEm) : hoje;
-            anoInicio=criadoEm.getFullYear();
-            mesInicio=criadoEm.getMonth()+1;
-        }
-
-        // Limite máximo: 12 meses à frente do mês atual
-        const anoFimAbs=hoje.getFullYear();
-        const mesFimAbs=hoje.getMonth()+13;
-
-        let ano=anoInicio, mes=mesInicio;
-        while(ano*12+mes <= anoFimAbs*12+mesFimAbs){
-            const diasNoMes=new Date(ano,mes,0).getDate();
-            const dia=Math.min(r.dia, diasNoMes);
-            const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-
-            // Não lança além de 12 meses à frente
-            const dataLanc=new Date(ano, mes-1, dia);
-            const limiteMax=new Date(hoje.getFullYear(), hoje.getMonth()+12, hoje.getDate());
-            if(dataLanc > limiteMax){ mes++; if(mes>12){mes=1;ano++;} continue; }
-
-            const existe=transacoes.find(t=>
-                t.desc===r.desc &&
-                t.data===ds &&
-                Math.abs(t.valor-r.valor)<0.01 &&
-                (t.tags||[]).includes('recorrente')
-            );
-
-            if(!existe){
-                try{
-                    await addDoc(collection(db,'transacoes'),{
-                        userId:currentUser.uid,
-                        tipo:r.tipo,
-                        data:ds,
-                        valor:r.valor,
-                        desc:r.desc,
-                        categoria:r.categoria,
-                        status:r.status,
-                        contaId:r.contaId||null,
-                        tags:['recorrente'],
-                        recorrenteId:r.id,
-                        criadoEm:new Date().toISOString()
-                    });
-                    criados++;
-                }catch(err){ erroFirestore(err,'rec-auto'); }
-            }
-
-            mes++; if(mes>12){mes=1;ano++;}
-        }
+        try{ criados += await materializarRecorrencia(r); }
+        catch(err){ erroFirestore(err,'rec-auto'); }
     }
     if(criados>0) toast(`🔁 ${criados} lançamento(s) recorrente(s) criados!`,'info');
 }
@@ -2814,7 +3010,7 @@ function renderizarCalendario(){
     const chMes=`${_calAno}-${String(_calMes).padStart(2,'0')}`;
     let rMes=0, dMes=0;
     transacoes.forEach(t=>{
-        if(t.status!=='confirmada'||t.tipo==='transferencia') return;
+        if(t.status!=='confirmada'||t.tipo==='transferencia'||isPagamentoFatura(t)) return;
         if(!t.data.startsWith(chMes)) return;
         if(t.tipo==='receita') rMes+=t.valor; else dMes+=t.valor;
     });
