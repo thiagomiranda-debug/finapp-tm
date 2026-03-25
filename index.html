@@ -1734,7 +1734,10 @@ $id('form-transacao').addEventListener('submit', async e=>{
                         dia:diaRec, categoria:payload.categoria, desc:payload.desc,
                         status:statusRec, criadoEm:new Date().toISOString()
                     });
-                    toast(par>1?`✅ ${par}x lançadas!`:'✅ Salva e recorrente cadastrada! 🔁');
+                    // Pré-lança nos próximos 12 meses imediatamente
+                    // Aguarda o onSnapshot atualizar recorrentes[], depois dispara
+                    setTimeout(()=>aplicarRecorrentesAuto(), 1500);
+                    toast('✅ Salva e recorrente cadastrada! Lançando nos próximos meses... 🔁');
                 }
             }else{
                 toast(par>1?`✅ ${par}x lançadas!`:'✅ Salva!');
@@ -2721,28 +2724,59 @@ function carregarRecorrentes(){
 async function aplicarRecorrentesAuto(){
     if(!recorrentes.length) return;
     const hoje=new Date();
-    const mS=hoje.getMonth()+1, aS=hoje.getFullYear();
     let criados=0;
+
     for(const r of recorrentes){
-        const dia=Math.min(r.dia, new Date(aS,mS,0).getDate());
-        // Só lança se hoje for o dia configurado ou posterior (dentro do mês)
-        if(hoje.getDate()<dia) continue;
-        const ds=`${aS}-${String(mS).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-        const existe=transacoes.find(t=>
-            t.desc===r.desc && t.data===ds && Math.abs(t.valor-r.valor)<0.01 && (t.tags||[]).includes('recorrente')
-        );
-        if(!existe){
-            try{
-                await addDoc(collection(db,'transacoes'),{
-                    userId:currentUser.uid, tipo:r.tipo, data:ds, valor:r.valor,
-                    desc:r.desc, categoria:r.categoria, status:r.status,
-                    tags:['recorrente'], criadoEm:new Date().toISOString()
-                });
-                criados++;
-            }catch(err){ erroFirestore(err,'rec-auto'); }
+        // Data de início: usa a data de criação da recorrente, ou o início do mês atual
+        const criadoEm=r.criadoEm ? new Date(r.criadoEm) : hoje;
+        const anoInicio=criadoEm.getFullYear();
+        const mesInicio=criadoEm.getMonth()+1; // 1-12
+
+        // Lança do mês de criação até 12 meses à frente
+        const anoFim=hoje.getFullYear();
+        const mesFim=hoje.getMonth()+13; // 12 meses à frente do mês atual
+
+        let ano=anoInicio, mes=mesInicio;
+        while(ano*12+mes <= anoFim*12+mesFim){
+            const diasNoMes=new Date(ano,mes,0).getDate();
+            const dia=Math.min(r.dia, diasNoMes);
+            const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+
+            // Não lança em datas futuras além de hoje + 12 meses
+            const dataLanc=new Date(ano, mes-1, dia);
+            const limiteMax=new Date(hoje.getFullYear(), hoje.getMonth()+12, hoje.getDate());
+            if(dataLanc > limiteMax){ mes++; if(mes>12){mes=1;ano++;} continue; }
+
+            const existe=transacoes.find(t=>
+                t.desc===r.desc &&
+                t.data===ds &&
+                Math.abs(t.valor-r.valor)<0.01 &&
+                (t.tags||[]).includes('recorrente')
+            );
+
+            if(!existe){
+                try{
+                    await addDoc(collection(db,'transacoes'),{
+                        userId:currentUser.uid,
+                        tipo:r.tipo,
+                        data:ds,
+                        valor:r.valor,
+                        desc:r.desc,
+                        categoria:r.categoria,
+                        status:r.status,
+                        contaId:r.contaId||null,
+                        tags:['recorrente'],
+                        recorrenteId:r.id,
+                        criadoEm:new Date().toISOString()
+                    });
+                    criados++;
+                }catch(err){ erroFirestore(err,'rec-auto'); }
+            }
+
+            mes++; if(mes>12){mes=1;ano++;}
         }
     }
-    if(criados>0) toast(`🔁 ${criados} recorrente(s) lançada(s) automaticamente!`,'info');
+    if(criados>0) toast(`🔁 ${criados} lançamento(s) recorrente(s) criados!`,'info');
 }
 
 // ── CALENDÁRIO ───────────────────────────────────────────────────────────────
