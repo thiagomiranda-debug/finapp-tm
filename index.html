@@ -1350,6 +1350,7 @@ const hojeStr  = () => { const d=new Date(); return `${d.getFullYear()}-${String
 const hasTag = (obj, tag) => (obj?.tags||[]).includes(tag);
 const isPagamentoFatura = t => t?.tipoRegistro==='pagamento-fatura' || hasTag(t,'pagamento-fatura');
 const isTransacaoCartao = t => t?.origemLancamento==='cartao' || !!t?.cartaoId;
+const isRecorrenciaMaterializada = t => !!t?.recorrenteId || hasTag(t,'recorrente');
 const getCompetencia = dataStr => dataStr ? dataStr.slice(0,7) : '';
 const formatDateLocal = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 const addMonthsClamped = (dataStr, offset) => {
@@ -1376,6 +1377,18 @@ const diasAteDiaDoMes = (diaAlvo, base=new Date()) => {
     }
     return Math.round((prox - new Date(base.getFullYear(),base.getMonth(),base.getDate()))/86400000);
 };
+function getLabelSubmitLancamento(origem, emEdicao=false){
+    if(emEdicao) return 'Salvar Alterações';
+    if(origem==='pagamento-fatura') return 'Salvar Pagamento';
+    if(origem==='cartao') return 'Salvar Compra';
+    return 'Salvar Transação';
+}
+function getTituloLancamento(origem, emEdicao=false){
+    if(emEdicao) return 'Editar Lançamento';
+    if(origem==='pagamento-fatura') return 'Pagamento de Fatura';
+    if(origem==='cartao') return 'Nova Compra no Cartão';
+    return 'Novo Lançamento';
+}
 
 // Cores por conta
 const CORES = { blue:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, emerald:{bg:'bg-emerald-600',text:'text-white',chip:'bg-emerald-100 text-emerald-800'}, violet:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, rose:{bg:'bg-rose-600',text:'text-white',chip:'bg-rose-100 text-rose-800'}, amber:{bg:'bg-amber-500',text:'text-white',chip:'bg-amber-100 text-amber-800'}, slate:{bg:'bg-slate-600',text:'text-white',chip:'bg-gray-200 text-slate-800'} };
@@ -1474,16 +1487,8 @@ function syncLancamentoCartaoUI(){
     if(!usaCartao) $id('input-cartao').value='';
 
     if(!modoEdicao){
-        if(origem==='pagamento-fatura'){
-            $id('modal-titulo').innerText='Pagamento de Fatura';
-            $id('btn-submit-form').innerText='Salvar Pagamento';
-        }else if(origem==='cartao'){
-            $id('modal-titulo').innerText='Nova Compra no Cartão';
-            $id('btn-submit-form').innerText='Salvar Compra';
-        }else{
-            $id('modal-titulo').innerText='Novo Lançamento';
-            $id('btn-submit-form').innerText='Salvar Transação';
-        }
+        $id('modal-titulo').innerText=getTituloLancamento(origem, false);
+        $id('btn-submit-form').innerText=getLabelSubmitLancamento(origem, false);
     }
 }
 
@@ -1497,8 +1502,8 @@ function abrirModalNovo(){
     modoEdicao=false;
     window._modalLancamentoEspecial=null;
     window._editTransacaoOriginal=null;
-    $id('modal-titulo').innerText='Novo Lançamento';
-    $id('btn-submit-form').innerText='Salvar Transação';
+    $id('modal-titulo').innerText=getTituloLancamento('padrao', false);
+    $id('btn-submit-form').innerText=getLabelSubmitLancamento('padrao', false);
     $id('form-transacao').reset();
     $id('input-edit-id').value='';
     $id('input-data').value=hojeStr();
@@ -1514,8 +1519,8 @@ function abrirModalEditar(t){
     modoEdicao=true;
     window._modalLancamentoEspecial=null;
     window._editTransacaoOriginal=t;
-    $id('modal-titulo').innerText='Editar Lançamento';
-    $id('btn-submit-form').innerText='Salvar Alterações';
+    $id('modal-titulo').innerText=getTituloLancamento('padrao', true);
+    $id('btn-submit-form').innerText=getLabelSubmitLancamento('padrao', true);
     $id('input-edit-id').value=t.id;
     $id('input-tipo').value=t.tipo;
     $id('input-valor').value=t.valor;
@@ -1785,11 +1790,12 @@ $id('form-transacao').addEventListener('submit', async e=>{
     const tags=[...new Set([...tagsInput, ...(window._modalLancamentoEspecial?.tags||[])])];
     const contaId=$id('input-conta').value||null;
     const cartaoId=origemLancamento==='cartao'?($id('input-cartao').value||null):null;
+    const labelSubmitAtual=getLabelSubmitLancamento(origemSel, modoEdicao);
     const valorRaw=parseFloat($id('input-valor').value);
-    if(!valorRaw||isNaN(valorRaw)||valorRaw<=0){ toast('Informe um valor válido.','aviso'); btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; return; }
+    if(!valorRaw||isNaN(valorRaw)||valorRaw<=0){ toast('Informe um valor válido.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
     const dataVal=$id('input-data').value;
-    if(!dataVal){ toast('Informe a data.','aviso'); btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; return; }
-    if(origemLancamento==='cartao' && !cartaoId){ toast('Selecione o cartão vinculado.','aviso'); btn.disabled=false; btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação'; return; }
+    if(!dataVal){ toast('Informe a data.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
+    if(origemLancamento==='cartao' && !cartaoId){ toast('Selecione o cartão vinculado.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
     const payload={ userId:currentUser.uid, tipo:$id('input-tipo').value, data:dataVal, valor:valorRaw, desc:$id('input-desc').value.trim(), categoria:$id('input-categoria').value, status:$id('input-status').value, tags, contaId, cartaoId, origemLancamento, tipoRegistro };
     try{
         if(modoEdicao){
@@ -1854,7 +1860,7 @@ $id('form-transacao').addEventListener('submit', async e=>{
     }catch(err){ console.error(err); toast('Erro ao salvar.','erro'); }
     finally{
         btn.disabled=false;
-        btn.innerText=modoEdicao?'Salvar Alterações':'Salvar Transação';
+        btn.innerText=getLabelSubmitLancamento($id('input-origem-lancamento').value||'padrao', modoEdicao);
         if(!modoEdicao) window._modalLancamentoEspecial=null;
     }
 });
@@ -2447,6 +2453,7 @@ function atualizarDashboard(){
     if(!pagina.length){ lt.innerHTML='<p class="text-center text-gray-300 py-10 text-sm">Nenhuma transação encontrada.</p>'; }
     pagina.forEach(t=>{
         const isP=t.status==='pendente';
+        const isRecorrente=isRecorrenciaMaterializada(t);
         const tagHtml=(t.tags||[]).slice(0,2).map(tg=>`<span class="text-[9px] bg-blue-100 text-blue-500 px-1.5 py-0.5 rounded-full font-bold">#${tg}</span>`).join('');
         const conta=contas.find(c=>c.id===t.contaId);
         const cartao=cartoes.find(c=>c.id===t.cartaoId);
@@ -2487,6 +2494,7 @@ function atualizarDashboard(){
                             <span class="text-gray-900 font-black text-[15px] leading-tight truncate">${t.desc}</span>
                             ${isP?'<span class="text-[8px] bg-amber-300 text-amber-900 px-1.5 py-0.5 rounded-full font-black uppercase shrink-0">⏳</span>':''}
                             ${isTransf?'<span class="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase shrink-0">↔️</span>':''}
+                            ${isRecorrente?'<span class="text-[8px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-black uppercase shrink-0">rec</span>':''}
                         </div>
                         <div class="flex items-center gap-1.5 flex-wrap mt-1">
                             <span class="text-[11px] text-gray-400 font-medium">${fmtData(t.data)}</span>
