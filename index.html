@@ -1331,13 +1331,15 @@ const db   = getFirestore(app);
 const auth = getAuth(app);
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let transacoes=[], recorrentes=[], metas=[], contas=[], cartoes=[], transferencias=[], categoriasCustom=[];
+let transacoes=[], recorrentes=[], recorrenciaExcecoes=[], metas=[], contas=[], cartoes=[], transferencias=[], categoriasCustom=[];
 let currentUser=null;
 
 let modoEdicao=false;
 let paginaAtual=0; const POR_PAGINA=20;
 let importRows=[];
 let _unsubscribers=[]; // guarda funções de cancelamento dos onSnapshot
+let _transacoesInicializadas=false, _recorrentesInicializadas=false, _recorrenciaExcecoesInicializadas=false;
+let _timerRecorrenciaAuto=null, _aplicandoRecorrenciaAuto=false;
 
 const $id = id => document.getElementById(id);
 const mesesNomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -1556,6 +1558,7 @@ $id('btn-limpar-notif').onclick=()=>dropN.classList.add('hidden');
 onAuthStateChanged(auth, user=>{
     if(user){
         currentUser=user;
+        _transacoesInicializadas=false; _recorrentesInicializadas=false; _recorrenciaExcecoesInicializadas=false;
         $id('user-email-display').innerText=user.email;
         $id('login-screen').classList.add('hidden');
         $id('onboarding-screen').classList.add('hidden');
@@ -1563,13 +1566,13 @@ onAuthStateChanged(auth, user=>{
         $id('btn-fab').classList.remove('hidden');
         $id('input-data').value=hojeStr();
         iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom();
-        setTimeout(()=>aplicarRecorrentesAuto(), 3000);
         setTimeout(()=>window._exibirBannerNotif?.(), 6000);
     }else{
         _unsubscribers.forEach(unsub=>{ try{ unsub(); }catch(_){} });
         _unsubscribers=[];
         transacoes=[]; contas=[]; cartoes=[]; transferencias=[];
-        metas=[]; categoriasCustom=[];
+        metas=[]; categoriasCustom=[]; recorrenciaExcecoes=[];
+        _transacoesInicializadas=false; _recorrentesInicializadas=false; _recorrenciaExcecoesInicializadas=false;
         currentUser=null;
         $id('dashboard-screen').classList.add('hidden');
         $id('onboarding-screen').classList.add('hidden');
@@ -1749,6 +1752,8 @@ function iniciarSincronizacao(){
     _unsubscribers.push(
         onSnapshot(query(collection(db,'transacoes'),where('userId','==',currentUser.uid)), snap=>{
             transacoes=[]; snap.forEach(d=>transacoes.push({id:d.id,...d.data()}));
+            _transacoesInicializadas=true;
+            agendarAplicacaoRecorrentes();
             atualizarDashboard(); atualizarFiltroCategorias(); gerenciarNotificacoes();
             const vC=!$id('view-contas').classList.contains('hidden');
             const vCa=!$id('view-cartoes').classList.contains('hidden');
@@ -1853,7 +1858,26 @@ $id('form-transacao').addEventListener('submit', async e=>{
         if(!modoEdicao) window._modalLancamentoEspecial=null;
     }
 });
-window.deletarTransacao = async id=>{ if(!await confirmar('Excluir esta transação?')) return; try{ await deleteDoc(doc(db,'transacoes',id)); toast('🗑️ Removida.'); }catch(err){ erroFirestore(err,'del-transacao'); } };
+window.deletarTransacao = async id=>{
+    if(!await confirmar('Excluir esta transação?')) return;
+    try{
+        const t=transacoes.find(x=>x.id===id);
+        if(t?.recorrenteId && t?.competenciaRecorrencia){
+            const jaExiste=recorrenciaExcecoes.some(e=>e.recorrenteId===t.recorrenteId && e.competencia===t.competenciaRecorrencia);
+            if(!jaExiste){
+                await addDoc(collection(db,'recorrencia_excecoes'),{
+                    userId:currentUser.uid,
+                    recorrenteId:t.recorrenteId,
+                    competencia:t.competenciaRecorrencia,
+                    tipo:'exclusao',
+                    criadoEm:new Date().toISOString()
+                });
+            }
+        }
+        await deleteDoc(doc(db,'transacoes',id));
+        toast('🗑️ Removida.');
+    }catch(err){ erroFirestore(err,'del-transacao'); }
+};
 window.alterarStatus = async(id,s)=>{ try{ await updateDoc(doc(db,'transacoes',id),{status:s}); }catch(err){ erroFirestore(err,'status'); } };
 
 // ── CONTAS ────────────────────────────────────────────────────────────────────
@@ -2882,8 +2906,13 @@ function gerenciarNotificacoes(){
 function carregarRecorrentes(){
     _unsubscribers.push(onSnapshot(
         query(collection(db,'recorrentes'),where('userId','==',currentUser.uid)),
-        snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); },
+        snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); _recorrentesInicializadas=true; agendarAplicacaoRecorrentes(); },
         err=>erroFirestore(err,'recorrentes')
+    ));
+    _unsubscribers.push(onSnapshot(
+        query(collection(db,'recorrencia_excecoes'),where('userId','==',currentUser.uid)),
+        snap=>{ recorrenciaExcecoes=[]; snap.forEach(d=>recorrenciaExcecoes.push({id:d.id,...d.data()})); _recorrenciaExcecoesInicializadas=true; agendarAplicacaoRecorrentes(); },
+        err=>erroFirestore(err,'recorrencia-excecoes')
     ));
 }
 
@@ -2891,6 +2920,13 @@ function getInicioRecorrencia(rec){
     if(rec.mesInicio && rec.anoInicio) return {anoInicio:rec.anoInicio, mesInicio:rec.mesInicio};
     const criadoEm=rec.criadoEm ? new Date(rec.criadoEm) : new Date();
     return {anoInicio:criadoEm.getFullYear(), mesInicio:criadoEm.getMonth()+1};
+}
+
+function getPrimeiraCompetenciaMaterializavel(rec){
+    const {anoInicio, mesInicio}=getInicioRecorrencia(rec);
+    let ano=anoInicio, mes=mesInicio+1;
+    if(mes>12){ mes=1; ano++; }
+    return {ano, mes};
 }
 
 function existeOcorrenciaRecorrente(rec, ds, competencia){
@@ -2907,13 +2943,17 @@ function existeOcorrenciaRecorrente(rec, ds, competencia){
     );
 }
 
+function existeExcecaoRecorrente(recorrenteId, competencia){
+    return recorrenciaExcecoes.some(e=>e.recorrenteId===recorrenteId && e.competencia===competencia);
+}
+
 async function materializarRecorrencia(rec, opts={}){
     if(!rec?.id) return 0;
     const hoje=new Date();
-    const {anoInicio, mesInicio}=getInicioRecorrencia(rec);
     const skipCompetencias=opts.skipCompetencias||new Set();
     const limiteMax=opts.limiteMax || new Date(hoje.getFullYear(), hoje.getMonth()+12, hoje.getDate());
-    let ano=anoInicio, mes=mesInicio, criados=0;
+    let {ano, mes}=getPrimeiraCompetenciaMaterializavel(rec);
+    let criados=0;
 
     while(ano*12+mes <= (limiteMax.getFullYear()*12 + (limiteMax.getMonth()+1))){
         const diasNoMes=new Date(ano,mes,0).getDate();
@@ -2922,7 +2962,7 @@ async function materializarRecorrencia(rec, opts={}){
         const competencia=getCompetencia(ds);
         const dataLanc=new Date(ano, mes-1, dia);
 
-        if(!skipCompetencias.has(competencia) && dataLanc<=limiteMax && !existeOcorrenciaRecorrente(rec, ds, competencia)){
+        if(!skipCompetencias.has(competencia) && !existeExcecaoRecorrente(rec.id, competencia) && dataLanc<=limiteMax && !existeOcorrenciaRecorrente(rec, ds, competencia)){
             await addDoc(collection(db,'transacoes'),{
                 userId:currentUser.uid,
                 tipo:rec.tipo,
@@ -2947,6 +2987,17 @@ async function materializarRecorrencia(rec, opts={}){
         if(mes>12){ mes=1; ano++; }
     }
     return criados;
+}
+
+function agendarAplicacaoRecorrentes(){
+    if(!currentUser || !_transacoesInicializadas || !_recorrentesInicializadas || !_recorrenciaExcecoesInicializadas) return;
+    clearTimeout(_timerRecorrenciaAuto);
+    _timerRecorrenciaAuto=setTimeout(async()=>{
+        if(_aplicandoRecorrenciaAuto) return;
+        _aplicandoRecorrenciaAuto=true;
+        try{ await aplicarRecorrentesAuto(); }
+        finally{ _aplicandoRecorrenciaAuto=false; }
+    }, 600);
 }
 
 // Toggle visual
