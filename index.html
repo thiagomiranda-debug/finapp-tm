@@ -1724,18 +1724,20 @@ $id('form-transacao').addEventListener('submit', async e=>{
             if(recAtivo && par===1){
                 const diaRec=parseInt($id('input-rec-dia').value)||parseInt(dataVal.split('-')[2]);
                 const statusRec=$id('input-rec-status').value||payload.status;
-                // Verifica se já existe recorrente igual
                 const jaExiste=recorrentes.find(r=>r.desc===payload.desc&&r.tipo===payload.tipo&&Math.abs(r.valor-payload.valor)<0.01);
                 if(jaExiste){
                     toast('⚠️ Já existe uma recorrente igual cadastrada.','aviso');
                 }else{
+                    // Salva o mês/ano de início explicitamente a partir da data do lançamento
+                    const [anoLanc,mesLanc]=dataVal.split('-');
                     await addDoc(collection(db,'recorrentes'),{
                         userId:currentUser.uid, tipo:payload.tipo, valor:payload.valor,
                         dia:diaRec, categoria:payload.categoria, desc:payload.desc,
-                        status:statusRec, criadoEm:new Date().toISOString()
+                        status:statusRec,
+                        mesInicio:parseInt(mesLanc),
+                        anoInicio:parseInt(anoLanc),
+                        criadoEm:new Date().toISOString()
                     });
-                    // Pré-lança nos próximos 12 meses imediatamente
-                    // Aguarda o onSnapshot atualizar recorrentes[], depois dispara
                     setTimeout(()=>aplicarRecorrentesAuto(), 1500);
                     toast('✅ Salva e recorrente cadastrada! Lançando nos próximos meses... 🔁');
                 }
@@ -1807,11 +1809,15 @@ function renderizarContas(){
         const cor=CORES[c.cor||'blue'];
         const tipoLabel={corrente:'Conta Corrente',poupanca:'Poupança',investimento:'Investimento',carteira:'Carteira',outro:'Outro'}[c.tipo]||c.tipo;
         const saldoPos=saldo>=0;
+        // Data da última atualização: usa atualizadoEm ou criadoEm
+        const dataRef=c.atualizadoEm||c.criadoEm||null;
+        const dataLabel=dataRef ? (() => {
+            const d=new Date(dataRef);
+            return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        })() : null;
         cont.innerHTML+=`<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition hover:shadow-md hover:-translate-y-0.5 duration-200">
-            <!-- Topo colorido compacto -->
             <div class="h-1.5 w-full ${cor.bg}"></div>
             <div class="p-4">
-                <!-- Header: ícone + nome + tipo -->
                 <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 ${cor.bg} rounded-xl flex items-center justify-center text-white text-base shrink-0 shadow-sm">
@@ -1823,12 +1829,11 @@ function renderizarContas(){
                         </div>
                     </div>
                 </div>
-                <!-- Saldo -->
-                <div class="mb-3">
+                <div class="mb-2">
                     <p class="text-xs text-gray-400 font-medium mb-0.5">Saldo atual</p>
                     <p class="text-xl font-black mono ${saldoPos?'text-gray-900':'text-rose-600'} leading-tight">${fmt(saldo)}</p>
                 </div>
-                <!-- Ações inline discretas -->
+                ${dataLabel?`<p class="text-[10px] text-gray-300 mb-3">🕐 Atualizado em ${dataLabel}</p>`:`<div class="mb-3"></div>`}
                 <div class="flex gap-2 pt-3 border-t border-gray-100">
                     <button onclick="editarConta('${c.id}')" class="flex-1 py-1.5 text-xs font-bold text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition active:scale-95 flex items-center justify-center gap-1">✏️ Editar</button>
                     <div class="w-px bg-gray-100"></div>
@@ -1863,7 +1868,7 @@ window.editarConta=id=>{ const c=contas.find(x=>x.id===id); if(!c)return; $id('c
 $id('form-conta').addEventListener('submit', async e=>{
     e.preventDefault();
     const id=$id('conta-edit-id').value;
-    const payload={ userId:currentUser.uid, nome:$id('conta-nome').value.trim(), tipo:$id('conta-tipo').value, cor:$id('conta-cor').value, saldoInicial:parseFloat($id('conta-saldo-inicial').value||0) };
+    const payload={ userId:currentUser.uid, nome:$id('conta-nome').value.trim(), tipo:$id('conta-tipo').value, cor:$id('conta-cor').value, saldoInicial:parseFloat($id('conta-saldo-inicial').value||0), atualizadoEm:new Date().toISOString() };
     try{
         if(id) await updateDoc(doc(db,'contas',id),payload);
         else await addDoc(collection(db,'contas'),{...payload,criadoEm:new Date().toISOString()});
@@ -2265,24 +2270,28 @@ function atualizarDashboard(){
             <!-- Barra lateral colorida -->
             <div class="w-1 shrink-0 ${barColor}"></div>
             <!-- Conteúdo -->
-            <div class="flex items-start sm:items-center justify-between p-3 sm:p-4 gap-2 sm:gap-3 flex-1 min-w-0">
-                <div class="flex flex-col flex-1 min-w-0">
-                    <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
-                        <span class="text-gray-900 font-black text-sm sm:text-base truncate max-w-[160px] sm:max-w-none">${t.desc}</span>
-                        ${tagHtml}${contaChip}${cartaoChip}
-                        ${isP?'<span class="text-[8px] bg-amber-300 text-amber-900 px-1.5 py-0.5 rounded-full font-black uppercase">⏳ Pendente</span>':''}
-                        ${isTransf?'<span class="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase">↔️ Transf.</span>':''}
+            <div class="flex flex-col flex-1 min-w-0 p-3 sm:p-4">
+                <!-- Linha principal: descrição + valor -->
+                <div class="flex items-start justify-between gap-2">
+                    <div class="flex flex-col min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+                            <span class="text-gray-900 font-black text-sm leading-tight truncate max-w-[170px] sm:max-w-none">${t.desc}</span>
+                            ${isP?'<span class="text-[8px] bg-amber-300 text-amber-900 px-1.5 py-0.5 rounded-full font-black uppercase">⏳</span>':''}
+                            ${isTransf?'<span class="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase">↔️</span>':''}
+                        </div>
+                        <span class="text-xs text-gray-400">📅 ${fmtData(t.data)} · 🏷️ ${t.categoria}</span>
+                        ${tagHtml||contaChip||cartaoChip?`<div class="flex flex-wrap gap-1 mt-1">${tagHtml}${contaChip}${cartaoChip}</div>`:''}
                     </div>
-                    <span class="text-xs text-gray-400">📅 ${fmtData(t.data)} · 🏷️ ${t.categoria}</span>
+                    <!-- Valor em destaque -->
+                    <span class="${valorCor} font-black text-xl mono shrink-0 leading-tight">${isRec?'+':isTransf?'':'-'}${fmt(t.valor)}</span>
                 </div>
-                <div class="flex items-center gap-1.5 shrink-0">
-                    <span class="${valorCor} font-black text-base mono">${isRec?'+':isTransf?'':'-'}${fmt(t.valor)}</span>
-                    ${!isTransf?`<div class="flex gap-1">
-                        ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-2 py-1.5 rounded-lg font-bold text-xs active:scale-90 transition">✔</button>`:`<button onclick="alterarStatus('${t.id}','pendente')" class="text-xs text-gray-300 hover:text-amber-500 px-1 py-1.5">↩</button>`}
-                        <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-blue-100 active:scale-90 transition">✏️</button>
-                        <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-2 py-1.5 rounded-lg font-bold text-xs hover:bg-rose-100 active:scale-90 transition">🗑️</button>
-                    </div>`:''}
-                </div>
+                <!-- Botões em linha separada abaixo -->
+                ${!isTransf?`<div class="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-black/5 justify-end">
+                    ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-xs active:scale-90 transition flex items-center gap-1">✔ Confirmar</button>`
+                         :`<button onclick="alterarStatus('${t.id}','pendente')" class="text-xs text-gray-300 hover:text-amber-500 px-2 py-1.5 rounded-lg hover:bg-amber-50 transition">↩</button>`}
+                    <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-blue-100 active:scale-90 transition">✏️ Editar</button>
+                    <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-rose-100 active:scale-90 transition">🗑️</button>
+                </div>`:''}
             </div>
         </li>`;
     });
@@ -2727,22 +2736,29 @@ async function aplicarRecorrentesAuto(){
     let criados=0;
 
     for(const r of recorrentes){
-        // Data de início: usa a data de criação da recorrente, ou o início do mês atual
-        const criadoEm=r.criadoEm ? new Date(r.criadoEm) : hoje;
-        const anoInicio=criadoEm.getFullYear();
-        const mesInicio=criadoEm.getMonth()+1; // 1-12
+        // Usa mesInicio/anoInicio salvos explicitamente, senão fallback para criadoEm
+        let anoInicio, mesInicio;
+        if(r.mesInicio && r.anoInicio){
+            anoInicio=r.anoInicio;
+            mesInicio=r.mesInicio;
+        } else {
+            // Legado: usa criadoEm como referência
+            const criadoEm=r.criadoEm ? new Date(r.criadoEm) : hoje;
+            anoInicio=criadoEm.getFullYear();
+            mesInicio=criadoEm.getMonth()+1;
+        }
 
-        // Lança do mês de criação até 12 meses à frente
-        const anoFim=hoje.getFullYear();
-        const mesFim=hoje.getMonth()+13; // 12 meses à frente do mês atual
+        // Limite máximo: 12 meses à frente do mês atual
+        const anoFimAbs=hoje.getFullYear();
+        const mesFimAbs=hoje.getMonth()+13;
 
         let ano=anoInicio, mes=mesInicio;
-        while(ano*12+mes <= anoFim*12+mesFim){
+        while(ano*12+mes <= anoFimAbs*12+mesFimAbs){
             const diasNoMes=new Date(ano,mes,0).getDate();
             const dia=Math.min(r.dia, diasNoMes);
             const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
 
-            // Não lança em datas futuras além de hoje + 12 meses
+            // Não lança além de 12 meses à frente
             const dataLanc=new Date(ano, mes-1, dia);
             const limiteMax=new Date(hoje.getFullYear(), hoje.getMonth()+12, hoje.getDate());
             if(dataLanc > limiteMax){ mes++; if(mes>12){mes=1;ano++;} continue; }
