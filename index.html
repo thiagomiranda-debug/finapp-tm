@@ -166,6 +166,17 @@ async function verificarEDisparar(){
         html, body { overflow-x:hidden; max-width:100vw; }
         body { font-family:'DM Sans',sans-serif; -webkit-font-smoothing:antialiased; }
         .mono { font-family:'DM Mono',monospace; }
+        body.privacy-on .mono,
+        body.privacy-on [data-sensitive="true"]{
+            color: transparent !important;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(100,116,139,.95);
+            user-select: none;
+        }
+        body.privacy-on canvas{
+            filter: blur(10px) saturate(.75);
+            pointer-events: none;
+        }
         .hidden { display:none !important; }
         .fade-in { animation:fadeIn .25s ease-out; }
         @keyframes fadeIn  { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
@@ -726,6 +737,7 @@ async function verificarEDisparar(){
                         </div>
                     </div>
                     <button id="btn-nova-transacao-nav" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 active:scale-95 transition font-bold shadow-sm hidden sm:flex items-center gap-1 text-sm">+ Lançar</button>
+                    <button id="btn-privacy" title="Ocultar valores" aria-label="Ocultar valores" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none">👁️</button>
                     <button id="btn-dark" title="Alternar modo escuro" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none">🌙</button>
                     <span id="user-email-display" class="text-xs text-gray-400 hidden lg:block max-w-[120px] truncate font-medium"></span>
                     <button id="btn-logout" class="text-xs text-gray-400 hover:text-rose-500 font-bold transition px-1">Sair</button>
@@ -2228,7 +2240,7 @@ $id('btn-exportar-csv').addEventListener('click',()=>{
 });
 
 // ── DARK MODE ─────────────────────────────────────────────────────────────────
-(()=>{
+(()=>{    
     const html=document.documentElement;
     const isDark=localStorage.getItem('finapp-dark')==='1';
     if(isDark) html.classList.add('dark');
@@ -2240,6 +2252,28 @@ $id('btn-exportar-csv').addEventListener('click',()=>{
             localStorage.setItem('finapp-dark',on?'1':'0');
             btnD.innerText=on?'☀️':'🌙';
             if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
+        });
+    }
+})();
+
+(()=>{
+    const body=document.body;
+    const btnP=$id('btn-privacy');
+    const aplicarPrivacidade=ativo=>{
+        body.classList.toggle('privacy-on', ativo);
+        if(btnP){
+            btnP.innerText=ativo?'🙈':'👁️';
+            btnP.title=ativo?'Mostrar valores':'Ocultar valores';
+            btnP.setAttribute('aria-label', ativo?'Mostrar valores':'Ocultar valores');
+        }
+    };
+    const ativo=localStorage.getItem('finapp-privacy')==='1';
+    aplicarPrivacidade(ativo);
+    if(btnP){
+        btnP.addEventListener('click',()=>{
+            const on=!body.classList.contains('privacy-on');
+            localStorage.setItem('finapp-privacy', on?'1':'0');
+            aplicarPrivacidade(on);
         });
     }
 })();
