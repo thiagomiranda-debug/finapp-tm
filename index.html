@@ -2145,11 +2145,18 @@ const gastos=transacoes.filter(t=>isCompraCartao(t)&&t.cartaoId&&getCompetenciaF
     gastos.forEach(t=>{
         const cartao=cartoes.find(c=>c.id===t.cartaoId);
         const isP=t.status==='pendente';
-        lt.innerHTML+=`<li class="flex items-center justify-between p-3 rounded-xl ${isP?'bg-amber-50 border border-amber-200':'bg-gray-50'}">
-            <div class="min-w-0 flex-1"><p class="font-bold text-gray-800 text-sm truncate">${t.desc}</p><p class="text-xs text-gray-400">${fmtData(t.data)} · ${cartao?.nome||'Cartão'} · ${t.categoria} · Fatura ${getCompetenciaFaturaTransacao(t)}</p></div>
-            <div class="flex items-center gap-2 shrink-0">
-                <span class="${isP?'text-rose-400':'text-rose-600'} font-black text-sm mono">-${fmt(t.valor)}</span>
-                ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="text-xs bg-emerald-500 text-white px-2 py-1 rounded-lg font-bold active:scale-90">✔</button>`:''}
+        lt.innerHTML+=`<li class="flex items-center justify-between gap-3 p-3 rounded-xl ${isP?'bg-amber-50 border border-amber-200':'bg-gray-50'}">
+            <div class="min-w-0 flex-1">
+                <p class="font-bold text-gray-800 text-sm truncate">${t.desc}</p>
+                <p class="text-xs text-gray-400">${fmtData(t.data)} · ${cartao?.nome||'Cartão'} · ${t.categoria} · Fatura ${getCompetenciaFaturaTransacao(t)}</p>
+            </div>
+            <div class="shrink-0 text-right">
+                <span class="${isP?'text-rose-400':'text-rose-600'} font-black text-sm mono block">-${fmt(t.valor)}</span>
+                <div class="flex items-center justify-end gap-1.5 mt-2">
+                    ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="text-[11px] bg-emerald-500 text-white px-2 py-1 rounded-lg font-bold active:scale-90">✔</button>`:''}
+                    <button onclick="abrirEditar('${t.id}')" class="text-[11px] bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg font-bold hover:bg-blue-100 active:scale-90 transition">Editar</button>
+                    <button onclick="deletarTransacao('${t.id}')" class="text-[11px] bg-rose-50 text-rose-500 px-2.5 py-1 rounded-lg font-bold hover:bg-rose-100 active:scale-90 transition">Excluir</button>
+                </div>
             </div>
         </li>`;
     });
