@@ -1417,25 +1417,25 @@ async function verificarEDisparar(){
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                     <div class="rounded-2xl border border-gray-100 bg-slate-50 p-4">
                         <p class="text-xs font-black uppercase tracking-wider text-gray-400">Saldo atual</p>
-                        <p id="fluxo-futuro-saldo-atual" class="text-2xl font-black text-slate-900 mono mt-1">R$ 0,00</p>
+                        <p id="fluxo-futuro-saldo-atual" class="text-[1.35rem] sm:text-2xl font-black text-slate-900 mono mt-1 leading-tight tracking-tight">R$ 0,00</p>
                     </div>
                     <div class="rounded-2xl border border-gray-100 bg-emerald-50 p-4">
                         <p class="text-xs font-black uppercase tracking-wider text-emerald-700">Entradas previstas</p>
-                        <p id="fluxo-futuro-entradas" class="text-2xl font-black text-emerald-600 mono mt-1">R$ 0,00</p>
+                        <p id="fluxo-futuro-entradas" class="text-[1.35rem] sm:text-2xl font-black text-emerald-600 mono mt-1 leading-tight tracking-tight">R$ 0,00</p>
                     </div>
                     <div class="rounded-2xl border border-gray-100 bg-rose-50 p-4">
                         <p class="text-xs font-black uppercase tracking-wider text-rose-700">Saidas previstas</p>
-                        <p id="fluxo-futuro-saidas" class="text-2xl font-black text-rose-600 mono mt-1">R$ 0,00</p>
+                        <p id="fluxo-futuro-saidas" class="text-[1.35rem] sm:text-2xl font-black text-rose-600 mono mt-1 leading-tight tracking-tight">R$ 0,00</p>
                     </div>
                     <div class="rounded-2xl border border-gray-100 bg-blue-50 p-4">
                         <p class="text-xs font-black uppercase tracking-wider text-blue-700">Saldo ao fim</p>
-                        <p id="fluxo-futuro-saldo-final" class="text-2xl font-black text-blue-700 mono mt-1">R$ 0,00</p>
+                        <p id="fluxo-futuro-saldo-final" class="text-[1.35rem] sm:text-2xl font-black text-blue-700 mono mt-1 leading-tight tracking-tight">R$ 0,00</p>
                     </div>
                 </div>
                 <div class="rounded-2xl border border-gray-100 bg-slate-900 text-white px-4 py-3 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div>
                         <p class="text-[11px] font-black uppercase tracking-wider text-slate-300">Menor saldo projetado</p>
-                        <p id="fluxo-futuro-menor" class="text-lg font-black mono mt-1">R$ 0,00</p>
+                        <p id="fluxo-futuro-menor" class="text-base sm:text-lg font-black mono mt-1 leading-tight">R$ 0,00</p>
                     </div>
                     <p id="fluxo-futuro-recado" class="text-xs text-slate-300 max-w-xl">Sem pressao relevante no caixa previsto.</p>
                 </div>
@@ -2475,6 +2475,26 @@ function calcularSaldoConta(contaId){
     return saldo;
 }
 
+function calcularSaldoContaAte(contaId, dataLimite=hojeStr()){
+    const conta=contas.find(c=>c.id===contaId); if(!conta) return 0;
+    let saldo=parseFloat(conta.saldoInicial||0);
+    transacoes.forEach(t=>{
+        if(t.contaId!==contaId || t.status!=='confirmada' || isCompraCartao(t) || !t.data || t.data>dataLimite) return;
+        if(t.tipo==='receita') saldo+=t.valor;
+        else if(t.tipo==='despesa') saldo-=t.valor;
+    });
+    transferencias.forEach(tr=>{
+        if(tr.status!=='confirmada' || !tr.data || tr.data>dataLimite) return;
+        if(tr.contaOrigemId===contaId) saldo-=tr.valor;
+        if(tr.contaDestinoId===contaId) saldo+=tr.valor;
+    });
+    return saldo;
+}
+
+function calcularSaldoTotalAte(dataLimite=hojeStr()){
+    return contas.reduce((sum,c)=>sum+calcularSaldoContaAte(c.id, dataLimite),0);
+}
+
 function atualizarSaldosMini(){
     const wrap=$id('lista-saldos-mini'); if(wrap){ wrap.innerHTML='';
     if(!contas.length){ wrap.innerHTML='<p class="text-xs text-gray-400">Nenhuma conta cadastrada.</p>'; }
@@ -3102,15 +3122,17 @@ function atualizarPodeGastarHoje(mes, ano){
 }
 
 function calcularFluxoCaixaFuturo(dias=15){
-    const hojeBase=new Date(hojeStr()+'T00:00:00');
+    const hoje=hojeStr();
+    const hojeBase=new Date(hoje+'T00:00:00');
     const limite=new Date(hojeBase);
     limite.setDate(limite.getDate()+dias);
-    const saldoInicial=contas.reduce((sum,c)=>sum+calcularSaldoConta(c.id),0);
+    const saldoInicial=calcularSaldoTotalAte(hoje);
     const eventosPorDia={};
     transacoes.forEach(t=>{
         if(t.tipo==='transferencia' || isCompraCartao(t)) return;
         const dt=new Date(`${t.data}T00:00:00`);
         if(Number.isNaN(dt.getTime()) || dt<hojeBase || dt>limite) return;
+        if(t.data===hoje && t.status==='confirmada') return;
         const delta=t.tipo==='receita'?t.valor:-t.valor;
         if(!eventosPorDia[t.data]) eventosPorDia[t.data]=[];
         eventosPorDia[t.data].push({
@@ -3504,10 +3526,10 @@ function atualizarFluxoCaixaFuturo(dias=15){
                     </div>
                     <p class="text-xs text-gray-400 mt-1 truncate">${resumo}${item.eventos.length>2?' · ...':''}</p>
                 </div>
-                <div class="grid grid-cols-3 gap-3 sm:gap-5 text-right shrink-0">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5 text-right shrink-0 w-full sm:w-auto">
                     <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Entradas</p><p class="text-sm font-black text-emerald-600 mono">${fmt(item.entradas)}</p></div>
                     <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saidas</p><p class="text-sm font-black text-rose-600 mono">${fmt(item.saidas)}</p></div>
-                    <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saldo</p><p class="text-sm font-black mono ${item.saldo>=0?'text-slate-900':'text-rose-600'}">${fmt(item.saldo)}</p></div>
+                    <div class="col-span-2 sm:col-span-1"><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saldo</p><p class="text-sm font-black mono ${item.saldo>=0?'text-slate-900':'text-rose-600'}">${fmt(item.saldo)}</p></div>
                 </div>
             </div>
         </div>`;
