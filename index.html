@@ -925,6 +925,7 @@ async function verificarEDisparar(){
                     <button data-tab="calendario"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📅 Calendário</button>
                     <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📈 Patrimônio</button>
                     <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🎯 Metas</button>
+                    <button data-tab="recorrentes" class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔁 Recorrentes</button>
                 </div>
             </div>
             <div class="flex bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden shrink-0 w-full sm:w-auto">
@@ -963,6 +964,126 @@ async function verificarEDisparar(){
             </div>
 
             <!-- Gráficos: pizza despesas + linha evolução 7 dias -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4 overflow-hidden">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div class="min-w-0">
+                        <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Pode gastar hoje</p>
+                        <div class="flex items-end gap-3 mt-2 flex-wrap">
+                            <p id="val-pode-gastar" class="text-3xl sm:text-4xl font-black text-slate-900 mono leading-none">R$ 0,00</p>
+                            <span id="pode-gastar-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Estavel</span>
+                        </div>
+                        <p id="pode-gastar-label" class="text-sm text-gray-400 mt-2">Saldo livre considerando contas, receitas previstas e obrigacoes do periodo.</p>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:w-auto lg:min-w-[460px]">
+                        <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Saldo em contas</p>
+                            <p id="val-pg-saldo" class="text-sm font-black mono text-slate-800 mt-1">R$ 0,00</p>
+                        </div>
+                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-emerald-500">Receitas previstas</p>
+                            <p id="val-pg-receitas" class="text-sm font-black mono text-emerald-700 mt-1">R$ 0,00</p>
+                        </div>
+                        <div class="rounded-xl bg-rose-50 border border-rose-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-rose-400">Saidas previstas</p>
+                            <p id="val-pg-despesas" class="text-sm font-black mono text-rose-600 mt-1">R$ 0,00</p>
+                        </div>
+                        <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-amber-500">Reserva metas</p>
+                            <p id="val-pg-metas" class="text-sm font-black mono text-amber-700 mt-1">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="pode-gastar-recado" class="mt-4 rounded-xl bg-gradient-to-r from-slate-900 via-blue-900 to-blue-700 text-white px-4 py-3 text-sm font-medium">
+                    Use este valor como limite operacional do periodo atual.
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4 overflow-hidden">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Score de Saude Financeira</p>
+                            <span id="score-saude-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Solido</span>
+                        </div>
+                        <div class="flex items-end gap-3 mt-2 flex-wrap">
+                            <p id="score-saude-valor" class="text-4xl sm:text-5xl font-black text-slate-900 mono leading-none">0</p>
+                            <p class="text-sm text-gray-400 pb-1">/ 100</p>
+                        </div>
+                        <p id="score-saude-resumo" class="text-sm text-gray-400 mt-2">A nota combina caixa livre, comprometimento, metas e uso do cartao.</p>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:w-auto lg:min-w-[520px]">
+                        <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Caixa</p>
+                            <p id="score-pilar-caixa" class="text-sm font-black mono text-slate-800 mt-1">0/25</p>
+                        </div>
+                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-emerald-600">Comprometimento</p>
+                            <p id="score-pilar-comp" class="text-sm font-black mono text-emerald-700 mt-1">0/25</p>
+                        </div>
+                        <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-amber-600">Metas</p>
+                            <p id="score-pilar-metas" class="text-sm font-black mono text-amber-700 mt-1">0/20</p>
+                        </div>
+                        <div class="rounded-xl bg-rose-50 border border-rose-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-rose-500">Cartao</p>
+                            <p id="score-pilar-cartao" class="text-sm font-black mono text-rose-600 mt-1">0/15</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+                    <div id="score-saude-recados" class="flex flex-wrap gap-2"></div>
+                    <div class="rounded-xl bg-slate-900 text-white px-4 py-3 min-w-[240px]">
+                        <p class="text-[11px] font-black uppercase tracking-wider text-slate-300">Prioridade do periodo</p>
+                        <p id="score-saude-prioridade" class="text-sm font-medium mt-1 text-slate-100">Sem alertas relevantes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4 overflow-hidden">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4 pb-3 border-b border-gray-100">
+                    <div>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Fechamento Mensal Guiado</p>
+                            <span id="fechamento-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100">Em aberto</span>
+                        </div>
+                        <p id="fechamento-status-resumo" class="text-sm text-gray-400 mt-2">Revise o mes, trate pendencias e registre quando o periodo estiver fechado.</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="btn-fechamento-concluir" onclick="concluirFechamentoMensal()" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 active:scale-95 transition">Concluir fechamento</button>
+                        <button id="btn-fechamento-reabrir" onclick="reabrirFechamentoMensal()" class="hidden px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm hover:bg-gray-200 active:scale-95 transition">Reabrir mes</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Resultado do mes</p>
+                        <p id="fechamento-kpi-resultado" class="text-lg font-black mono text-slate-900 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-amber-700">Pendencias</p>
+                        <p id="fechamento-kpi-pendencias" class="text-lg font-black mono text-amber-700 mt-1">0</p>
+                    </div>
+                    <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-blue-700">Maior categoria</p>
+                        <p id="fechamento-kpi-categoria" class="text-sm font-black text-blue-700 mt-1">—</p>
+                    </div>
+                    <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Variação vs ant.</p>
+                        <p id="fechamento-kpi-variacao" class="text-lg font-black mono text-emerald-700 mt-1">—</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_.8fr] gap-4 items-start">
+                    <div class="rounded-2xl border border-gray-100 bg-slate-50 p-4">
+                        <p class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-3">Checklist do fechamento</p>
+                        <div id="fechamento-checklist" class="space-y-2"></div>
+                    </div>
+                    <div class="rounded-2xl border border-gray-100 bg-white p-4">
+                        <p class="text-[11px] font-black uppercase tracking-wider text-gray-400">Leitura do periodo</p>
+                        <p id="fechamento-leitura" class="text-sm text-gray-600 mt-3 leading-relaxed">Sem leitura disponivel.</p>
+                        <div id="fechamento-meta" class="mt-4 text-xs text-gray-400"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
                     <h2 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-1">Despesas por Categoria</h2>
@@ -1209,6 +1330,47 @@ async function verificarEDisparar(){
                 <div id="cal-grid" class="grid grid-cols-7"></div>
             </div>
 
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
+                    <div>
+                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider">Fluxo de Caixa Futuro</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">Projecao dos proximos 15 dias com base no saldo atual e nos lancamentos previstos.</p>
+                    </div>
+                    <span id="fluxo-futuro-alerta" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Estavel</span>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div class="rounded-2xl border border-gray-100 bg-slate-50 p-4">
+                        <p class="text-xs font-black uppercase tracking-wider text-gray-400">Saldo atual</p>
+                        <p id="fluxo-futuro-saldo-atual" class="text-2xl font-black text-slate-900 mono mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="rounded-2xl border border-gray-100 bg-emerald-50 p-4">
+                        <p class="text-xs font-black uppercase tracking-wider text-emerald-700">Entradas previstas</p>
+                        <p id="fluxo-futuro-entradas" class="text-2xl font-black text-emerald-600 mono mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="rounded-2xl border border-gray-100 bg-rose-50 p-4">
+                        <p class="text-xs font-black uppercase tracking-wider text-rose-700">Saidas previstas</p>
+                        <p id="fluxo-futuro-saidas" class="text-2xl font-black text-rose-600 mono mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="rounded-2xl border border-gray-100 bg-blue-50 p-4">
+                        <p class="text-xs font-black uppercase tracking-wider text-blue-700">Saldo ao fim</p>
+                        <p id="fluxo-futuro-saldo-final" class="text-2xl font-black text-blue-700 mono mt-1">R$ 0,00</p>
+                    </div>
+                </div>
+                <div class="rounded-2xl border border-gray-100 bg-slate-900 text-white px-4 py-3 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                        <p class="text-[11px] font-black uppercase tracking-wider text-slate-300">Menor saldo projetado</p>
+                        <p id="fluxo-futuro-menor" class="text-lg font-black mono mt-1">R$ 0,00</p>
+                    </div>
+                    <p id="fluxo-futuro-recado" class="text-xs text-slate-300 max-w-xl">Sem pressao relevante no caixa previsto.</p>
+                </div>
+                <div id="fluxo-futuro-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
+                    <p class="text-4xl">🗓️</p>
+                    <p class="text-gray-400 font-medium mt-3">Nenhum movimento previsto nos proximos 15 dias.</p>
+                    <p class="text-gray-300 text-sm mt-1">O saldo projetado segue apenas o valor atual das contas.</p>
+                </div>
+                <div id="fluxo-futuro-lista" class="space-y-2.5"></div>
+            </div>
+
             <!-- Painel detalhe do dia selecionado -->
             <div id="cal-detalhe" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
                 <div class="flex items-center justify-between mb-3">
@@ -1227,6 +1389,79 @@ async function verificarEDisparar(){
             </div>
             <div id="metas-progress-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5"></div>
             <div id="metas-vazio" class="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center"><span class="text-4xl">🎯</span><p class="text-gray-400 font-medium mt-3">Nenhuma meta cadastrada.</p></div>
+        </div>
+
+        <div id="view-recorrentes" class="hidden fade-in">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <div>
+                    <h2 class="text-lg font-black text-gray-800">🔁 Central de Recorrentes</h2>
+                    <p class="text-sm text-gray-400 mt-0.5">Gerencie lancamentos recorrentes, acompanhe o proximo ciclo e pause quando precisar.</p>
+                </div>
+                <div class="flex items-center gap-2 bg-white rounded-xl border border-gray-200 p-1">
+                    <button id="rec-filtro-ativas" class="px-3 py-2 rounded-lg text-xs font-black bg-slate-900 text-white">Ativas</button>
+                    <button id="rec-filtro-pausadas" class="px-3 py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-700 transition">Pausadas</button>
+                    <button id="rec-filtro-arquivadas" class="px-3 py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-700 transition">Arquivadas</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+                    <p class="text-xs font-black uppercase tracking-wider text-gray-400">Ativas</p>
+                    <p id="rec-count-ativas" class="text-2xl font-black text-slate-900 mt-1">0</p>
+                    <p class="text-xs text-gray-400 mt-1">Gerando proximos meses</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+                    <p class="text-xs font-black uppercase tracking-wider text-gray-400">Pausadas</p>
+                    <p id="rec-count-pausadas" class="text-2xl font-black text-amber-600 mt-1">0</p>
+                    <p class="text-xs text-gray-400 mt-1">Sem materializacao automatica</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+                    <p class="text-xs font-black uppercase tracking-wider text-gray-400">Arquivadas</p>
+                    <p id="rec-count-arquivadas" class="text-2xl font-black text-gray-700 mt-1">0</p>
+                    <p class="text-xs text-gray-400 mt-1">Historico preservado</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+                    <p class="text-xs font-black uppercase tracking-wider text-gray-400">Proximos 30 dias</p>
+                    <p id="rec-count-30dias" class="text-2xl font-black text-blue-600 mt-1">0</p>
+                    <p class="text-xs text-gray-400 mt-1">Ocorrencias previstas</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
+                    <div>
+                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider">Assinaturas e cobrancas recorrentes</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">Sugestoes com base nas recorrentes e no historico recente para reduzir trabalho manual.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                        <div class="rounded-xl bg-slate-50 border border-gray-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Detectadas</p>
+                            <p id="rec-ass-count" class="text-lg font-black text-slate-900 mt-1">0</p>
+                        </div>
+                        <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-blue-700">Mensal / anual</p>
+                            <p id="rec-ass-mensal" class="text-sm font-black text-blue-700 mono mt-1">R$ 0,00</p>
+                            <p id="rec-ass-anual" class="text-[11px] text-blue-500 mono mt-0.5">R$ 0,00/ano</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="rec-ass-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center">
+                    <p class="text-3xl">🔎</p>
+                    <p class="text-gray-400 font-medium mt-3">Nenhuma assinatura candidata encontrada.</p>
+                    <p class="text-gray-300 text-sm mt-1">Quando houver padrao mensal recorrente, ele aparecera aqui.</p>
+                </div>
+                <div id="rec-ass-lista" class="space-y-3"></div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
+                    <h2 id="rec-lista-titulo" class="text-xs font-black text-gray-500 uppercase tracking-wider">Recorrentes ativas</h2>
+                    <span id="rec-lista-sub" class="text-xs text-gray-400 font-medium">Revisao mensal centralizada</span>
+                </div>
+                <div id="recorrentes-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
+                    <p class="text-4xl">🔁</p>
+                    <p class="text-gray-400 font-medium mt-3">Nenhuma recorrente nesta visualizacao.</p>
+                    <p class="text-gray-300 text-sm mt-1">Ative o toggle no modal de lancamento para criar recorrencias.</p>
+                </div>
+                <div id="lista-recorrentes" class="space-y-3"></div>
+            </div>
         </div>
 
         <!-- ════ CATEGORIAS ════ -->
@@ -1511,7 +1746,7 @@ const db   = getFirestore(app);
 const auth = getAuth(app);
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let transacoes=[], recorrentes=[], recorrenciaExcecoes=[], metas=[], contas=[], cartoes=[], cartaoFechamentosMensais=[], transferencias=[], categoriasCustom=[];
+let transacoes=[], recorrentes=[], recorrenciaExcecoes=[], metas=[], contas=[], cartoes=[], cartaoFechamentosMensais=[], transferencias=[], categoriasCustom=[], fechamentosMensais=[];
 let currentUser=null;
 
 let modoEdicao=false;
@@ -1520,6 +1755,7 @@ let importRows=[];
 let _unsubscribers=[]; // guarda funções de cancelamento dos onSnapshot
 let _transacoesInicializadas=false, _recorrentesInicializadas=false, _recorrenciaExcecoesInicializadas=false;
 let _timerRecorrenciaAuto=null, _aplicandoRecorrenciaAuto=false;
+let _recorrentesFiltro='ativas';
 
 const $id = id => document.getElementById(id);
 const mesesNomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -1629,7 +1865,7 @@ function toast(msg, tipo='sucesso'){
 function confirmar(msg){ return new Promise(r=>{ const m=$id('confirm-modal'); $id('confirm-msg').innerText=msg; m.classList.remove('hidden'); const y=$id('confirm-yes'),n=$id('confirm-no'); const done=v=>{ m.classList.add('hidden'); y.onclick=n.onclick=null; r(v); }; y.onclick=()=>done(true); n.onclick=()=>done(false); }); }
 
 // ── TABS ─────────────────────────────────────────────────────────────────────
-const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', calendario:'view-calendario', patrimonio:'view-patrimonio', metas:'view-metas' };
+const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', calendario:'view-calendario', patrimonio:'view-patrimonio', metas:'view-metas', recorrentes:'view-recorrentes' };
 function setTab(ativa){
     document.querySelectorAll('.tab-btn').forEach(b=>b.className=b.className.replace('tab-active','tab-inactive'));
     document.querySelectorAll('[id^="view-"]').forEach(v=>v.classList.add('hidden'));
@@ -1637,8 +1873,10 @@ function setTab(ativa){
     if(btn) btn.className=btn.className.replace('tab-inactive','tab-active');
     document.getElementById(VIEW_MAP[ativa])?.classList.remove('hidden');
     paginaAtual=0;
+    if(ativa==='operacao')  atualizarDashboard();
     if(ativa==='patrimonio') atualizarPatrimonio();
     if(ativa==='metas')      atualizarMetas();
+    if(ativa==='recorrentes') atualizarCentralRecorrentes();
     if(ativa==='contas')     renderizarContas();
     if(ativa==='cartoes')    renderizarCartoes();
     if(ativa==='calendario') renderizarCalendario();
@@ -1791,12 +2029,12 @@ onAuthStateChanged(auth, user=>{
         $id('dashboard-screen').classList.remove('hidden');
         $id('btn-fab').classList.remove('hidden');
         $id('input-data').value=hojeStr();
-        iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarFechamentosCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom();
+        iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarFechamentosCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom(); carregarFechamentosMensais();
         setTimeout(()=>window._exibirBannerNotif?.(), 6000);
     }else{
         _unsubscribers.forEach(unsub=>{ try{ unsub(); }catch(_){} });
         _unsubscribers=[];
-        transacoes=[]; contas=[]; cartoes=[]; cartaoFechamentosMensais=[]; transferencias=[];
+        transacoes=[]; contas=[]; cartoes=[]; cartaoFechamentosMensais=[]; transferencias=[]; fechamentosMensais=[];
         metas=[]; categoriasCustom=[]; recorrenciaExcecoes=[];
         _transacoesInicializadas=false; _recorrentesInicializadas=false; _recorrenciaExcecoesInicializadas=false;
         currentUser=null;
@@ -1986,6 +2224,7 @@ function iniciarSincronizacao(){
             if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
             if(!$id('view-metas').classList.contains('hidden'))      atualizarMetas();
             if(!$id('view-calendario').classList.contains('hidden')) renderizarCalendario();
+            if(!$id('view-recorrentes').classList.contains('hidden')) atualizarCentralRecorrentes();
             if(vC) renderizarContas();
             if(vCa) renderizarCartoes();
             atualizarAgendamentoNotificacoes();
@@ -1995,6 +2234,8 @@ function iniciarSincronizacao(){
         onSnapshot(query(collection(db,'transferencias'),where('userId','==',currentUser.uid)), snap=>{
             transferencias=[]; snap.forEach(d=>transferencias.push({id:d.id,...d.data()}));
             if(!$id('view-contas').classList.contains('hidden')) renderizarContas();
+            if(!$id('view-calendario').classList.contains('hidden')) atualizarFluxoCaixaFuturo();
+            if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard();
         }, err=>erroFirestore(err,'transferencias'))
     );
 }
@@ -2047,6 +2288,7 @@ $id('form-transacao').addEventListener('submit', async e=>{
                         userId:currentUser.uid, tipo:payload.tipo, valor:payload.valor,
                         dia:diaRec, categoria:payload.categoria, desc:payload.desc,
                         status:statusRec,
+                        estado:'ativa',
                         contaId:payload.contaId||null,
                         cartaoId:payload.cartaoId||null,
                         cartaoFechamentoDia:payload.cartaoFechamentoDia||null,
@@ -2116,6 +2358,8 @@ function carregarContas(){
             contas=[]; snap.forEach(d=>contas.push({id:d.id,...d.data()}));
             popularSelectsContas(); atualizarSaldosMini();
             if(!$id('view-contas').classList.contains('hidden')) renderizarContas();
+            if(!$id('view-calendario').classList.contains('hidden')) atualizarFluxoCaixaFuturo();
+            if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard();
         }, err=>erroFirestore(err,'contas'))
     );
 }
@@ -2266,6 +2510,7 @@ function carregarCartoes(){
             cartoes=[]; snap.forEach(d=>cartoes.push({id:d.id,...d.data()}));
             popularSelectsCartoes();
             if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
+            if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard();
         }, err=>erroFirestore(err,'cartoes'))
     );
 }
@@ -2274,6 +2519,7 @@ function carregarFechamentosCartoes(){
         onSnapshot(query(collection(db,'cartao_fechamentos'),where('userId','==',currentUser.uid)), snap=>{
             cartaoFechamentosMensais=[]; snap.forEach(d=>cartaoFechamentosMensais.push({id:d.id,...d.data()}));
             if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
+            if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard();
         }, err=>erroFirestore(err,'cartao-fechamentos'))
     );
 }
@@ -2688,6 +2934,490 @@ function calcularResumoDashboard(lista, mes, ano){
     };
 }
 
+function calcularReservaMetasDoMes(mes, ano){
+    const gastosCat={};
+    getTransacoesRelatorioDoMes(transacoes, mes, ano).forEach(t=>{
+        if(t.status!=='confirmada' || t.tipo!=='despesa') return;
+        gastosCat[t.categoria]=(gastosCat[t.categoria]||0)+t.valor;
+    });
+    return metas.reduce((sum,meta)=>{
+        const restante=(meta.valor||0)-(gastosCat[meta.categoria]||0);
+        return sum + Math.max(0,restante);
+    },0);
+}
+
+function calcularPodeGastarHoje(mes, ano){
+    const hoje=hojeStr();
+    const competenciaSel=`${ano}-${String(mes).padStart(2,'0')}`;
+    const competenciaAtual=getCompetencia(hoje);
+    const saldoContas=contas.reduce((sum,c)=>sum+calcularSaldoConta(c.id),0);
+    const reservaMetas=calcularReservaMetasDoMes(mes, ano);
+    const relevantes=transacoes.filter(t=>{
+        if(t.tipo==='transferencia' || isCompraCartao(t)) return false;
+        const competencia=getCompetencia(t.data);
+        if(competencia!==competenciaSel) return false;
+        if(competenciaSel===competenciaAtual) return t.data>=hoje;
+        return true;
+    });
+    let receitasPrevistas=0, despesasPrevistas=0;
+    relevantes.forEach(t=>{
+        if(t.status==='confirmada') return;
+        if(t.tipo==='receita') receitasPrevistas+=t.valor;
+        else if(t.tipo==='despesa') despesasPrevistas+=t.valor;
+    });
+    const valor=saldoContas + receitasPrevistas - despesasPrevistas - reservaMetas;
+    return {
+        valor,
+        saldoContas,
+        receitasPrevistas,
+        despesasPrevistas,
+        reservaMetas,
+        competenciaSel,
+        competenciaAtual
+    };
+}
+
+function atualizarPodeGastarHoje(mes, ano){
+    const info=calcularPodeGastarHoje(mes, ano);
+    const atual=info.competenciaSel===info.competenciaAtual;
+    const badge=$id('pode-gastar-badge');
+    $id('val-pode-gastar').innerText=fmt(info.valor);
+    $id('val-pode-gastar').className=`text-3xl sm:text-4xl font-black mono leading-none ${info.valor>=0?'text-slate-900':'text-rose-600'}`;
+    $id('val-pg-saldo').innerText=fmt(info.saldoContas);
+    $id('val-pg-receitas').innerText=fmt(info.receitasPrevistas);
+    $id('val-pg-despesas').innerText=fmt(info.despesasPrevistas);
+    $id('val-pg-metas').innerText=fmt(info.reservaMetas);
+    $id('pode-gastar-label').innerText=atual
+        ? 'Saldo livre a partir de hoje, considerando contas, previsoes e reserva das metas do mes.'
+        : `Livre projetado para ${mesesNomes[mes-1]} de ${ano}, com base no periodo selecionado.`;
+    if(info.valor<0){
+        badge.innerText='Atencao';
+        badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-600 border border-rose-100';
+        $id('pode-gastar-recado').innerText='As obrigacoes previstas superam o saldo livre. Revise despesas, metas ou receitas planejadas.';
+    }else if(info.valor===0){
+        badge.innerText='No limite';
+        badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100';
+        $id('pode-gastar-recado').innerText='O periodo esta no limite. Novos gastos exigem cautela para nao pressionar o caixa.';
+    }else{
+        badge.innerText='Estavel';
+        badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100';
+        $id('pode-gastar-recado').innerText='Este valor pode ser usado como limite operacional do periodo selecionado sem comprometer as obrigacoes previstas.';
+    }
+}
+
+function calcularFluxoCaixaFuturo(dias=15){
+    const hojeBase=new Date(hojeStr()+'T00:00:00');
+    const limite=new Date(hojeBase);
+    limite.setDate(limite.getDate()+dias);
+    const saldoInicial=contas.reduce((sum,c)=>sum+calcularSaldoConta(c.id),0);
+    const eventosPorDia={};
+    transacoes.forEach(t=>{
+        if(t.tipo==='transferencia' || isCompraCartao(t)) return;
+        const dt=new Date(`${t.data}T00:00:00`);
+        if(Number.isNaN(dt.getTime()) || dt<hojeBase || dt>limite) return;
+        const delta=t.tipo==='receita'?t.valor:-t.valor;
+        if(!eventosPorDia[t.data]) eventosPorDia[t.data]=[];
+        eventosPorDia[t.data].push({
+            delta,
+            desc:t.desc,
+            categoria:t.categoria,
+            tipo:t.tipo,
+            status:t.status,
+            pagamentoFatura:isPagamentoFatura(t)
+        });
+    });
+
+    const agenda=[];
+    let saldo=saldoInicial;
+    let entradasPrevistas=0;
+    let saidasPrevistas=0;
+    let menorSaldo=saldoInicial;
+    let menorSaldoData=hojeStr();
+
+    for(let i=0;i<=dias;i++){
+        const dia=new Date(hojeBase);
+        dia.setDate(dia.getDate()+i);
+        const ds=`${dia.getFullYear()}-${String(dia.getMonth()+1).padStart(2,'0')}-${String(dia.getDate()).padStart(2,'0')}`;
+        const eventos=(eventosPorDia[ds]||[]).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
+        const entradas=eventos.filter(e=>e.delta>0).reduce((sum,e)=>sum+e.delta,0);
+        const saidas=Math.abs(eventos.filter(e=>e.delta<0).reduce((sum,e)=>sum+e.delta,0));
+        saldo+=entradas-saidas;
+        if(saldo<menorSaldo){
+            menorSaldo=saldo;
+            menorSaldoData=ds;
+        }
+        entradasPrevistas+=entradas;
+        saidasPrevistas+=saidas;
+        if(eventos.length){
+            agenda.push({data:ds, entradas, saidas, saldo, eventos});
+        }
+    }
+
+    return {
+        dias,
+        saldoInicial,
+        saldoFinal:saldo,
+        entradasPrevistas,
+        saidasPrevistas,
+        menorSaldo,
+        menorSaldoData,
+        agenda
+    };
+}
+
+function limitarFaixa(valor, min, max){
+    return Math.max(min, Math.min(max, valor));
+}
+
+function calcularScoreSaudeFinanceira(mes, ano){
+    const resumo=calcularResumoDashboard(transacoes, mes, ano);
+    const infoPodeGastar=calcularPodeGastarHoje(mes, ano);
+    const fluxoFuturo=calcularFluxoCaixaFuturo(15);
+    const baseRelatorio=getTransacoesRelatorioDoMes(transacoes, mes, ano);
+    const receitasConfirmadas=resumo.receitasConfirmadas;
+    const despesasConfirmadas=resumo.despesasConfirmadas;
+    const despesasPendentes=resumo.despesasPendentes;
+    const receitasPendentes=resumo.receitasPendentes;
+
+    const caixaBase=Math.max(Math.abs(infoPodeGastar.saldoContas||0), 1);
+    let caixaScore=0;
+    if(infoPodeGastar.valor>=0){
+        const ratio=infoPodeGastar.valor/caixaBase;
+        caixaScore=14 + Math.min(11, Math.max(0, ratio*22));
+    }else{
+        caixaScore=Math.max(0, 14 - Math.abs(infoPodeGastar.valor)/caixaBase*20);
+    }
+    caixaScore=Math.round(limitarFaixa(caixaScore,0,25));
+
+    let comprometimentoScore=14;
+    let pctComprometimento=0;
+    if(receitasConfirmadas>0){
+        pctComprometimento=(despesasConfirmadas/receitasConfirmadas)*100;
+        if(pctComprometimento<=50) comprometimentoScore=25;
+        else if(pctComprometimento<=80) comprometimentoScore=25-((pctComprometimento-50)/30)*10;
+        else if(pctComprometimento<=100) comprometimentoScore=15-((pctComprometimento-80)/20)*10;
+        else comprometimentoScore=Math.max(0,5-((pctComprometimento-100)/40)*5);
+    }else if(despesasConfirmadas>0){
+        comprometimentoScore=4;
+    }
+    comprometimentoScore=Math.round(limitarFaixa(comprometimentoScore,0,25));
+
+    const gastosCat={};
+    baseRelatorio.forEach(t=>{
+        if(t.tipo==='despesa' && t.status==='confirmada') gastosCat[t.categoria]=(gastosCat[t.categoria]||0)+t.valor;
+    });
+    let metasScore=18;
+    if(metas.length){
+        let pesoTotal=0;
+        let fatorTotal=0;
+        metas.forEach(meta=>{
+            const limite=meta.valor||0;
+            if(limite<=0) return;
+            const gasto=gastosCat[meta.categoria]||0;
+            const uso=gasto/limite;
+            let fator=1;
+            if(uso<=0.8) fator=1;
+            else if(uso<=1) fator=1-((uso-0.8)/0.2)*0.4;
+            else fator=Math.max(0,0.6-(uso-1)*0.8);
+            pesoTotal+=1;
+            fatorTotal+=fator;
+        });
+        metasScore=pesoTotal ? (fatorTotal/pesoTotal)*20 : 18;
+    }
+    metasScore=Math.round(limitarFaixa(metasScore,0,20));
+
+    let cartaoScore=12;
+    const competenciaSel=`${ano}-${String(mes).padStart(2,'0')}`;
+    if(cartoes.length){
+        let somaUso=0;
+        let cartoesComLimite=0;
+        cartoes.forEach(c=>{
+            if(!(c.limite>0)) return;
+            const comprasFatura=transacoes.filter(t=>t.cartaoId===c.id && isCompraCartao(t) && getCompetenciaFaturaTransacao(t)===competenciaSel);
+            const uso=comprasFatura.reduce((s,t)=>s+t.valor,0)/c.limite;
+            somaUso+=uso;
+            cartoesComLimite++;
+        });
+        if(cartoesComLimite){
+            const mediaUso=somaUso/cartoesComLimite;
+            if(mediaUso<=0.3) cartaoScore=15;
+            else if(mediaUso<=0.7) cartaoScore=15-((mediaUso-0.3)/0.4)*6;
+            else if(mediaUso<=1) cartaoScore=9-((mediaUso-0.7)/0.3)*6;
+            else cartaoScore=Math.max(0,3-(mediaUso-1)*6);
+        }
+    }
+    cartaoScore=Math.round(limitarFaixa(cartaoScore,0,15));
+
+    let estabilidadeScore=12;
+    const hoje=hojeStr();
+    const pendenciasCriticas=transacoes.filter(t=>!isCompraCartao(t) && t.tipo==='despesa' && t.status==='pendente' && t.data<=hoje).length;
+    if(fluxoFuturo.menorSaldo<0) estabilidadeScore=0;
+    else if(fluxoFuturo.saldoFinal<0) estabilidadeScore=2;
+    else{
+        estabilidadeScore=15;
+        if(despesasPendentes>receitasPendentes) estabilidadeScore-=4;
+        if(pendenciasCriticas>0) estabilidadeScore-=Math.min(6, pendenciasCriticas*2);
+    }
+    estabilidadeScore=Math.round(limitarFaixa(estabilidadeScore,0,15));
+
+    const scoreTotal=limitarFaixa(caixaScore+comprometimentoScore+metasScore+cartaoScore+estabilidadeScore,0,100);
+    let nivel='Fragil';
+    if(scoreTotal>=85) nivel='Excelente';
+    else if(scoreTotal>=70) nivel='Solido';
+    else if(scoreTotal>=55) nivel='Atencao';
+
+    const recados=[];
+    if(infoPodeGastar.valor<0) recados.push({tipo:'erro',texto:'Caixa livre negativo no periodo'});
+    else if(infoPodeGastar.valor<=(infoPodeGastar.saldoContas||0)*0.1) recados.push({tipo:'aviso',texto:'Margem operacional curta'});
+    else recados.push({tipo:'ok',texto:'Caixa livre positivo'});
+
+    if(receitasConfirmadas>0){
+        if(pctComprometimento>=90) recados.push({tipo:'erro',texto:'Renda muito comprometida'});
+        else if(pctComprometimento>=80) recados.push({tipo:'aviso',texto:'Comprometimento alto'});
+        else recados.push({tipo:'ok',texto:'Comprometimento controlado'});
+    }
+
+    if(metasScore<=10) recados.push({tipo:'aviso',texto:'Metas pressionadas'});
+    else if(metas.length) recados.push({tipo:'ok',texto:'Metas sob controle'});
+
+    if(cartaoScore<=5) recados.push({tipo:'erro',texto:'Uso de cartao elevado'});
+    else if(cartoes.length) recados.push({tipo:'ok',texto:'Cartao em nivel saudavel'});
+
+    let prioridade='Sem alertas relevantes.';
+    if(fluxoFuturo.menorSaldo<0) prioridade='Reforcar o caixa dos proximos dias para evitar saldo negativo.';
+    else if(pctComprometimento>=90) prioridade='Reduzir saidas do mes para aliviar o comprometimento da renda.';
+    else if(cartaoScore<=5) prioridade='Segurar compras no cartao ate abrir mais espaco no limite.';
+    else if(metasScore<=10) prioridade='Revisar metas do mes ou redistribuir categorias pressionadas.';
+    else if(infoPodeGastar.valor<0) prioridade='Rever gastos previstos e acompanhar receitas pendentes.';
+
+    return {
+        total:Math.round(scoreTotal),
+        nivel,
+        pilares:{
+            caixa:caixaScore,
+            comprometimento:comprometimentoScore,
+            metas:metasScore,
+            cartao:cartaoScore,
+            estabilidade:estabilidadeScore
+        },
+        recados:recados.slice(0,4),
+        prioridade,
+        resumo:`Caixa ${caixaScore}/25 · Comprometimento ${comprometimentoScore}/25 · Metas ${metasScore}/20 · Cartao ${cartaoScore}/15 · Estabilidade ${estabilidadeScore}/15`
+    };
+}
+
+function atualizarScoreSaudeFinanceira(mes, ano){
+    const score=calcularScoreSaudeFinanceira(mes, ano);
+    $id('score-saude-valor').innerText=score.total;
+    $id('score-pilar-caixa').innerText=`${score.pilares.caixa}/25`;
+    $id('score-pilar-comp').innerText=`${score.pilares.comprometimento}/25`;
+    $id('score-pilar-metas').innerText=`${score.pilares.metas}/20`;
+    $id('score-pilar-cartao').innerText=`${score.pilares.cartao}/15`;
+    $id('score-saude-resumo').innerText=score.resumo;
+    $id('score-saude-prioridade').innerText=score.prioridade;
+    const badge=$id('score-saude-badge');
+    if(score.total>=85){
+        badge.innerText='Excelente';
+        badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100';
+    }else if(score.total>=70){
+        badge.innerText='Solido';
+        badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-blue-50 text-blue-700 border border-blue-100';
+    }else if(score.total>=55){
+        badge.innerText='Atencao';
+        badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100';
+    }else{
+        badge.innerText='Fragil';
+        badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-600 border border-rose-100';
+    }
+    const recados=$id('score-saude-recados');
+    recados.innerHTML='';
+    score.recados.forEach(item=>{
+        const cls=item.tipo==='ok'
+            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+            : item.tipo==='aviso'
+                ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                : 'bg-rose-50 text-rose-600 border border-rose-100';
+        recados.innerHTML+=`<span class="px-3 py-2 rounded-xl text-xs font-bold ${cls}">${item.texto}</span>`;
+    });
+}
+
+function getFechamentoMensal(competencia){
+    return fechamentosMensais.find(f=>f.competencia===competencia) || null;
+}
+
+function calcularPainelFechamentoMensal(mes, ano){
+    const competencia=`${ano}-${String(mes).padStart(2,'0')}`;
+    const resumo=calcularResumoDashboard(transacoes, mes, ano);
+    const score=calcularScoreSaudeFinanceira(mes, ano);
+    const listaMes=getTransacoesRelatorioDoMes(transacoes, mes, ano);
+    const pendencias=listaMes.filter(t=>t.status==='pendente' && !isCompraCartao(t)).length;
+    const despesasConfirmadas=listaMes.filter(t=>t.tipo==='despesa' && t.status==='confirmada');
+    const gastosCat={};
+    despesasConfirmadas.forEach(t=>{ gastosCat[t.categoria]=(gastosCat[t.categoria]||0)+t.valor; });
+    const topCategoria=Object.entries(gastosCat).sort((a,b)=>b[1]-a[1])[0] || null;
+    const metasEstouradas=metas.filter(meta=>(gastosCat[meta.categoria]||0)>(meta.valor||0));
+    const saldoMes=resumo.receitasConfirmadas-resumo.despesasConfirmadas;
+    const fechamento=getFechamentoMensal(competencia);
+    let mAnt=mes-1, aAnt=ano; if(mAnt===0){ mAnt=12; aAnt--; }
+    const resumoAnterior=calcularResumoDashboard(transacoes, mAnt, aAnt);
+    const saldoAnterior=resumoAnterior.receitasConfirmadas-resumoAnterior.despesasConfirmadas;
+    let variacaoTexto='—';
+    if(saldoAnterior!==0){
+        const varPct=((saldoMes-saldoAnterior)/Math.abs(saldoAnterior))*100;
+        variacaoTexto=`${varPct>=0?'↑':'↓'}${Math.abs(varPct).toFixed(1)}%`;
+    }else if(saldoMes!==0){
+        variacaoTexto='Novo ciclo';
+    }
+
+    const checklist=[
+        {
+            ok:listaMes.length>0,
+            titulo:'Movimentos do mes revisados',
+            detalhe:listaMes.length?`${listaMes.length} lancamento(s) no periodo selecionado.`:'Ainda nao ha movimentos neste periodo.'
+        },
+        {
+            ok:pendencias===0,
+            titulo:'Pendencias tratadas',
+            detalhe:pendencias===0?'Nao ha receitas ou despesas pendentes no periodo.':`${pendencias} pendencia(s) ainda aberta(s) no mes.`
+        },
+        {
+            ok:metasEstouradas.length===0,
+            titulo:'Metas revisadas',
+            detalhe:metasEstouradas.length===0?'Nenhuma meta estourada no mes.':`${metasEstouradas.length} meta(s) acima do limite.`
+        },
+        {
+            ok:score.total>=70,
+            titulo:'Saude financeira em nivel saudavel',
+            detalhe:`Score atual ${score.total}/100 · ${score.nivel}.`
+        }
+    ];
+    const okCount=checklist.filter(item=>item.ok).length;
+    let leitura=`${mesesNomes[mes-1]} fechou com ${saldoMes>=0?'sobra':'pressao'} de ${fmt(saldoMes)}. `;
+    leitura+=topCategoria?`A categoria com maior peso foi ${topCategoria[0]} (${fmt(topCategoria[1])}). `:'Ainda nao ha uma categoria dominante no periodo. ';
+    if(pendencias>0) leitura+=`Existem ${pendencias} pendencia(s) para revisar antes de considerar o mes totalmente encerrado.`;
+    else if(metasEstouradas.length>0) leitura+=`Vale revisar as metas pressionadas antes de consolidar o periodo.`;
+    else leitura+=`O periodo parece consistente para fechamento.`;
+
+    return {
+        competencia,
+        fechamento,
+        saldoMes,
+        pendencias,
+        topCategoria,
+        variacaoTexto,
+        metasEstouradas,
+        checklist,
+        okCount,
+        leitura
+    };
+}
+
+function atualizarFechamentoMensalGuiado(mes, ano){
+    const info=calcularPainelFechamentoMensal(mes, ano);
+    const fechado=!!info.fechamento?.statusFechado;
+    const badge=$id('fechamento-status-badge');
+    const resumo=$id('fechamento-status-resumo');
+    $id('fechamento-kpi-resultado').innerText=fmt(info.saldoMes);
+    $id('fechamento-kpi-resultado').className=`text-lg font-black mono mt-1 ${info.saldoMes>=0?'text-slate-900':'text-rose-600'}`;
+    $id('fechamento-kpi-pendencias').innerText=String(info.pendencias);
+    $id('fechamento-kpi-categoria').innerText=info.topCategoria?`${info.topCategoria[0]} · ${fmt(info.topCategoria[1])}`:'Sem destaque';
+    $id('fechamento-kpi-variacao').innerText=info.variacaoTexto;
+    $id('fechamento-kpi-variacao').className=`text-lg font-black mono mt-1 ${String(info.variacaoTexto).startsWith('↓')?'text-rose-600':'text-emerald-700'}`;
+    $id('fechamento-leitura').innerText=info.leitura;
+    $id('fechamento-meta').innerText=info.metasEstouradas.length
+        ? `Metas pressionadas: ${info.metasEstouradas.map(m=>m.categoria).join(', ')}`
+        : 'Nenhuma meta estourada neste fechamento.';
+    const checklist=$id('fechamento-checklist');
+    checklist.innerHTML='';
+    info.checklist.forEach(item=>{
+        const cls=item.ok
+            ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+            : 'bg-amber-50 border-amber-100 text-amber-700';
+        checklist.innerHTML+=`<div class="rounded-xl border p-3 ${cls}">
+            <div class="flex items-start gap-3">
+                <span class="text-sm font-black">${item.ok?'✓':'!'}</span>
+                <div>
+                    <p class="text-sm font-black">${item.titulo}</p>
+                    <p class="text-xs mt-1 opacity-80">${item.detalhe}</p>
+                </div>
+            </div>
+        </div>`;
+    });
+    if(fechado){
+        badge.innerText='Fechado';
+        badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100';
+        resumo.innerText=`Mes encerrado em ${fmtData(info.fechamento.fechadoEm?.slice?.(0,10)||info.fechamento.fechadoEm?.split?.('T')?.[0]||'')} com ${info.okCount}/${info.checklist.length} checkpoints atendidos.`;
+        $id('btn-fechamento-concluir').classList.add('hidden');
+        $id('btn-fechamento-reabrir').classList.remove('hidden');
+    }else{
+        badge.innerText=info.okCount===info.checklist.length?'Pronto para fechar':'Em aberto';
+        badge.className=info.okCount===info.checklist.length
+            ? 'px-2.5 py-1 rounded-full text-[11px] font-black bg-blue-50 text-blue-700 border border-blue-100'
+            : 'px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100';
+        resumo.innerText=info.okCount===info.checklist.length
+            ? 'O periodo esta consistente e pode ser encerrado quando quiser.'
+            : `${info.okCount}/${info.checklist.length} checkpoints atendidos. Ainda ha pontos para revisar antes do fechamento.`;
+        $id('btn-fechamento-concluir').classList.remove('hidden');
+        $id('btn-fechamento-reabrir').classList.add('hidden');
+    }
+}
+
+function atualizarFluxoCaixaFuturo(dias=15){
+    const info=calcularFluxoCaixaFuturo(dias);
+    $id('fluxo-futuro-saldo-atual').innerText=fmt(info.saldoInicial);
+    $id('fluxo-futuro-entradas').innerText=fmt(info.entradasPrevistas);
+    $id('fluxo-futuro-saidas').innerText=fmt(info.saidasPrevistas);
+    $id('fluxo-futuro-saldo-final').innerText=fmt(info.saldoFinal);
+    $id('fluxo-futuro-menor').innerText=`${fmt(info.menorSaldo)}${info.menorSaldoData?` · ${fmtData(info.menorSaldoData)}`:''}`;
+    const alerta=$id('fluxo-futuro-alerta');
+    const recado=$id('fluxo-futuro-recado');
+    if(info.menorSaldo<0){
+        alerta.innerText='Pressao';
+        alerta.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-600 border border-rose-100';
+        recado.innerText='Existe risco de saldo negativo no horizonte previsto. Vale adiar gastos ou antecipar receitas.';
+    }else if(info.saldoFinal<info.saldoInicial){
+        alerta.innerText='Atenção';
+        alerta.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100';
+        recado.innerText='O caixa segue positivo, mas termina o periodo abaixo do saldo atual.';
+    }else{
+        alerta.innerText='Estavel';
+        alerta.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100';
+        recado.innerText='Sem pressao relevante no caixa previsto. O saldo projetado sustenta os compromissos visiveis.';
+    }
+    const lista=$id('fluxo-futuro-lista');
+    const vazio=$id('fluxo-futuro-vazio');
+    lista.innerHTML='';
+    if(!info.agenda.length){
+        vazio.classList.remove('hidden');
+        return;
+    }
+    vazio.classList.add('hidden');
+    info.agenda.slice(0,8).forEach(item=>{
+        const chip=item.saldo<0
+            ? 'bg-rose-50 text-rose-600 border border-rose-100'
+            : item.saidas>item.entradas
+                ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                : 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+        const resumo=item.eventos.slice(0,2).map(ev=>`${ev.tipo==='receita'?'+':'-'} ${ev.desc}`).join(' · ');
+        lista.innerHTML+=`<div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="font-black text-gray-800">${fmtData(item.data)}</p>
+                        <span class="px-2 py-1 rounded-full text-[10px] font-black ${chip}">${item.eventos.length} mov.</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1 truncate">${resumo}${item.eventos.length>2?' · ...':''}</p>
+                </div>
+                <div class="grid grid-cols-3 gap-3 sm:gap-5 text-right shrink-0">
+                    <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Entradas</p><p class="text-sm font-black text-emerald-600 mono">${fmt(item.entradas)}</p></div>
+                    <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saidas</p><p class="text-sm font-black text-rose-600 mono">${fmt(item.saidas)}</p></div>
+                    <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saldo</p><p class="text-sm font-black mono ${item.saldo>=0?'text-slate-900':'text-rose-600'}">${fmt(item.saldo)}</p></div>
+                </div>
+            </div>
+        </div>`;
+    });
+}
+
 
 function atualizarDashboard(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
@@ -2697,6 +3427,8 @@ function atualizarDashboard(){
     const rR=resumoDashboard.receitasConfirmadas, dR=resumoDashboard.despesasConfirmadas, rP=resumoDashboard.receitasPendentes, dP=resumoDashboard.despesasPendentes;
     $id('val-receitas').innerText=fmt(rR); $id('val-receitas-pend').innerText=fmt(rP);
     $id('val-despesas').innerText=fmt(dR); $id('val-despesas-pend').innerText=fmt(dP);
+    atualizarScoreSaudeFinanceira(mS, aS);
+    atualizarFechamentoMensalGuiado(mS, aS);
     // Saldo do mês (receitas confirmadas - despesas confirmadas)
     const saldoMes=rR-dR;
     const elSM=$id('val-saldo-mes');
@@ -2818,6 +3550,7 @@ function atualizarDashboard(){
     const pw=$id('paginacao-wrap');
     if(totalPags>1){ pw.classList.remove('hidden'); $id('pag-info').innerText=`${paginaAtual+1} / ${totalPags}`; $id('btn-pag-ant').disabled=paginaAtual===0; $id('btn-pag-prox').disabled=paginaAtual>=totalPags-1; }
     else pw.classList.add('hidden');
+    atualizarPodeGastarHoje(mS, aS);
     atualizarPizzas();
 }
 $id('btn-pag-ant').onclick  = ()=>{ paginaAtual--; atualizarDashboard(); $id('lista-transacoes').scrollIntoView({behavior:'smooth',block:'start'}); };
@@ -3155,7 +3888,17 @@ function atualizarPatrimonio(){
 })();
 
 // ── METAS ─────────────────────────────────────────────────────────────────────
-function carregarMetas(){ _unsubscribers.push(onSnapshot(query(collection(db,'metas'),where('userId','==',currentUser.uid)),snap=>{ metas=[]; snap.forEach(d=>metas.push({id:d.id,...d.data()})); if(!$id('view-metas').classList.contains('hidden')) atualizarMetas(); }, err=>erroFirestore(err,'metas'))); }
+function carregarMetas(){ _unsubscribers.push(onSnapshot(query(collection(db,'metas'),where('userId','==',currentUser.uid)),snap=>{ metas=[]; snap.forEach(d=>metas.push({id:d.id,...d.data()})); if(!$id('view-metas').classList.contains('hidden')) atualizarMetas(); if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard(); }, err=>erroFirestore(err,'metas'))); }
+function carregarFechamentosMensais(){
+    _unsubscribers.push(onSnapshot(
+        query(collection(db,'fechamentos_mensais'),where('userId','==',currentUser.uid)),
+        snap=>{
+            fechamentosMensais=[]; snap.forEach(d=>fechamentosMensais.push({id:d.id,...d.data()}));
+            if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard();
+        },
+        err=>erroFirestore(err,'fechamentos-mensais')
+    ));
+}
 function atualizarMetas(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
     const gastosCat={};
@@ -3222,14 +3965,264 @@ function gerenciarNotificacoes(){
 function carregarRecorrentes(){
     _unsubscribers.push(onSnapshot(
         query(collection(db,'recorrentes'),where('userId','==',currentUser.uid)),
-        snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); _recorrentesInicializadas=true; agendarAplicacaoRecorrentes(); },
+        snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); _recorrentesInicializadas=true; agendarAplicacaoRecorrentes(); if(!$id('view-recorrentes').classList.contains('hidden')) atualizarCentralRecorrentes(); },
         err=>erroFirestore(err,'recorrentes')
     ));
     _unsubscribers.push(onSnapshot(
         query(collection(db,'recorrencia_excecoes'),where('userId','==',currentUser.uid)),
-        snap=>{ recorrenciaExcecoes=[]; snap.forEach(d=>recorrenciaExcecoes.push({id:d.id,...d.data()})); _recorrenciaExcecoesInicializadas=true; agendarAplicacaoRecorrentes(); },
+        snap=>{ recorrenciaExcecoes=[]; snap.forEach(d=>recorrenciaExcecoes.push({id:d.id,...d.data()})); _recorrenciaExcecoesInicializadas=true; agendarAplicacaoRecorrentes(); if(!$id('view-recorrentes').classList.contains('hidden')) atualizarCentralRecorrentes(); },
         err=>erroFirestore(err,'recorrencia-excecoes')
     ));
+}
+
+function getEstadoRecorrencia(rec){
+    return rec?.estado || 'ativa';
+}
+
+function getPrimeiraProximaOcorrencia(rec, baseStr=hojeStr()){
+    const base=new Date(baseStr+'T00:00:00');
+    let ano=base.getFullYear();
+    let mes=base.getMonth()+1;
+    for(let i=0;i<18;i++){
+        const diasNoMes=new Date(ano,mes,0).getDate();
+        const dia=Math.min(rec.dia||1, diasNoMes);
+        const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+        const competencia=getCompetencia(ds);
+        const dt=new Date(ds+'T00:00:00');
+        if(dt>=base && !existeExcecaoRecorrente(rec.id, competencia)) return ds;
+        mes++;
+        if(mes>12){ mes=1; ano++; }
+    }
+    return '';
+}
+
+function contarOcorrenciasRecorrentes30Dias(){
+    const base=new Date(hojeStr()+'T00:00:00');
+    const limite=new Date(base);
+    limite.setDate(limite.getDate()+30);
+    let total=0;
+    recorrentes.filter(r=>getEstadoRecorrencia(r)==='ativa').forEach(rec=>{
+        let prox=getPrimeiraProximaOcorrencia(rec, hojeStr());
+        if(prox){
+            const dt=new Date(prox+'T00:00:00');
+            if(dt<=limite) total++;
+        }
+    });
+    return total;
+}
+
+function normalizarDescricaoAssinatura(desc=''){
+    return desc.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^a-z0-9\s]/g,' ')
+        .replace(/\s+/g,' ')
+        .trim();
+}
+
+function detectarAssinaturasProvaveis(){
+    const sugestoes=[];
+    const seen=new Set();
+
+    recorrentes
+        .filter(rec=>rec.tipo==='despesa' && getEstadoRecorrencia(rec)!=='arquivada' && !isPagamentoFatura(rec))
+        .forEach(rec=>{
+            const tags=(rec.tags||[]).map(t=>String(t).toLowerCase());
+            const key=`rec-${rec.id}`;
+            seen.add(normalizarDescricaoAssinatura(rec.desc));
+            sugestoes.push({
+                key,
+                origem:'recorrente',
+                recorrenteId:rec.id,
+                desc:rec.desc,
+                categoria:rec.categoria,
+                valor:rec.valor,
+                mensal:rec.valor,
+                anual:rec.valor*12,
+                jaMarcada:tags.includes('assinatura'),
+                detalhe:tags.includes('assinatura') ? 'Ja marcada como assinatura' : 'Recorrente ativa com padrao mensal'
+            });
+        });
+
+    const limite=new Date();
+    limite.setMonth(limite.getMonth()-8);
+    const grupos={};
+    transacoes.forEach(t=>{
+        if(t.tipo!=='despesa' || !isTransacaoAnalitica(t) || isPagamentoFatura(t)) return;
+        const dt=new Date(`${t.data}T00:00:00`);
+        if(Number.isNaN(dt.getTime()) || dt<limite) return;
+        const baseKey=normalizarDescricaoAssinatura(t.desc);
+        if(!baseKey || seen.has(baseKey)) return;
+        const key=`${baseKey}|${t.categoria||''}`;
+        if(!grupos[key]) grupos[key]=[];
+        grupos[key].push(t);
+    });
+
+    Object.entries(grupos).forEach(([key,itens])=>{
+        if(itens.length<2) return;
+        const ord=itens.slice().sort((a,b)=>a.data.localeCompare(b.data));
+        const intervalos=[];
+        for(let i=1;i<ord.length;i++){
+            const ant=new Date(`${ord[i-1].data}T00:00:00`);
+            const atual=new Date(`${ord[i].data}T00:00:00`);
+            intervalos.push(Math.round((atual-ant)/(1000*60*60*24)));
+        }
+        const mensal=intervalos.every(d=>d>=25 && d<=40);
+        if(!mensal) return;
+        const valores=ord.map(t=>t.valor);
+        const media=valores.reduce((s,v)=>s+v,0)/valores.length;
+        const variacao=Math.max(...valores.map(v=>Math.abs(v-media)))/(media||1);
+        if(variacao>0.25) return;
+        sugestoes.push({
+            key:`hist-${key}`,
+            origem:'historico',
+            desc:ord[0].desc,
+            categoria:ord[0].categoria,
+            valor:media,
+            mensal:media,
+            anual:media*12,
+            jaMarcada:false,
+            detalhe:`${ord.length} cobrancas parecidas nos ultimos meses`
+        });
+    });
+
+    return sugestoes
+        .sort((a,b)=>{
+            if(a.jaMarcada!==b.jaMarcada) return a.jaMarcada?1:-1;
+            return b.mensal-a.mensal;
+        })
+        .slice(0,8);
+}
+
+function renderizarAssinaturasRecorrentes(){
+    const sugestoes=detectarAssinaturasProvaveis();
+    const lista=$id('rec-ass-lista');
+    const vazio=$id('rec-ass-vazio');
+    lista.innerHTML='';
+    $id('rec-ass-count').innerText=sugestoes.length;
+    $id('rec-ass-mensal').innerText=fmt(sugestoes.reduce((sum,s)=>sum+s.mensal,0));
+    $id('rec-ass-anual').innerText=`${fmt(sugestoes.reduce((sum,s)=>sum+s.anual,0))}/ano`;
+    if(!sugestoes.length){
+        vazio.classList.remove('hidden');
+        return;
+    }
+    vazio.classList.add('hidden');
+    sugestoes.forEach(item=>{
+        const origemChip=item.origem==='recorrente'
+            ? '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-100">RECORRENTE</span>'
+            : '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-violet-50 text-violet-700 border border-violet-100">HISTORICO</span>';
+        const statusChip=item.jaMarcada
+            ? '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">ASSINATURA</span>'
+            : '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-100">SUGESTAO</span>';
+        const acao=item.recorrenteId && !item.jaMarcada
+            ? `<button onclick="marcarAssinaturaRecorrente('${item.recorrenteId}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Marcar</button>`
+            : '';
+        lista.innerHTML+=`<div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="font-black text-gray-800 text-base truncate">${item.desc}</p>
+                        ${origemChip}
+                        ${statusChip}
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">${item.categoria||'Sem categoria'} · ${item.detalhe}</p>
+                </div>
+                <div class="flex items-center gap-3 sm:justify-end flex-wrap">
+                    <div class="text-right">
+                        <p class="text-sm font-black text-slate-900 mono">${fmt(item.mensal)}/mes</p>
+                        <p class="text-[11px] text-gray-400 mono">${fmt(item.anual)}/ano</p>
+                    </div>
+                    ${acao}
+                </div>
+            </div>
+        </div>`;
+    });
+}
+
+function atualizarFiltroVisualRecorrentes(){
+    const config={
+        ativas:$id('rec-filtro-ativas'),
+        pausadas:$id('rec-filtro-pausadas'),
+        arquivadas:$id('rec-filtro-arquivadas')
+    };
+    Object.entries(config).forEach(([estado,btn])=>{
+        if(!btn) return;
+        const ativo=_recorrentesFiltro===estado;
+        btn.className=ativo
+            ? 'px-3 py-2 rounded-lg text-xs font-black bg-slate-900 text-white'
+            : 'px-3 py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-700 transition';
+    });
+}
+
+function atualizarCentralRecorrentes(){
+    atualizarFiltroVisualRecorrentes();
+    renderizarAssinaturasRecorrentes();
+    const tituloMap={
+        ativas:'Recorrentes ativas',
+        pausadas:'Recorrentes pausadas',
+        arquivadas:'Recorrentes arquivadas'
+    };
+    $id('rec-lista-titulo').innerText=tituloMap[_recorrentesFiltro]||'Recorrentes';
+    $id('rec-lista-sub').innerText='Revisao mensal centralizada';
+    $id('rec-count-ativas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='ativa').length;
+    $id('rec-count-pausadas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='pausada').length;
+    $id('rec-count-arquivadas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='arquivada').length;
+    $id('rec-count-30dias').innerText=contarOcorrenciasRecorrentes30Dias();
+
+    const lista=$id('lista-recorrentes');
+    const vazio=$id('recorrentes-vazio');
+    const estadoSelecionado=_recorrentesFiltro==='ativas' ? 'ativa' : _recorrentesFiltro==='pausadas' ? 'pausada' : 'arquivada';
+    const exibidas=recorrentes
+        .filter(r=>getEstadoRecorrencia(r)===estadoSelecionado)
+        .sort((a,b)=>(a.desc||'').localeCompare(b.desc||''));
+    lista.innerHTML='';
+    if(!exibidas.length){
+        vazio.classList.remove('hidden');
+        return;
+    }
+    vazio.classList.add('hidden');
+    exibidas.forEach(rec=>{
+        const estado=getEstadoRecorrencia(rec);
+        const prox=getPrimeiraProximaOcorrencia(rec);
+        const valorCor=rec.tipo==='receita'?'text-emerald-600':'text-rose-600';
+        const estadoChip=estado==='ativa'
+            ? '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">ATIVA</span>'
+            : estado==='pausada'
+                ? '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-100">PAUSADA</span>'
+                : '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200">ARQUIVADA</span>';
+        const acoes=estado==='ativa'
+            ? `<button onclick="pausarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition">Pausar</button>
+               <button onclick="arquivarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Arquivar</button>`
+            : estado==='pausada'
+                ? `<button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">Reativar</button>
+                   <button onclick="arquivarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Arquivar</button>`
+                : `<button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Restaurar</button>`;
+        lista.innerHTML+=`<div class="rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="font-black text-gray-800 text-base truncate">${rec.desc}</p>
+                        ${estadoChip}
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-400">
+                        <span>${rec.tipo==='receita'?'Receita':'Despesa'}</span>
+                        <span>•</span>
+                        <span>${rec.categoria}</span>
+                        <span>•</span>
+                        <span>Dia ${rec.dia}</span>
+                        ${prox?`<span>•</span><span>Proxima: ${fmtData(prox)}</span>`:''}
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 mt-3">
+                        <span class="${valorCor} font-black text-lg mono">${rec.tipo==='receita'?'+':'-'}${fmt(rec.valor)}</span>
+                        ${(rec.tags||[]).slice(0,2).map(tag=>`<span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">#${tag}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 sm:justify-end flex-wrap">
+                    ${acoes}
+                    <button onclick="deletarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 transition">Excluir</button>
+                </div>
+            </div>
+        </div>`;
+    });
 }
 
 function getInicioRecorrencia(rec){
@@ -3265,6 +4258,7 @@ function existeExcecaoRecorrente(recorrenteId, competencia){
 
 async function materializarRecorrencia(rec, opts={}){
     if(!rec?.id) return 0;
+    if(getEstadoRecorrencia(rec)!=='ativa') return 0;
     const hoje=new Date();
     const skipCompetencias=opts.skipCompetencias||new Set();
     const limiteMax=opts.limiteMax || new Date(hoje.getFullYear(), hoje.getMonth()+12, hoje.getDate());
@@ -3319,8 +4313,87 @@ function agendarAplicacaoRecorrentes(){
     }, 600);
 }
 
+async function atualizarEstadoRecorrente(id, estado){
+    try{
+        await updateDoc(doc(db,'recorrentes',id),{
+            estado,
+            atualizadoEm:new Date().toISOString()
+        });
+        toast(`🔁 Recorrente ${estado==='ativa'?'reativada':estado==='pausada'?'pausada':'arquivada'}.`);
+    }catch(err){
+        erroFirestore(err,'recorrente-estado');
+    }
+}
+window.marcarAssinaturaRecorrente=async id=>{
+    const rec=recorrentes.find(r=>r.id===id);
+    if(!rec) return;
+    try{
+        await updateDoc(doc(db,'recorrentes',id),{
+            tags:[...new Set([...(rec.tags||[]),'assinatura'])],
+            atualizadoEm:new Date().toISOString()
+        });
+        toast('Assinatura marcada na recorrente.');
+    }catch(err){
+        erroFirestore(err,'recorrente-assinatura');
+    }
+};
+window.concluirFechamentoMensal=async ()=>{
+    const mes=parseInt($id('filtro-mes').value), ano=parseInt($id('filtro-ano').value);
+    const competencia=`${ano}-${String(mes).padStart(2,'0')}`;
+    const info=calcularPainelFechamentoMensal(mes, ano);
+    try{
+        await setDoc(doc(db,'fechamentos_mensais',`${currentUser.uid}_${competencia}`),{
+            userId:currentUser.uid,
+            competencia,
+            statusFechado:true,
+            fechadoEm:new Date().toISOString(),
+            resumo:{
+                saldoMes:info.saldoMes,
+                pendencias:info.pendencias,
+                checkpointsOk:info.okCount,
+                checkpointsTotal:info.checklist.length,
+                score:calcularScoreSaudeFinanceira(mes, ano).total
+            }
+        });
+        toast('Fechamento mensal concluido.');
+    }catch(err){
+        erroFirestore(err,'fechamento-concluir');
+    }
+};
+window.reabrirFechamentoMensal=async ()=>{
+    const mes=parseInt($id('filtro-mes').value), ano=parseInt($id('filtro-ano').value);
+    const competencia=`${ano}-${String(mes).padStart(2,'0')}`;
+    try{
+        await setDoc(doc(db,'fechamentos_mensais',`${currentUser.uid}_${competencia}`),{
+            userId:currentUser.uid,
+            competencia,
+            statusFechado:false,
+            reabertoEm:new Date().toISOString()
+        },{merge:true});
+        toast('Mes reaberto para revisao.');
+    }catch(err){
+        erroFirestore(err,'fechamento-reabrir');
+    }
+};
+window.pausarRecorrente=id=>atualizarEstadoRecorrente(id,'pausada');
+window.arquivarRecorrente=id=>atualizarEstadoRecorrente(id,'arquivada');
+window.ativarRecorrente=id=>atualizarEstadoRecorrente(id,'ativa');
+window.deletarRecorrente=async id=>{
+    if(!await confirmar('Excluir esta recorrente?')) return;
+    try{
+        await deleteDoc(doc(db,'recorrentes',id));
+        toast('Recorrente excluida.');
+    }catch(err){
+        erroFirestore(err,'recorrente-delete');
+    }
+};
+
+$id('rec-filtro-ativas')?.addEventListener('click',()=>{ _recorrentesFiltro='ativas'; atualizarCentralRecorrentes(); });
+$id('rec-filtro-pausadas')?.addEventListener('click',()=>{ _recorrentesFiltro='pausadas'; atualizarCentralRecorrentes(); });
+$id('rec-filtro-arquivadas')?.addEventListener('click',()=>{ _recorrentesFiltro='arquivadas'; atualizarCentralRecorrentes(); });
+
 // Toggle visual
-(()=>{
+(()=>{ 
     let ativo=false;
     const btn=$id('btn-toggle-recorrente');
     const knob=$id('toggle-rec-knob');
@@ -3354,7 +4427,7 @@ async function aplicarRecorrentesAuto(){
     if(!recorrentes.length) return;
     let criados=0;
 
-    for(const r of recorrentes){
+    for(const r of recorrentes.filter(rec=>getEstadoRecorrencia(rec)==='ativa')){
         try{ criados += await materializarRecorrencia(r); }
         catch(err){ erroFirestore(err,'rec-auto'); }
     }
@@ -3370,6 +4443,7 @@ let _calAno=0, _calMes=0; // mês atual do calendário (1-12)
 })();
 
 function renderizarCalendario(){
+    atualizarFluxoCaixaFuturo();
     const hoje=new Date();
     const strHoje=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
 
