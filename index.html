@@ -138,7 +138,6 @@ async function verificarEDisparar(){
       const swUrl = URL.createObjectURL(blob);
       navigator.serviceWorker.register(swUrl, {scope:'./'})
         .then(reg => {
-          console.log('[PWA] Service Worker registrado ✅', reg.scope);
           reg.addEventListener('updatefound', () => {
             reg.installing?.addEventListener('statechange', e => {
               if (e.target.state === 'installed' && navigator.serviceWorker.controller) {
@@ -155,7 +154,7 @@ async function verificarEDisparar(){
             }).catch(()=>{});
           }
         })
-        .catch(err => console.warn('[PWA] SW não registrado:', err));
+        .catch(()=>{});
     }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -230,8 +229,49 @@ async function verificarEDisparar(){
         .spinner { width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle; }
         .overlay { backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px); }
         .progress-bar { transition:width .8s cubic-bezier(.4,0,.2,1); }
+        .premium-icon-btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:40px;
+            min-height:40px;
+            border-radius:14px;
+            border:1px solid rgba(226,232,240,.95);
+            background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(241,245,249,.9));
+            box-shadow:0 10px 24px rgba(15,23,42,.06);
+        }
+        .premium-icon-btn:hover{ transform:translateY(-1px); }
+        .slim-panel{
+            border-radius:1.35rem;
+            border:1px solid rgba(226,232,240,.88);
+            box-shadow:0 14px 34px rgba(15,23,42,.05);
+        }
+        .result-highlight{
+            animation:resultPulse 1.8s ease-out;
+            box-shadow:0 0 0 2px rgba(59,130,246,.24), 0 18px 36px rgba(37,99,235,.10)!important;
+            border-color:rgba(96,165,250,.8)!important;
+        }
+        @keyframes resultPulse{
+            0%{ transform:translateY(0); box-shadow:0 0 0 0 rgba(59,130,246,.30), 0 10px 24px rgba(15,23,42,.06); }
+            35%{ transform:translateY(-2px); box-shadow:0 0 0 8px rgba(59,130,246,.10), 0 18px 36px rgba(37,99,235,.12); }
+            100%{ transform:translateY(0); box-shadow:0 0 0 0 rgba(59,130,246,0), 0 14px 34px rgba(15,23,42,.05); }
+        }
         @media(max-width:640px){
             .modal-inner { animation:slideUp .25s ease-out; border-radius:1.25rem 1.25rem 0 0; position:fixed!important; bottom:0!important; left:0!important; right:0!important; max-height:92vh; top:auto!important; width:100%!important; max-width:100%!important; }
+            main{ padding-top:.85rem!important; }
+            #view-operacao .grid.grid-cols-1.sm\:grid-cols-3.gap-3.sm\:gap-5.mb-4 > div,
+            #view-operacao .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.sm\:p-5.mb-4.overflow-hidden,
+            #view-operacao .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.sm\:p-5,
+            #view-insights .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.sm\:p-5.mb-4.overflow-hidden{
+                border-radius:1.2rem!important;
+            }
+            #view-operacao .grid.grid-cols-1.sm\:grid-cols-3.gap-3.sm\:gap-5.mb-4 > div{ padding:1rem!important; }
+            #view-operacao .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.sm\:p-5.mb-4.overflow-hidden,
+            #view-operacao .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.sm\:p-5,
+            #view-insights .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.sm\:p-5.mb-4.overflow-hidden{
+                padding:1rem!important;
+            }
+            #insights-curtos-grid{ gap:.65rem!important; }
         }
         ::-webkit-scrollbar { width:4px; height:4px; }
         ::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:2px; }
@@ -477,6 +517,31 @@ async function verificarEDisparar(){
             <button id="confirm-no"  class="flex-1 py-3 rounded-xl border-2 border-gray-200 font-bold text-gray-600 hover:bg-gray-50 transition">Cancelar</button>
             <button id="confirm-yes" class="flex-1 py-3 rounded-xl bg-rose-500 text-white font-bold hover:bg-rose-600 transition">Confirmar</button>
         </div>
+    </div>
+</div>
+
+<div id="modal-global-search" class="hidden fixed inset-0 bg-black/60 overlay flex items-start sm:items-center justify-center z-[210] p-3 sm:p-4">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden fade-in">
+        <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
+            <div class="flex-1">
+                <input id="global-search-input" type="search" placeholder="Buscar lancamentos, contas, cartoes, recorrentes..." class="input-field !mb-0">
+            </div>
+            <button id="btn-fechar-global-search" class="text-gray-400 hover:text-rose-500 text-2xl leading-none active:scale-90 transition">&times;</button>
+        </div>
+        <div class="px-4 py-3 border-b border-gray-100 bg-white">
+            <div class="flex flex-col gap-3">
+                <p id="global-search-meta" class="text-xs text-gray-400">Digite para buscar em todo o app.</p>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" data-search-filter="todos" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-black bg-slate-900 text-white">Todos</button>
+                    <button type="button" data-search-filter="transacao" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Lancamentos</button>
+                    <button type="button" data-search-filter="conta" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Contas</button>
+                    <button type="button" data-search-filter="cartao" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Cartoes</button>
+                    <button type="button" data-search-filter="recorrente" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Recorrentes</button>
+                </div>
+            </div>
+        </div>
+        <div id="global-search-empty" class="p-10 text-center text-gray-300 text-sm">Nenhum resultado por enquanto.</div>
+        <div id="global-search-results" class="hidden max-h-[60vh] overflow-y-auto divide-y divide-gray-100"></div>
     </div>
 </div>
 
@@ -904,6 +969,7 @@ async function verificarEDisparar(){
                             <ul id="lista-notificacoes" class="divide-y divide-gray-50 text-sm max-h-80 overflow-y-auto"></ul>
                         </div>
                     </div>
+                    <button id="btn-global-search" title="Busca global" class="premium-icon-btn p-2 text-gray-500 hover:text-slate-900 active:scale-90 transition text-lg leading-none">⌕</button>
                     <button id="btn-nova-transacao-nav" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 active:scale-95 transition font-bold shadow-sm hidden sm:flex items-center gap-1 text-sm">+ Lançar</button>
                     <button id="btn-privacy" title="Ocultar valores" aria-label="Ocultar valores" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none">👁️</button>
                     <button id="btn-dark" title="Alternar modo escuro" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none">🌙</button>
@@ -919,13 +985,14 @@ async function verificarEDisparar(){
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-5">
             <div class="relative w-full sm:w-auto overflow-hidden">
                 <div class="flex border-b border-gray-200 overflow-x-auto no-scrollbar tab-fade-right">
-                    <button data-tab="operacao"    class="tab-btn pb-2.5 px-3 tab-active   text-sm whitespace-nowrap transition-colors">📊 Operacional</button>
-                    <button data-tab="contas"      class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🏦 Contas</button>
-                    <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">💳 Cartões</button>
-                    <button data-tab="calendario"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📅 Calendário</button>
-                    <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">📈 Patrimônio</button>
-                    <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🎯 Metas</button>
-                    <button data-tab="recorrentes" class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">🔁 Recorrentes</button>
+                    <button data-tab="operacao"    class="tab-btn pb-2.5 px-3 tab-active   text-sm whitespace-nowrap transition-colors">Operacional</button>
+                    <button data-tab="insights"    class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Insights</button>
+                    <button data-tab="contas"      class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Contas</button>
+                    <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Cartoes</button>
+                    <button data-tab="calendario"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Calendario</button>
+                    <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Patrimonio</button>
+                    <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Metas</button>
+                    <button data-tab="recorrentes" class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Recorrentes</button>
                 </div>
             </div>
             <div class="flex bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden shrink-0 w-full sm:w-auto">
@@ -964,6 +1031,7 @@ async function verificarEDisparar(){
             </div>
 
             <!-- Gráficos: pizza despesas + linha evolução 7 dias -->
+
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4 overflow-hidden">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div class="min-w-0">
@@ -998,91 +1066,7 @@ async function verificarEDisparar(){
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4 overflow-hidden">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-3 flex-wrap">
-                            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Score de Saude Financeira</p>
-                            <span id="score-saude-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Solido</span>
-                        </div>
-                        <div class="flex items-end gap-3 mt-2 flex-wrap">
-                            <p id="score-saude-valor" class="text-4xl sm:text-5xl font-black text-slate-900 mono leading-none">0</p>
-                            <p class="text-sm text-gray-400 pb-1">/ 100</p>
-                        </div>
-                        <p id="score-saude-resumo" class="text-sm text-gray-400 mt-2">A nota combina caixa livre, comprometimento, metas e uso do cartao.</p>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:w-auto lg:min-w-[520px]">
-                        <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
-                            <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Caixa</p>
-                            <p id="score-pilar-caixa" class="text-sm font-black mono text-slate-800 mt-1">0/25</p>
-                        </div>
-                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
-                            <p class="text-[10px] font-black uppercase tracking-wider text-emerald-600">Comprometimento</p>
-                            <p id="score-pilar-comp" class="text-sm font-black mono text-emerald-700 mt-1">0/25</p>
-                        </div>
-                        <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
-                            <p class="text-[10px] font-black uppercase tracking-wider text-amber-600">Metas</p>
-                            <p id="score-pilar-metas" class="text-sm font-black mono text-amber-700 mt-1">0/20</p>
-                        </div>
-                        <div class="rounded-xl bg-rose-50 border border-rose-100 px-3 py-2">
-                            <p class="text-[10px] font-black uppercase tracking-wider text-rose-500">Cartao</p>
-                            <p id="score-pilar-cartao" class="text-sm font-black mono text-rose-600 mt-1">0/15</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
-                    <div id="score-saude-recados" class="flex flex-wrap gap-2"></div>
-                    <div class="rounded-xl bg-slate-900 text-white px-4 py-3 min-w-[240px]">
-                        <p class="text-[11px] font-black uppercase tracking-wider text-slate-300">Prioridade do periodo</p>
-                        <p id="score-saude-prioridade" class="text-sm font-medium mt-1 text-slate-100">Sem alertas relevantes.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4 overflow-hidden">
-                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4 pb-3 border-b border-gray-100">
-                    <div>
-                        <div class="flex items-center gap-3 flex-wrap">
-                            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Fechamento Mensal Guiado</p>
-                            <span id="fechamento-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100">Em aberto</span>
-                        </div>
-                        <p id="fechamento-status-resumo" class="text-sm text-gray-400 mt-2">Revise o mes, trate pendencias e registre quando o periodo estiver fechado.</p>
-                    </div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <button id="btn-fechamento-concluir" onclick="concluirFechamentoMensal()" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 active:scale-95 transition">Concluir fechamento</button>
-                        <button id="btn-fechamento-reabrir" onclick="reabrirFechamentoMensal()" class="hidden px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm hover:bg-gray-200 active:scale-95 transition">Reabrir mes</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                    <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-3">
-                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Resultado do mes</p>
-                        <p id="fechamento-kpi-resultado" class="text-lg font-black mono text-slate-900 mt-1">R$ 0,00</p>
-                    </div>
-                    <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-3">
-                        <p class="text-[10px] font-black uppercase tracking-wider text-amber-700">Pendencias</p>
-                        <p id="fechamento-kpi-pendencias" class="text-lg font-black mono text-amber-700 mt-1">0</p>
-                    </div>
-                    <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-3">
-                        <p class="text-[10px] font-black uppercase tracking-wider text-blue-700">Maior categoria</p>
-                        <p id="fechamento-kpi-categoria" class="text-sm font-black text-blue-700 mt-1">—</p>
-                    </div>
-                    <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-3">
-                        <p class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Variação vs ant.</p>
-                        <p id="fechamento-kpi-variacao" class="text-lg font-black mono text-emerald-700 mt-1">—</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_.8fr] gap-4 items-start">
-                    <div class="rounded-2xl border border-gray-100 bg-slate-50 p-4">
-                        <p class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-3">Checklist do fechamento</p>
-                        <div id="fechamento-checklist" class="space-y-2"></div>
-                    </div>
-                    <div class="rounded-2xl border border-gray-100 bg-white p-4">
-                        <p class="text-[11px] font-black uppercase tracking-wider text-gray-400">Leitura do periodo</p>
-                        <p id="fechamento-leitura" class="text-sm text-gray-600 mt-3 leading-relaxed">Sem leitura disponivel.</p>
-                        <div id="fechamento-meta" class="mt-4 text-xs text-gray-400"></div>
-                    </div>
-                </div>
-            </div>
+            <div id="insights-curtos-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4"></div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
@@ -1158,6 +1142,98 @@ async function verificarEDisparar(){
                 <div class="bg-amber-50 rounded-2xl shadow-sm p-4 sm:p-5 border border-amber-100">
                     <h2 class="text-xs font-black text-amber-700 uppercase tracking-wider mb-3">⏳ Vencimentos</h2>
                     <ul class="space-y-2.5 max-h-[400px] overflow-y-auto" id="lista-vencimentos"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-insights" class="hidden fade-in">
+            <div class="flex justify-between items-start mb-4 gap-3">
+                <div><h2 class="text-lg font-black text-gray-800">Insights Financeiros</h2><p class="text-sm text-gray-400 mt-0.5">Score executivo, fechamento mensal e leitura consolidada do periodo.</p></div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4 overflow-hidden">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Score de Saude Financeira</p>
+                            <span id="score-saude-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Solido</span>
+                        </div>
+                        <div class="flex items-end gap-3 mt-2 flex-wrap">
+                            <p id="score-saude-valor" class="text-4xl sm:text-5xl font-black text-slate-900 mono leading-none">0</p>
+                            <p class="text-sm text-gray-400 pb-1">/ 100</p>
+                        </div>
+                        <p id="score-saude-resumo" class="text-sm text-gray-400 mt-2">A nota combina caixa livre, comprometimento, metas e uso do cartao.</p>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:w-auto lg:min-w-[520px]">
+                        <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Caixa</p>
+                            <p id="score-pilar-caixa" class="text-sm font-black mono text-slate-800 mt-1">0/25</p>
+                        </div>
+                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-emerald-600">Comprometimento</p>
+                            <p id="score-pilar-comp" class="text-sm font-black mono text-emerald-700 mt-1">0/25</p>
+                        </div>
+                        <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-amber-600">Metas</p>
+                            <p id="score-pilar-metas" class="text-sm font-black mono text-amber-700 mt-1">0/20</p>
+                        </div>
+                        <div class="rounded-xl bg-rose-50 border border-rose-100 px-3 py-2">
+                            <p class="text-[10px] font-black uppercase tracking-wider text-rose-500">Cartao</p>
+                            <p id="score-pilar-cartao" class="text-sm font-black mono text-rose-600 mt-1">0/15</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+                    <div id="score-saude-recados" class="flex flex-wrap gap-2"></div>
+                    <div class="rounded-xl bg-slate-900 text-white px-4 py-3 min-w-[240px]">
+                        <p class="text-[11px] font-black uppercase tracking-wider text-slate-300">Prioridade do periodo</p>
+                        <p id="score-saude-prioridade" class="text-sm font-medium mt-1 text-slate-100">Sem alertas relevantes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4 overflow-hidden">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4 pb-3 border-b border-gray-100">
+                    <div>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Fechamento Mensal Guiado</p>
+                            <span id="fechamento-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100">Em aberto</span>
+                        </div>
+                        <p id="fechamento-status-resumo" class="text-sm text-gray-400 mt-2">Revise o mes, trate pendencias e registre quando o periodo estiver fechado.</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="btn-fechamento-concluir" onclick="concluirFechamentoMensal()" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 active:scale-95 transition">Concluir fechamento</button>
+                        <button id="btn-fechamento-reabrir" onclick="reabrirFechamentoMensal()" class="hidden px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm hover:bg-gray-200 active:scale-95 transition">Reabrir mes</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Resultado do mes</p>
+                        <p id="fechamento-kpi-resultado" class="text-lg font-black mono text-slate-900 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-amber-700">Pendencias</p>
+                        <p id="fechamento-kpi-pendencias" class="text-lg font-black mono text-amber-700 mt-1">0</p>
+                    </div>
+                    <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-blue-700">Maior categoria</p>
+                        <p id="fechamento-kpi-categoria" class="text-sm font-black text-blue-700 mt-1">—</p>
+                    </div>
+                    <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Variacao vs ant.</p>
+                        <p id="fechamento-kpi-variacao" class="text-lg font-black mono text-emerald-700 mt-1">—</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_.8fr] gap-4 items-start">
+                    <div class="rounded-2xl border border-gray-100 bg-slate-50 p-4">
+                        <p class="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-3">Checklist do fechamento</p>
+                        <div id="fechamento-checklist" class="space-y-2"></div>
+                    </div>
+                    <div class="rounded-2xl border border-gray-100 bg-white p-4">
+                        <p class="text-[11px] font-black uppercase tracking-wider text-gray-400">Leitura do periodo</p>
+                        <p id="fechamento-leitura" class="text-sm text-gray-600 mt-3 leading-relaxed">Sem leitura disponivel.</p>
+                        <div id="fechamento-meta" class="mt-4 text-xs text-gray-400"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1503,7 +1579,7 @@ async function verificarEDisparar(){
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="label-xs">Categoria</label>
-                        <button type="button" id="btn-abrir-nova-cat" class="text-xs text-blue-600 font-bold hover:text-blue-700 active:scale-95 transition flex items-center gap-1">＋ Nova categoria</button>
+                        <button type="button" id="btn-abrir-nova-cat" class="text-xs text-blue-600 font-bold hover:text-blue-700 active:scale-95 transition flex items-center gap-1">+ Nova categoria</button>
                     </div>
                     <select id="input-categoria" class="input-field">
                         <option value="Alimentação">🍽️ Alimentação</option><option value="Transporte">🚗 Transporte</option>
@@ -1756,6 +1832,9 @@ let _unsubscribers=[]; // guarda funções de cancelamento dos onSnapshot
 let _transacoesInicializadas=false, _recorrentesInicializadas=false, _recorrenciaExcecoesInicializadas=false;
 let _timerRecorrenciaAuto=null, _aplicandoRecorrenciaAuto=false;
 let _recorrentesFiltro='ativas';
+let _globalSearchQuery='';
+let _globalSearchTipo='todos';
+let _buscaHighlightTarget=null;
 
 const $id = id => document.getElementById(id);
 const mesesNomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -1865,7 +1944,7 @@ function toast(msg, tipo='sucesso'){
 function confirmar(msg){ return new Promise(r=>{ const m=$id('confirm-modal'); $id('confirm-msg').innerText=msg; m.classList.remove('hidden'); const y=$id('confirm-yes'),n=$id('confirm-no'); const done=v=>{ m.classList.add('hidden'); y.onclick=n.onclick=null; r(v); }; y.onclick=()=>done(true); n.onclick=()=>done(false); }); }
 
 // ── TABS ─────────────────────────────────────────────────────────────────────
-const VIEW_MAP = { operacao:'view-operacao', contas:'view-contas', cartoes:'view-cartoes', calendario:'view-calendario', patrimonio:'view-patrimonio', metas:'view-metas', recorrentes:'view-recorrentes' };
+const VIEW_MAP = { operacao:'view-operacao', insights:'view-insights', contas:'view-contas', cartoes:'view-cartoes', calendario:'view-calendario', patrimonio:'view-patrimonio', metas:'view-metas', recorrentes:'view-recorrentes' };
 function setTab(ativa){
     document.querySelectorAll('.tab-btn').forEach(b=>b.className=b.className.replace('tab-active','tab-inactive'));
     document.querySelectorAll('[id^="view-"]').forEach(v=>v.classList.add('hidden'));
@@ -1873,7 +1952,7 @@ function setTab(ativa){
     if(btn) btn.className=btn.className.replace('tab-inactive','tab-active');
     document.getElementById(VIEW_MAP[ativa])?.classList.remove('hidden');
     paginaAtual=0;
-    if(ativa==='operacao')  atualizarDashboard();
+    if(ativa==='operacao' || ativa==='insights')  atualizarDashboard();
     if(ativa==='patrimonio') atualizarPatrimonio();
     if(ativa==='metas')      atualizarMetas();
     if(ativa==='recorrentes') atualizarCentralRecorrentes();
@@ -2017,6 +2096,21 @@ const btnN=$id('btn-notif'), dropN=$id('notif-dropdown');
 btnN.addEventListener('click',e=>{ e.stopPropagation(); dropN.classList.toggle('hidden'); });
 document.addEventListener('click',e=>{ if(!dropN.contains(e.target)&&!btnN.contains(e.target)) dropN.classList.add('hidden'); });
 $id('btn-limpar-notif').onclick=()=>dropN.classList.add('hidden');
+$id('btn-global-search').onclick=()=>{
+    $id('modal-global-search').classList.remove('hidden');
+    setTimeout(()=>$id('global-search-input')?.focus(),120);
+    atualizarBuscaGlobal();
+};
+$id('btn-fechar-global-search').onclick=()=>$id('modal-global-search').classList.add('hidden');
+$id('modal-global-search').addEventListener('click',e=>{ if(e.target===$id('modal-global-search')) $id('modal-global-search').classList.add('hidden'); });
+$id('global-search-input').addEventListener('input',e=>{ _globalSearchQuery=e.target.value||''; atualizarBuscaGlobal(); });
+$id('global-search-input').addEventListener('keydown',e=>{ if(e.key==='Escape') $id('modal-global-search').classList.add('hidden'); });
+document.querySelectorAll('.search-filter-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        _globalSearchTipo=btn.dataset.searchFilter||'todos';
+        atualizarBuscaGlobal();
+    });
+});
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, user=>{
@@ -2322,7 +2416,7 @@ $id('form-transacao').addEventListener('submit', async e=>{
         $id('modal-transacao').classList.add('hidden'); e.target.reset(); $id('input-data').value=hojeStr();
         window._editTransacaoOriginal=null;
         if(window._resetToggleRec) window._resetToggleRec();
-    }catch(err){ console.error(err); toast('Erro ao salvar.','erro'); }
+    }catch(err){ erroFirestore(err,'transacao-submit'); }
     finally{
         btn.disabled=false;
         btn.innerText=getLabelSubmitLancamento($id('input-origem-lancamento').value||'padrao', modoEdicao);
@@ -2415,7 +2509,7 @@ function renderizarContas(){
             const d=new Date(dataRef);
             return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
         })() : null;
-        cont.innerHTML+=`<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition hover:shadow-md hover:-translate-y-0.5 duration-200">
+        cont.innerHTML+=`<div data-search-type="conta" data-search-id="${c.id}" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition hover:shadow-md hover:-translate-y-0.5 duration-200">
             <div class="h-1.5 w-full ${cor.bg}"></div>
             <div class="p-4">
                 <div class="flex items-start justify-between mb-3">
@@ -2460,6 +2554,7 @@ function renderizarContas(){
             </div>
         </li>`;
     });
+    aplicarDestaqueBusca();
 }
 
 // Modal Nova/Editar Conta
@@ -2544,7 +2639,7 @@ function renderizarCartoes(){
         const textoFechamento=competenciaAtual
             ? `Fecha em ${diasParaFechar===0?'hoje':`${diasParaFechar} dia(s)`} · dia ${fechamentoCompetencia}`
             : `Fechamento da fatura: dia ${fechamentoCompetencia}`;
-        cont.innerHTML+=`<div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-lg">
+        cont.innerHTML+=`<div data-search-type="cartao" data-search-id="${c.id}" class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4 sm:p-5 text-white shadow-lg">
             <div class="flex justify-between items-start mb-4">
                 <div><p class="font-black text-xl">${c.nome}</p><p class="text-gray-400 text-xs mt-0.5">Fecha dia ${c.fechamento} · Vence dia ${c.vencimento}</p></div>
                 <span class="text-3xl">💳</span>
@@ -2586,6 +2681,7 @@ const gastos=transacoes.filter(t=>isCompraCartao(t)&&t.cartaoId&&getCompetenciaF
             </div>
         </li>`;
     });
+    aplicarDestaqueBusca();
 }
 
 // Lançar pagamento de fatura
@@ -3418,6 +3514,205 @@ function atualizarFluxoCaixaFuturo(dias=15){
     });
 }
 
+function gerarInsightsCurtos(mes, ano){
+    const resumo=calcularResumoDashboard(transacoes, mes, ano);
+    const score=calcularScoreSaudeFinanceira(mes, ano);
+    const competencia=`${ano}-${String(mes).padStart(2,'0')}`;
+    const pendencias=resumo.todas.filter(t=>t.tipo==='despesa' && t.status==='pendente').length;
+    const topCat=Object.entries(resumo.porCategoria||{}).sort((a,b)=>b[1]-a[1])[0] || null;
+    const comprasCartao=cartoes.reduce((sum,c)=>{
+        const total=transacoes
+            .filter(t=>t.cartaoId===c.id && isCompraCartao(t) && getCompetenciaFaturaTransacao(t)===competencia)
+            .reduce((s,t)=>s+t.valor,0);
+        return sum+total;
+    },0);
+    const insights=[];
+    if(pendencias>0){
+        insights.push({
+            cor:'amber',
+            titulo:'Pendencias abertas',
+            detalhe:`${pendencias} conta(s) ainda pedem revisao neste periodo.`,
+            acao:'extrato'
+        });
+    }else{
+        insights.push({
+            cor:'emerald',
+            titulo:'Periodo limpo',
+            detalhe:'Nao ha pendencias abertas no mes selecionado.',
+            acao:'extrato'
+        });
+    }
+    if(topCat){
+        insights.push({
+            cor:'blue',
+            titulo:'Maior peso do mes',
+            detalhe:`${topCat[0]} lidera com ${fmt(topCat[1])}.`,
+            acao:'extrato'
+        });
+    }else{
+        insights.push({
+            cor:'slate',
+            titulo:'Sem categoria dominante',
+            detalhe:'Ainda nao ha gasto confirmado suficiente para destacar uma categoria.',
+            acao:'extrato'
+        });
+    }
+    if(comprasCartao>0){
+        insights.push({
+            cor:'rose',
+            titulo:'Fatura em formacao',
+            detalhe:`Compras no cartao somam ${fmt(comprasCartao)} nesta competencia.`,
+            acao:'cartoes'
+        });
+    }else{
+        insights.push({
+            cor:'emerald',
+            titulo:'Cartao sob controle',
+            detalhe:'Nao ha compras relevantes puxando a fatura selecionada.',
+            acao:'cartoes'
+        });
+    }
+    insights.push({
+        cor:score.total>=70?'emerald':score.total>=55?'amber':'rose',
+        titulo:'Saude financeira',
+        detalhe:`Score atual ${score.total}/100 · ${score.nivel}.`
+    });
+    insights[insights.length-1].acao='insights';
+    return insights.slice(0,3);
+}
+
+function atualizarInsightsCurtos(mes, ano){
+    const host=$id('insights-curtos-grid');
+    if(!host) return;
+    const mapa={
+        emerald:'bg-emerald-50 border-emerald-100 text-emerald-700',
+        amber:'bg-amber-50 border-amber-100 text-amber-700',
+        blue:'bg-blue-50 border-blue-100 text-blue-700',
+        rose:'bg-rose-50 border-rose-100 text-rose-600',
+        slate:'bg-slate-50 border-slate-200 text-slate-700'
+    };
+    host.innerHTML='';
+    gerarInsightsCurtos(mes, ano).forEach(item=>{
+        const cls=mapa[item.cor]||mapa.slate;
+        host.innerHTML+=`<button type="button" onclick="abrirInsightCurto('${item.acao||'insights'}')" class="rounded-2xl border p-3 sm:p-4 ${cls} text-left w-full hover:shadow-sm active:scale-[0.99] transition">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-[10px] font-black uppercase tracking-wider opacity-80">${item.titulo}</p>
+                    <p class="text-sm font-medium mt-1.5 leading-snug">${item.detalhe}</p>
+                </div>
+                <span class="shrink-0 text-[10px] font-black uppercase opacity-65">abrir</span>
+            </div>
+        </button>`;
+    });
+}
+
+function normalizarBusca(str=''){
+    return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+
+function agendarDestaqueBusca(tipo,id){
+    _buscaHighlightTarget={tipo,id};
+}
+
+function aplicarDestaqueBusca(){
+    if(!_buscaHighlightTarget) return;
+    const seletor=`[data-search-type="${_buscaHighlightTarget.tipo}"][data-search-id="${_buscaHighlightTarget.id}"]`;
+    const el=document.querySelector(seletor);
+    if(!el) return;
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.classList.add('result-highlight');
+    window.setTimeout(()=>el.classList.remove('result-highlight'),1800);
+    _buscaHighlightTarget=null;
+}
+
+function buscarGlobalmente(query){
+    const q=normalizarBusca(query);
+    if(!q || q.length<2) return [];
+    const resultados=[];
+    transacoes.forEach(t=>{
+        const alvo=normalizarBusca([t.desc,t.categoria,t.data,(t.tags||[]).join(' ')].join(' '));
+        if(alvo.includes(q)){
+            resultados.push({tipo:'transacao', id:t.id, titulo:t.desc||'Lancamento', detalhe:`${fmtData(t.data)} · ${t.categoria||'Sem categoria'} · ${fmt(t.valor)}`});
+        }
+    });
+    contas.forEach(c=>{
+        const alvo=normalizarBusca([c.nome,c.tipo].join(' '));
+        if(alvo.includes(q)){
+            resultados.push({tipo:'conta', id:c.id, titulo:c.nome, detalhe:`Conta · ${(c.tipo||'').replace(/^./,m=>m.toUpperCase())}`});
+        }
+    });
+    cartoes.forEach(c=>{
+        const alvo=normalizarBusca([c.nome,'cartao credito'].join(' '));
+        if(alvo.includes(q)){
+            resultados.push({tipo:'cartao', id:c.id, titulo:c.nome, detalhe:`Cartao · limite ${fmt(c.limite||0)}`});
+        }
+    });
+    recorrentes.forEach(r=>{
+        const alvo=normalizarBusca([r.desc,r.categoria,(r.tags||[]).join(' ')].join(' '));
+        if(alvo.includes(q)){
+            resultados.push({tipo:'recorrente', id:r.id, titulo:r.desc, detalhe:`Recorrente · dia ${r.dia||'--'} · ${fmt(r.valor)}`});
+        }
+    });
+    const filtrados=_globalSearchTipo==='todos' ? resultados : resultados.filter(r=>r.tipo===_globalSearchTipo);
+    return filtrados.slice(0,20);
+}
+
+function atualizarBuscaGlobal(){
+    const lista=$id('global-search-results');
+    const vazio=$id('global-search-empty');
+    const meta=$id('global-search-meta');
+    document.querySelectorAll('.search-filter-btn').forEach(btn=>{
+        const ativo=btn.dataset.searchFilter===_globalSearchTipo;
+        btn.className=ativo
+            ? 'search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-black bg-slate-900 text-white'
+            : 'search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500';
+    });
+    const resultados=buscarGlobalmente(_globalSearchQuery);
+    lista.innerHTML='';
+    if(!_globalSearchQuery || _globalSearchQuery.trim().length<2){
+        meta.innerText='Digite pelo menos 2 letras para buscar em todo o app.';
+        vazio.classList.remove('hidden');
+        lista.classList.add('hidden');
+        vazio.innerText='Nenhum resultado por enquanto.';
+        return;
+    }
+    meta.innerText=`${resultados.length} resultado(s) para "${_globalSearchQuery}"${_globalSearchTipo==='todos'?'':' · filtro ativo'}.`;
+    if(!resultados.length){
+        vazio.classList.remove('hidden');
+        lista.classList.add('hidden');
+        vazio.innerText='Nada encontrado com esse termo.';
+        return;
+    }
+    vazio.classList.add('hidden');
+    lista.classList.remove('hidden');
+    resultados.forEach(item=>{
+        const chip=item.tipo==='transacao'?'Lancamento':item.tipo==='conta'?'Conta':item.tipo==='cartao'?'Cartao':'Recorrente';
+        lista.innerHTML+=`<button type="button" onclick="abrirResultadoBusca('${item.tipo}','${item.id}')" class="w-full text-left px-4 py-3 hover:bg-gray-50 transition">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="font-black text-sm text-gray-800 truncate">${item.titulo}</p>
+                    <p class="text-xs text-gray-400 mt-1 truncate">${item.detalhe}</p>
+                </div>
+                <span class="shrink-0 px-2 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-600">${chip}</span>
+            </div>
+        </button>`;
+    });
+}
+
+window.abrirResultadoBusca=(tipo,id)=>{
+    $id('modal-global-search').classList.add('hidden');
+    if(tipo==='transacao') return window.abrirEditar(id);
+    if(tipo==='recorrente'){ agendarDestaqueBusca('recorrente',id); setTab('recorrentes'); return window.setTimeout(aplicarDestaqueBusca,120); }
+    if(tipo==='conta'){ agendarDestaqueBusca('conta',id); setTab('contas'); return window.setTimeout(aplicarDestaqueBusca,120); }
+    if(tipo==='cartao'){ agendarDestaqueBusca('cartao',id); setTab('cartoes'); return window.setTimeout(aplicarDestaqueBusca,120); }
+};
+window.abrirInsightCurto=acao=>{
+    if(acao==='cartoes') return setTab('cartoes');
+    if(acao==='insights') return setTab('insights');
+    setTab('operacao');
+    $id('lista-transacoes')?.scrollIntoView({behavior:'smooth',block:'start'});
+};
+
 
 function atualizarDashboard(){
     const mS=parseInt($id('filtro-mes').value), aS=parseInt($id('filtro-ano').value);
@@ -3427,6 +3722,8 @@ function atualizarDashboard(){
     const rR=resumoDashboard.receitasConfirmadas, dR=resumoDashboard.despesasConfirmadas, rP=resumoDashboard.receitasPendentes, dP=resumoDashboard.despesasPendentes;
     $id('val-receitas').innerText=fmt(rR); $id('val-receitas-pend').innerText=fmt(rP);
     $id('val-despesas').innerText=fmt(dR); $id('val-despesas-pend').innerText=fmt(dP);
+    atualizarPodeGastarHoje(mS, aS);
+    atualizarInsightsCurtos(mS, aS);
     atualizarScoreSaudeFinanceira(mS, aS);
     atualizarFechamentoMensalGuiado(mS, aS);
     // Saldo do mês (receitas confirmadas - despesas confirmadas)
@@ -4196,7 +4493,7 @@ function atualizarCentralRecorrentes(){
                 ? `<button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">Reativar</button>
                    <button onclick="arquivarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Arquivar</button>`
                 : `<button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Restaurar</button>`;
-        lista.innerHTML+=`<div class="rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
+        lista.innerHTML+=`<div data-search-type="recorrente" data-search-id="${rec.id}" class="rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
@@ -4223,6 +4520,7 @@ function atualizarCentralRecorrentes(){
             </div>
         </div>`;
     });
+    aplicarDestaqueBusca();
 }
 
 function getInicioRecorrencia(rec){
@@ -4776,3 +5074,5 @@ window.addEventListener('appinstalled', () => {
 </script>
 </body>
 </html>
+
+
