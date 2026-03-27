@@ -358,100 +358,167 @@ async function verificarEDisparar(){
         .fatura-paga    { background:#d1fae5;color:#065f46; }
 
         /* ── DARK MODE ── */
-        :root{--bg:#f8fafc;--bg2:#ffffff;--bg3:#f1f5f9;--border:#e5e7eb;--text:#1e293b;--text2:#64748b;--text3:#94a3b8;--nav-bg:#ffffff;--input-bg:#f8fafc;--card-bg:#ffffff;}
-        .dark{--bg:#0f172a;--bg2:#1e293b;--bg3:#111827;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--nav-bg:#1e293b;--input-bg:#0f172a;--card-bg:#1e293b;}
-        html.dark body{background:var(--bg)!important;color:var(--text)!important;}
-        html.dark .bg-white{background:var(--card-bg)!important;}
-        html.dark .bg-gray-50,html.dark .bg-gray-50{background:var(--bg3)!important;}
-        html.dark .bg-gray-100,html.dark .bg-gray-100{background:var(--bg2)!important;}
-        html.dark .border-gray-100,html.dark .border-gray-200{border-color:var(--border)!important;}
-        html.dark .text-gray-800,html.dark .text-gray-900{color:var(--text)!important;}
-        html.dark .text-gray-600,html.dark .text-gray-700{color:var(--text2)!important;}
-        html.dark .text-gray-400,html.dark .text-gray-500{color:var(--text3)!important;}
-        html.dark nav{background:var(--nav-bg)!important;border-color:var(--border)!important;}
-        /* No dark mode, a safe area acima da nav também fica escura */
-        html.dark body { background-color: var(--nav-bg); }
-        html.dark nav.sticky { background-color: var(--nav-bg) !important; }
-        html.dark .input-field{background:var(--input-bg)!important;border-color:var(--border)!important;color:var(--text)!important;}
-        html.dark select option{background:var(--bg2);color:var(--text);}
-        html.dark .tab-inactive{color:#475569!important;}
-        html.dark .tab-active{color:#60a5fa!important;border-color:#3b82f6!important;}
-        html.dark .bg-amber-50{background:#1c1409!important;}
-        html.dark .bg-emerald-50{background:#052e16!important;}
-        html.dark .bg-rose-50{background:#1c0a09!important;}
-        html.dark .bg-blue-50{background:#0c1a2e!important;}
-        html.dark .bg-blue-50{background:#0d1117!important;}
-        html.dark .bg-rose-50{background:#1c0a09!important;}
-        html.dark .bg-blue-50-rec{background:#130b1e!important;}
-        html.dark .bg-gray-50{background:var(--bg3)!important;}
-        html.dark .divide-gray-50>*{border-color:var(--border)!important;}
-        html.dark .shadow-sm{box-shadow:0 1px 3px rgba(0,0,0,.4)!important;}
+        :root{
+            --bg:#f8fafc;
+            --bg2:#ffffff;
+            --bg3:#f1f5f9;
+            --border:#e5e7eb;
+            --text:#1e293b;
+            --text2:#64748b;
+            --text3:#94a3b8;
+            --nav-bg:#ffffff;
+            --input-bg:#f8fafc;
+            --card-bg:#ffffff;
+            --card-bg-elev:#ffffff;
+        }
+        .dark{
+            --bg:#08111d;
+            --bg2:#0d1728;
+            --bg3:#122033;
+            --border:rgba(148,163,184,.16);
+            --text:#e8eef9;
+            --text2:#a7b4ca;
+            --text3:#70819b;
+            --nav-bg:rgba(7,13,24,.78);
+            --input-bg:#091120;
+            --card-bg:rgba(12,21,36,.88);
+            --card-bg-elev:rgba(15,27,46,.96);
+        }
         html.dark body{
+            color:var(--text)!important;
             background:
-                radial-gradient(circle at top left, rgba(56,189,248,.08), transparent 24%),
-                radial-gradient(circle at 85% 12%, rgba(37,99,235,.10), transparent 20%),
-                linear-gradient(180deg,#08111f 0%,#0f172a 48%,#111827 100%)!important;
+                radial-gradient(circle at 12% 0%, rgba(59,130,246,.18), transparent 22%),
+                radial-gradient(circle at 88% 10%, rgba(56,189,248,.10), transparent 24%),
+                linear-gradient(180deg,#06101c 0%,#091423 42%,#0d1728 100%)!important;
         }
         html.dark #dashboard-screen{
             background:
-                radial-gradient(circle at top left, rgba(56,189,248,.05), transparent 24%),
-                radial-gradient(circle at right 12%, rgba(37,99,235,.06), transparent 22%);
+                radial-gradient(circle at top left, rgba(59,130,246,.08), transparent 26%),
+                radial-gradient(circle at right 10%, rgba(14,165,233,.08), transparent 24%);
         }
-        html.dark #dashboard-screen::before{ background:rgba(30,64,175,.18); }
-        html.dark #dashboard-screen::after{ background:rgba(14,165,233,.12); }
+        html.dark #dashboard-screen::before{ background:rgba(37,99,235,.18); }
+        html.dark #dashboard-screen::after{ background:rgba(8,145,178,.12); }
+        html.dark .bg-white{
+            background:linear-gradient(180deg,var(--card-bg-elev) 0%, var(--card-bg) 100%)!important;
+        }
+        html.dark .bg-gray-50{ background:#0f1a2b!important; }
+        html.dark .bg-gray-100{ background:#131f31!important; }
+        html.dark .border-gray-100,
+        html.dark .border-gray-200{ border-color:var(--border)!important; }
+        html.dark .text-gray-800,
+        html.dark .text-gray-900{ color:var(--text)!important; }
+        html.dark .text-gray-600,
+        html.dark .text-gray-700{ color:var(--text2)!important; }
+        html.dark .text-gray-400,
+        html.dark .text-gray-500{ color:var(--text3)!important; }
+        html.dark .divide-gray-50>*{ border-color:var(--border)!important; }
         html.dark nav.bg-white{
-            background:rgba(15,23,42,.82)!important;
-            border-color:rgba(51,65,85,.85)!important;
-            box-shadow:0 16px 36px rgba(0,0,0,.28)!important;
+            background:rgba(7,13,24,.72)!important;
+            border-color:rgba(148,163,184,.12)!important;
+            box-shadow:0 18px 44px rgba(0,0,0,.34)!important;
+            backdrop-filter:blur(24px);
+            -webkit-backdrop-filter:blur(24px);
         }
         html.dark .bg-white.rounded-2xl,
         html.dark .bg-white.rounded-xl,
         html.dark .modal-inner,
         html.dark #confirm-modal .bg-white,
         html.dark #notif-dropdown{
-            border-color:rgba(51,65,85,.88)!important;
-            box-shadow:0 16px 38px rgba(0,0,0,.26)!important;
+            border-color:rgba(148,163,184,.14)!important;
+            box-shadow:0 22px 54px rgba(0,0,0,.32)!important;
         }
-        html.dark button.bg-white.text-slate-900,
-        html.dark button.border-gray-200,
+        html.dark .shadow-sm{ box-shadow:0 14px 30px rgba(0,0,0,.26)!important; }
+        html.dark .input-field{
+            background:linear-gradient(180deg,#091120 0%,#0d1626 100%)!important;
+            border-color:rgba(148,163,184,.14)!important;
+            color:var(--text)!important;
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.02), 0 1px 0 rgba(255,255,255,.01);
+        }
+        html.dark .input-field::placeholder{ color:#5f738f!important; }
+        html.dark .input-field:focus{
+            border-color:rgba(96,165,250,.48)!important;
+            box-shadow:0 0 0 4px rgba(59,130,246,.16), inset 0 1px 0 rgba(255,255,255,.02)!important;
+        }
+        html.dark select option{ background:#0d1728; color:var(--text); }
+        html.dark .tab-inactive{ color:#5f6e86!important; }
+        html.dark .tab-active{ color:#dbeafe!important; border-color:#3b82f6!important; }
+        html.dark .tab-fade-right::after{ background:linear-gradient(to right,transparent,#08111d); }
+        html.dark #extrato-sort{ background:#0d1728; border-color:var(--border); color:var(--text2); }
         html.dark #btn-privacy,
-        html.dark #btn-dark{
-            box-shadow:0 10px 24px rgba(0,0,0,.22)!important;
+        html.dark #btn-dark,
+        html.dark .premium-icon-btn,
+        html.dark button.bg-white.text-slate-900,
+        html.dark button.border-gray-200{
+            background:linear-gradient(180deg,#111c30 0%,#0c1525 100%)!important;
+            color:var(--text)!important;
+            border:1px solid rgba(148,163,184,.14)!important;
+            box-shadow:0 12px 26px rgba(0,0,0,.26)!important;
         }
-        html.dark .bg-gradient-to-r.from-violet-600{/* keep gradient */}
-        /* dark: tab bar border */
-        html.dark .border-gray-200{ border-color:var(--border)!important; }
-        /* dark: modal backgrounds */
-        html.dark .modal-inner{ background:var(--card-bg)!important; }
-        html.dark #confirm-modal .bg-white{ background:var(--card-bg)!important; }
-        /* dark: input inside modal */
-        html.dark .bg-blue-50.border-blue-200{ background:#0c1a2e!important; border-color:#1e40af!important; }
-        html.dark .bg-rose-50.border-rose-200{ background:#1c0a09!important; border-color:#9f1239!important; }
-        /* dark: text in modals */
-        html.dark .text-gray-800{ color:var(--text)!important; }
-        /* dark: vencimentos card */
-        html.dark .bg-amber-50.border-amber-100{ background:#1c1409!important; border-color:#92400e!important; }
-        /* dark: login screen keeps its gradient */
-        html.dark #login-screen{ background:unset; }
-        /* dark: notif dropdown */
-        html.dark #notif-dropdown{ background:var(--card-bg)!important; border-color:var(--border)!important; }
-        html.dark #notif-dropdown .bg-gray-50{ background:var(--bg2)!important; }
-        /* dark: insight cards in analytics */
-        html.dark .bg-blue-50.border-blue-100{ background:#0d1117!important; }
-        html.dark .bg-rose-50.border-rose-100{ background:#1c0a09!important; }
-        html.dark .text-blue-900{ color:#a5b4fc!important; }
-        html.dark .text-rose-900{ color:#fda4af!important; }
-        /* dark: quick buttons */
-        html.dark .quick-btn{ filter:brightness(.85); }
-        /* dark: paginação */
-        html.dark .border-gray-200 button{ background:var(--bg2); color:var(--text2); border-color:var(--border); }
-        /* dark: saldo mini chips */
-        html.dark .border-gray-100.bg-white.shadow-sm{ background:var(--bg2)!important; border-color:var(--border)!important; }
-        /* dark: extrato items */
-        html.dark .border-gray-100.bg-white{ background:var(--card-bg)!important; }
-        html.dark .border-amber-200.bg-amber-50{ background:#1c1409!important; border-color:#78350f!important; }
-        /* dark: confirm modal */
-        html.dark #confirm-modal .border-gray-200{ border-color:var(--border)!important; color:var(--text2)!important; background:var(--bg2)!important; }
+        html.dark .bg-amber-50{ background:rgba(120,53,15,.18)!important; }
+        html.dark .bg-emerald-50{ background:rgba(6,95,70,.18)!important; }
+        html.dark .bg-rose-50{ background:rgba(136,19,55,.18)!important; }
+        html.dark .bg-blue-50{ background:rgba(29,78,216,.16)!important; }
+        html.dark .bg-slate-50{ background:#0d1829!important; }
+        html.dark .bg-amber-50.border-amber-100{ border-color:rgba(217,119,6,.24)!important; }
+        html.dark .bg-emerald-50.border-emerald-100{ border-color:rgba(16,185,129,.22)!important; }
+        html.dark .bg-rose-50.border-rose-100,
+        html.dark .bg-rose-50.border-rose-200{ border-color:rgba(244,63,94,.20)!important; }
+        html.dark .bg-blue-50.border-blue-100,
+        html.dark .bg-blue-50.border-blue-200{ border-color:rgba(59,130,246,.22)!important; }
+        html.dark .border-amber-200.bg-amber-50{ background:rgba(120,53,15,.18)!important; border-color:rgba(217,119,6,.24)!important; }
+        html.dark .border-gray-100.bg-white,
+        html.dark .border-gray-100.bg-white.shadow-sm{ background:linear-gradient(180deg,var(--card-bg-elev) 0%, var(--card-bg) 100%)!important; }
+        html.dark .text-blue-900{ color:#c7d2fe!important; }
+        html.dark .text-rose-900{ color:#fecdd3!important; }
+        html.dark #notif-dropdown{ background:linear-gradient(180deg,#0f1a2d 0%, #0b1424 100%)!important; }
+        html.dark #notif-dropdown .bg-gray-50{ background:#0b1424!important; }
+        html.dark #confirm-modal .border-gray-200{ border-color:var(--border)!important; color:var(--text2)!important; background:#101b2d!important; }
+        html.dark .quick-btn{ filter:brightness(.92) saturate(1.04); }
+        html.dark body.privacy-on .mono,
+        html.dark body.privacy-on [data-sensitive="true"]{
+            text-shadow:0 0 12px rgba(15,23,42,.92), 0 0 20px rgba(59,130,246,.18);
+        }
+        html.dark #login-screen{
+            background:
+                radial-gradient(circle at 18% 12%, rgba(59,130,246,.18), transparent 22%),
+                radial-gradient(circle at 82% 8%, rgba(56,189,248,.12), transparent 26%),
+                linear-gradient(180deg,#060d19 0%,#08111d 44%,#0d1728 100%)!important;
+        }
+        html.dark #login-screen [class*="bg-white/95"]{
+            background:linear-gradient(180deg,rgba(10,18,32,.88) 0%, rgba(12,22,38,.94) 100%)!important;
+            border-color:rgba(148,163,184,.14)!important;
+            box-shadow:0 32px 90px rgba(0,0,0,.42)!important;
+        }
+        html.dark #login-screen [class*="bg-white/90"]{
+            background:rgba(15,27,46,.88)!important;
+            border-color:rgba(148,163,184,.12)!important;
+            color:#c8d4e7!important;
+        }
+        html.dark #login-screen .text-slate-900{ color:#f4f8ff!important; }
+        html.dark #login-screen .text-slate-500{ color:#7f92ad!important; }
+        html.dark #login-screen .text-gray-500{ color:#8ca0bc!important; }
+        html.dark #login-screen .text-gray-400{ color:#6d7f99!important; }
+        html.dark #login-screen .bg-white\/10{ background:rgba(255,255,255,.06)!important; }
+        html.dark #tab-login,
+        html.dark #tab-cadastro{
+            background:linear-gradient(180deg,#121d31 0%,#0d1626 100%)!important;
+            color:#8ea2bf!important;
+            box-shadow:none!important;
+        }
+        html.dark #tab-login.tab-on,
+        html.dark #tab-cadastro.tab-on{
+            background:linear-gradient(180deg,#1a2942 0%,#13213a 100%)!important;
+            color:#f8fbff!important;
+            box-shadow:0 12px 28px rgba(2,8,23,.30)!important;
+        }
+        html.dark #btn-register{
+            background:linear-gradient(180deg,#131f33 0%,#0d1728 100%)!important;
+            color:#edf4ff!important;
+            border-color:rgba(148,163,184,.14)!important;
+        }
+        html.dark #btn-login{
+            box-shadow:0 18px 40px rgba(37,99,235,.30)!important;
+        }
         /* tab bar fade indicator on mobile */
         .tab-fade-right::after{
             content:'';position:absolute;right:0;top:0;bottom:0;width:24px;
@@ -614,7 +681,7 @@ async function verificarEDisparar(){
 
         <!-- Abas Login / Cadastro -->
         <div class="flex bg-slate-100/90 rounded-2xl p-1.5 mb-6 gap-1 border border-slate-200/80 shadow-inner">
-            <button id="tab-login" class="flex-1 py-2.5 rounded-xl text-sm font-black bg-white text-slate-900 shadow-sm shadow-slate-200/70 transition">Entrar</button>
+            <button id="tab-login" class="tab-on flex-1 py-2.5 rounded-xl text-sm font-black bg-white text-slate-900 shadow-sm shadow-slate-200/70 transition">Entrar</button>
             <button id="tab-cadastro" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-400 transition hover:text-slate-600">Criar Conta</button>
         </div>
 
@@ -2173,14 +2240,14 @@ onAuthStateChanged(auth, user=>{
 
 // ── ABAS LOGIN / CADASTRO ────────────────────────────────────────────────────
 $id('tab-login').addEventListener('click',()=>{
-    $id('tab-login').className='flex-1 py-2.5 rounded-xl text-sm font-black bg-white text-slate-900 shadow-sm shadow-slate-200/70 transition';
+    $id('tab-login').className='tab-on flex-1 py-2.5 rounded-xl text-sm font-black bg-white text-slate-900 shadow-sm shadow-slate-200/70 transition';
     $id('tab-cadastro').className='flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-400 transition hover:text-slate-600';
     $id('auth-form-login').classList.remove('hidden');
     $id('auth-form-cadastro').classList.add('hidden');
     $id('login-error').classList.add('hidden');
 });
 $id('tab-cadastro').addEventListener('click',()=>{
-    $id('tab-cadastro').className='flex-1 py-2.5 rounded-xl text-sm font-black bg-white text-slate-900 shadow-sm shadow-slate-200/70 transition';
+    $id('tab-cadastro').className='tab-on flex-1 py-2.5 rounded-xl text-sm font-black bg-white text-slate-900 shadow-sm shadow-slate-200/70 transition';
     $id('tab-login').className='flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-400 transition hover:text-slate-600';
     $id('auth-form-cadastro').classList.remove('hidden');
     $id('auth-form-login').classList.add('hidden');
