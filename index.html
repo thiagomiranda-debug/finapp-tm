@@ -1140,7 +1140,8 @@ async function verificarEDisparar(){
                     </div>
                 </div>
                 <div class="bg-amber-50 rounded-2xl shadow-sm p-4 sm:p-5 border border-amber-100">
-                    <h2 class="text-xs font-black text-amber-700 uppercase tracking-wider mb-3">⏳ Vencimentos</h2>
+                    <h2 class="text-xs font-black text-amber-700 uppercase tracking-wider mb-1">⏳ Alerta de Vencimento</h2>
+                    <p class="text-[11px] text-amber-700/70 mb-3 font-medium">Próximas 48h</p>
                     <ul class="space-y-2.5 max-h-[400px] overflow-y-auto" id="lista-vencimentos"></ul>
                 </div>
             </div>
@@ -1842,6 +1843,11 @@ const mesAtual=new Date().getMonth()+1, anoAtual=new Date().getFullYear();
 const fmt      = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 const fmtData  = d => d ? d.split('-').reverse().join('/') : '';
 const hojeStr  = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const parseDataLocal = dataStr => {
+    if(!dataStr || !/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) return null;
+    const [ano,mes,dia]=dataStr.split('-').map(Number);
+    return new Date(ano, mes-1, dia);
+};
 const hasTag = (obj, tag) => (obj?.tags||[]).includes(tag);
 const isPagamentoFatura = t => t?.tipoRegistro==='pagamento-fatura' || hasTag(t,'pagamento-fatura');
 const isBaixaManualFatura = t => hasTag(t,'baixa-fatura-manual') || (
@@ -1856,6 +1862,12 @@ const isTransacaoCartao = t => isCompraCartao(t) || isPagamentoFatura(t);
 const isRecorrenciaMaterializada = t => !!t?.recorrenteId || hasTag(t,'recorrente');
 const getCompetencia = dataStr => dataStr ? dataStr.slice(0,7) : '';
 const formatDateLocal = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const isAlertaVencimentoAtivo = (dataStr, agora=new Date()) => {
+    const venc=parseDataLocal(dataStr);
+    if(!venc || Number.isNaN(venc.getTime())) return false;
+    const limite=new Date(agora.getTime() + 28*60*60*1000);
+    return venc <= limite;
+};
 const addMonthsClamped = (dataStr, offset) => {
     const [ano,mes,dia]=dataStr.split('-').map(Number);
     const mesBase=(mes-1)+offset;
@@ -3775,15 +3787,22 @@ function atualizarDashboard(){
         $id('pct-comprometido-label').innerText=pct.toFixed(0)+'%';
         $id('comprometimento-msg').innerText=pct>=90?`🚨 ${pct.toFixed(1)}% da renda comprometida!`:pct>=80?`⚠️ ${pct.toFixed(1)}% da renda em despesas.`:`✅ ${pct.toFixed(1)}% — dentro do esperado.`;
     }else{ $id('barra-comprometimento').style.width='0%'; $id('pct-comprometido-label').innerText='—'; $id('comprometimento-msg').innerText='Sem receitas confirmadas neste mês.'; }
-    // Vencimentos
-    const vencs=todas.filter(t=>t.tipo==='despesa'&&t.status==='pendente');
+    // Alertas de vencimento: só pendências urgentes dentro da janela de 28h
+    const agoraRef=new Date();
+    const vencs=todas.filter(t=>t.tipo==='despesa' && t.status==='pendente' && isAlertaVencimentoAtivo(t.data, agoraRef));
     const lv=$id('lista-vencimentos'); lv.innerHTML='';
-    if(!vencs.length){ lv.innerHTML='<p class="text-xs text-amber-600 py-2 text-center">Sem pendências 🎉</p>'; }
+    if(!vencs.length){ lv.innerHTML='<p class="text-xs text-amber-600 py-2 text-center">Nenhum vencimento crítico nas próximas 48h.</p>'; }
     vencs.sort((a,b)=>a.data.localeCompare(b.data)).forEach(t=>{
         const at=t.data<hojeStr();
+        const vencLocal=parseDataLocal(t.data);
+        const diffHoras=vencLocal ? Math.round((vencLocal - agoraRef)/36e5) : null;
+        const etiquetaTempo=at ? 'Atrasado' : (diffHoras!==null && diffHoras<=0 ? 'Hoje' : `Até ${Math.max(1,diffHoras)}h`);
         lv.innerHTML+=`<li class="p-3 rounded-xl border ${at?'bg-rose-50 border-rose-200':'bg-white border-amber-200'} shadow-sm">
             <div class="flex justify-between items-start gap-2 mb-1"><span class="font-bold text-gray-800 text-sm leading-tight">${t.desc}</span><span class="text-rose-600 font-black text-sm mono shrink-0">${fmt(t.valor)}</span></div>
-            <div class="flex justify-between items-center"><span class="text-xs ${at?'text-rose-500 font-bold':'text-gray-400'}">📅 ${fmtData(t.data)}</span><button onclick="alterarStatus('${t.id}','confirmada')" class="text-xs bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold active:scale-90 transition">PAGO</button></div>
+            <div class="flex justify-between items-center gap-2">
+                <span class="text-xs ${at?'text-rose-500 font-bold':'text-gray-400'}">📅 ${fmtData(t.data)}</span>
+                <span class="text-[10px] px-2 py-1 rounded-full font-black ${at?'bg-rose-100 text-rose-600':'bg-amber-50 text-amber-700 border border-amber-100'}">${etiquetaTempo}</span>
+            </div>
         </li>`;
     });
     // Extrato paginado
@@ -3857,9 +3876,9 @@ function atualizarDashboard(){
                     <span class="${valorCor} font-black text-lg sm:text-xl mono shrink-0 leading-tight">${isRec?'+':isTransf?'':'-'}${fmt(t.valor)}</span>
                 </div>
                 ${tagHtml?`<div class="flex flex-wrap gap-1 mt-1.5">${tagHtml}</div>`:''}
-                ${!isTransf?`<div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-black/5 justify-end">
+                ${!isTransf?`<div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-black/5 justify-end flex-wrap">
                     ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] active:scale-90 transition">✔ Confirmar</button>`
-                         :`<button onclick="alterarStatus('${t.id}','pendente')" class="text-[11px] text-gray-300 hover:text-amber-500 px-2 py-1 rounded-lg hover:bg-amber-50 transition">↩</button>`}
+                         :`<span class="text-[10px] px-2 py-1 rounded-full font-black ${isRec?'bg-emerald-50 text-emerald-700 border border-emerald-100':'bg-rose-50 text-rose-600 border border-rose-100'}">${isRec?'RECEBIDO':'PAGO'}</span><button onclick="alterarStatus('${t.id}','pendente')" class="text-[11px] text-gray-300 hover:text-amber-500 px-2 py-1 rounded-lg hover:bg-amber-50 transition">↩</button>`}
                     <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-2.5 py-1 rounded-lg font-bold text-[11px] hover:bg-blue-100 active:scale-90 transition">Editar</button>
                     <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-2.5 py-1 rounded-lg font-bold text-[11px] hover:bg-rose-100 active:scale-90 transition">Excluir</button>
                 </div>`:''}
