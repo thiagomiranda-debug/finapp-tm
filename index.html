@@ -943,77 +943,179 @@ async function verificarEDisparar(){
 </div>
 
 <!-- Onboarding -->
-<div id="onboarding-screen" class="hidden fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 z-[400] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md fade-in overflow-hidden">
+<div id="onboarding-screen" class="hidden fixed inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,.22),_transparent_38%),linear-gradient(135deg,#07111f_0%,#0b1730_45%,#050c18_100%)] z-[400] flex items-center justify-center p-4">
+    <div class="bg-[linear-gradient(180deg,rgba(255,255,255,.98)_0%,rgba(246,250,255,.96)_100%)] rounded-[2rem] shadow-[0_36px_90px_rgba(2,8,23,.42)] w-full max-w-md fade-in overflow-hidden border border-white/70 backdrop-blur-sm">
         <!-- Barra de progresso -->
-        <div class="flex gap-1 p-4">
-            <div id="ob-step-1" class="h-1.5 flex-1 rounded-full bg-blue-600 transition-all"></div>
-            <div id="ob-step-2" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all"></div>
-            <div id="ob-step-3" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all"></div>
-            <div id="ob-step-4" class="h-1.5 flex-1 rounded-full bg-gray-200 transition-all"></div>
+        <div class="px-5 pt-5 pb-3">
+            <div class="flex items-center justify-between mb-3">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-slate-200 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span class="text-[11px] font-black uppercase tracking-[.24em] text-slate-500">Onboarding rápido</span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-400">FinApp PRO</span>
+            </div>
+            <div class="flex gap-1.5">
+                <div id="ob-step-1" class="h-1.5 flex-1 rounded-full bg-blue-600 transition-all"></div>
+                <div id="ob-step-2" class="h-1.5 flex-1 rounded-full bg-slate-200 transition-all"></div>
+                <div id="ob-step-3" class="h-1.5 flex-1 rounded-full bg-slate-200 transition-all"></div>
+                <div id="ob-step-4" class="h-1.5 flex-1 rounded-full bg-slate-200 transition-all"></div>
+            </div>
         </div>
 
         <!-- Slides -->
-        <div id="ob-slides" class="relative overflow-hidden" style="min-height:380px">
+        <div id="ob-slides" class="relative overflow-hidden" style="min-height:430px">
 
             <!-- Slide 1 — Bem-vindo -->
-            <div id="ob-slide-1" class="ob-slide absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                <div class="w-24 h-24 bg-blue-600 rounded-3xl flex items-center justify-center text-5xl mb-6 shadow-xl">💰</div>
-                <h2 class="text-2xl font-black text-gray-900 mb-3">Bem-vindo ao FinApp PRO</h2>
-                <p class="text-gray-500 leading-relaxed">Sua inteligência financeira pessoal. Controle receitas, despesas, contas e evolua seu patrimônio — tudo num só lugar.</p>
-                <div class="mt-6 flex flex-wrap justify-center gap-2">
-                    <span class="px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold">📊 Dashboards</span>
-                    <span class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-xl text-xs font-bold">💳 Cartões</span>
-                    <span class="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-xl text-xs font-bold">🎯 Metas</span>
-                    <span class="px-3 py-1.5 bg-rose-100 text-rose-700 rounded-xl text-xs font-bold">📅 Calendário</span>
-                    <span class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold">🔁 Recorrentes</span>
+            <div id="ob-slide-1" class="ob-slide absolute inset-0 flex flex-col justify-center p-6 sm:p-8">
+                <div class="mx-auto w-24 h-24 rounded-[2rem] bg-[radial-gradient(circle_at_30%_30%,rgba(96,165,250,.95),rgba(37,99,235,.92)_45%,rgba(15,23,42,.96)_100%)] flex items-center justify-center shadow-[0_20px_50px_rgba(37,99,235,.35)] mb-6 ring-1 ring-white/80">
+                    <span class="text-5xl">💠</span>
+                </div>
+                <div class="text-center">
+                    <p class="text-[11px] font-black uppercase tracking-[.28em] text-blue-500 mb-2">Painel financeiro premium</p>
+                    <h2 class="text-[2rem] leading-none font-black text-slate-900">Seu controle em um só lugar</h2>
+                    <p class="text-slate-500 leading-relaxed mt-3">O FinApp PRO junta operação diária, cartões, fluxo futuro, recorrentes e leitura inteligente do mês com uma experiência leve no mobile.</p>
+                </div>
+                <div class="mt-6 grid grid-cols-2 gap-2.5">
+                    <div class="rounded-2xl border border-blue-100 bg-blue-50/80 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-[.18em] text-blue-500">Operacional</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1">Extrato e alertas rápidos</p>
+                    </div>
+                    <div class="rounded-2xl border border-emerald-100 bg-emerald-50/80 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-[.18em] text-emerald-600">Insights</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1">Score e fechamento guiado</p>
+                    </div>
+                    <div class="rounded-2xl border border-rose-100 bg-rose-50/80 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-[.18em] text-rose-500">Cartões</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1">Faturas, gráficos e responsáveis</p>
+                    </div>
+                    <div class="rounded-2xl border border-amber-100 bg-amber-50/80 px-3 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-[.18em] text-amber-600">Planejamento</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1">Calendário e fluxo futuro</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Slide 2 — Lançamentos -->
-            <div id="ob-slide-2" class="ob-slide absolute inset-0 hidden flex-col items-center justify-center text-center p-8">
-                <div class="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center text-4xl mb-6">📝</div>
-                <h2 class="text-2xl font-black text-gray-900 mb-3">Lance em segundos</h2>
-                <p class="text-gray-500 leading-relaxed mb-5">Toque no botão <strong class="text-blue-600">+</strong> para registrar qualquer entrada ou saída. Suporte a parcelamento, recorrentes automáticos e categorias personalizadas.</p>
-                <div class="bg-gray-50 rounded-2xl p-4 text-left w-full space-y-2.5">
-                    <div class="flex items-center gap-3"><span class="text-lg">💸</span><p class="text-sm text-gray-700 font-medium">Parcelamento em até 12x</p></div>
-                    <div class="flex items-center gap-3"><span class="text-lg">🔁</span><p class="text-sm text-gray-700 font-medium">Despesas recorrentes automáticas</p></div>
-                    <div class="flex items-center gap-3"><span class="text-lg">🏷️</span><p class="text-sm text-gray-700 font-medium">Categorias personalizadas</p></div>
+            <div id="ob-slide-2" class="ob-slide absolute inset-0 hidden flex-col justify-center p-6 sm:p-8">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-16 h-16 rounded-[1.4rem] bg-emerald-100 text-3xl flex items-center justify-center shadow-sm">⚡</div>
+                    <div>
+                        <p class="text-[11px] font-black uppercase tracking-[.24em] text-emerald-600">Lançamentos rápidos</p>
+                        <h2 class="text-2xl font-black text-slate-900 mt-1">Registre sem atrito</h2>
+                    </div>
+                </div>
+                <p class="text-slate-500 leading-relaxed mb-5">Use o botão <strong class="text-blue-600">+</strong> para lançar receitas, saídas, compras no cartão, pagamentos de fatura e recorrentes. O app já separa caixa real da competência do cartão.</p>
+                <div class="space-y-3">
+                    <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">💸</span>
+                            <div>
+                                <p class="text-sm font-black text-slate-800">Parcelamento e status</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Controle parcelas, pendências, recebidos e pagos no mesmo fluxo.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">🔁</span>
+                            <div>
+                                <p class="text-sm font-black text-slate-800">Central de recorrentes</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Crie, pause, arquive e acompanhe os próximos ciclos sem duplicidade.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">👤</span>
+                            <div>
+                                <p class="text-sm font-black text-slate-800">Responsáveis no cartão</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Classifique compras por pessoa e acompanhe subtotais na fatura.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Slide 3 — Patrimônio -->
-            <div id="ob-slide-3" class="ob-slide absolute inset-0 hidden flex-col items-center justify-center text-center p-8">
-                <div class="w-20 h-20 bg-blue-100 rounded-3xl flex items-center justify-center text-4xl mb-6">📈</div>
-                <h2 class="text-2xl font-black text-gray-900 mb-3">Acompanhe seu patrimônio</h2>
-                <p class="text-gray-500 leading-relaxed mb-5">Visualize a evolução do seu saldo mês a mês, compare receitas vs despesas e entenda para onde seu dinheiro vai.</p>
-                <div class="bg-slate-800 rounded-2xl p-4 text-white w-full">
-                    <p class="text-gray-400 text-xs font-bold uppercase mb-1">Patrimônio acumulado</p>
-                    <p class="text-3xl font-black text-emerald-400 mono">R$ 12.450,00</p>
-                    <p class="text-emerald-400 text-xs mt-1">↑ +8.3% vs mês anterior</p>
+            <!-- Slide 3 — Decisão diária -->
+            <div id="ob-slide-3" class="ob-slide absolute inset-0 hidden flex-col justify-center p-6 sm:p-8">
+                <div class="rounded-[1.8rem] bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_60%,#3b82f6_100%)] text-white p-5 shadow-[0_20px_50px_rgba(37,99,235,.24)]">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[.24em] text-blue-100/80">Decisão diária</p>
+                            <h2 class="text-2xl font-black mt-2">Pode gastar hoje</h2>
+                            <p class="text-blue-100/80 text-sm mt-2 leading-relaxed">Veja o espaço livre do período considerando contas, receitas previstas, saídas pendentes, metas e compromissos próximos.</p>
+                        </div>
+                        <span class="text-3xl">🧠</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2.5 mt-5">
+                        <div class="rounded-2xl bg-white/12 border border-white/10 px-3 py-3">
+                            <p class="text-[10px] font-black uppercase tracking-[.18em] text-blue-100/70">Fluxo futuro</p>
+                            <p class="text-sm font-black mt-1">Projeção dos próximos dias</p>
+                        </div>
+                        <div class="rounded-2xl bg-white/12 border border-white/10 px-3 py-3">
+                            <p class="text-[10px] font-black uppercase tracking-[.18em] text-blue-100/70">Insights curtos</p>
+                            <p class="text-sm font-black mt-1">Alertas e atalhos rápidos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5 mt-4">
+                    <div class="rounded-2xl border border-emerald-100 bg-emerald-50/80 px-3.5 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-[.18em] text-emerald-600">Calendário</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1">Saldo projetado e agenda do mês</p>
+                    </div>
+                    <div class="rounded-2xl border border-violet-100 bg-violet-50/80 px-3.5 py-3">
+                        <p class="text-[10px] font-black uppercase tracking-[.18em] text-violet-600">Busca global</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1">Ache lançamentos, contas e cartões rápido</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Slide 4 — Começar -->
-            <div id="ob-slide-4" class="ob-slide absolute inset-0 hidden flex-col items-center justify-center text-center p-8">
-                <div class="w-20 h-20 bg-amber-100 rounded-3xl flex items-center justify-center text-4xl mb-6">🚀</div>
-                <h2 class="text-2xl font-black text-gray-900 mb-3">Tudo pronto!</h2>
-                <p class="text-gray-500 leading-relaxed mb-5">Comece cadastrando suas contas bancárias. Isso permite que o app calcule seu saldo real e evolução patrimonial.</p>
-                <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-left w-full space-y-2">
-                    <p class="text-blue-700 font-black text-sm">💡 Sugestão de início:</p>
-                    <p class="text-blue-600 text-sm">1. Cadastre suas contas (Nubank, banco, carteira)</p>
-                    <p class="text-blue-600 text-sm">2. Lance suas receitas do mês</p>
-                    <p class="text-blue-600 text-sm">3. Registre suas despesas fixas como recorrentes</p>
+            <div id="ob-slide-4" class="ob-slide absolute inset-0 hidden flex-col justify-center p-6 sm:p-8">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-16 h-16 rounded-[1.4rem] bg-amber-100 text-3xl flex items-center justify-center shadow-sm">🚀</div>
+                    <div>
+                        <p class="text-[11px] font-black uppercase tracking-[.24em] text-amber-600">Pronto para começar</p>
+                        <h2 class="text-2xl font-black text-slate-900 mt-1">Monte sua base em poucos minutos</h2>
+                    </div>
+                </div>
+                <p class="text-slate-500 leading-relaxed mb-5">Com a base certa, o app entrega saldo real, alertas úteis, score mais confiável e análises melhores do mês.</p>
+                <div class="rounded-[1.6rem] border border-blue-100 bg-[linear-gradient(180deg,#f8fbff_0%,#eef5ff_100%)] p-4 sm:p-5 space-y-3">
+                    <div class="flex items-start gap-3">
+                        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-black shrink-0">1</span>
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Cadastre suas contas</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Banco, carteira, investimento ou conta usada no dia a dia.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-black shrink-0">2</span>
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Lance receitas, despesas e cartões</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Separe compras no cartão do caixa real para manter o mês coerente.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-black shrink-0">3</span>
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Ative sua rotina</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Use recorrentes, acompanhe o fluxo futuro e revise os insights do período.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 rounded-2xl bg-slate-900 text-white px-4 py-3.5">
+                    <p class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Dica premium</p>
+                    <p class="text-sm font-medium text-slate-100 mt-1">Se usar o cartão com outras pessoas, cadastre os responsáveis na aba <strong>Cartões</strong> e acompanhe subtotais por fatura.</p>
                 </div>
             </div>
         </div>
 
         <!-- Navegação -->
-        <div class="p-5 pt-2 flex items-center justify-between gap-3">
-            <button id="ob-skip" class="text-sm text-gray-300 font-medium hover:text-gray-500 transition">Pular</button>
+        <div class="p-5 pt-2 flex items-center justify-between gap-3 border-t border-slate-100/80 bg-white/70">
+            <button id="ob-skip" class="text-sm text-slate-400 font-medium hover:text-slate-600 transition">Pular</button>
             <div class="flex gap-2 flex-1 justify-end">
-                <button id="ob-prev" class="hidden px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200 active:scale-95 transition">← Voltar</button>
-                <button id="ob-next" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-black text-sm hover:bg-blue-700 active:scale-95 transition shadow-md">Próximo →</button>
+                <button id="ob-prev" class="hidden px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 active:scale-95 transition">← Voltar</button>
+                <button id="ob-next" class="px-6 py-2.5 bg-gradient-to-r from-slate-900 via-blue-800 to-blue-600 text-white rounded-xl font-black text-sm hover:brightness-110 active:scale-95 transition shadow-[0_16px_32px_rgba(30,64,175,.24)]">Próximo →</button>
             </div>
         </div>
     </div>
@@ -1388,17 +1490,40 @@ async function verificarEDisparar(){
                 </div>
             </div>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mt-2 mb-2">
-                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-                    <div class="flex-1">
+                <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr_240px] gap-3 items-end">
+                    <div>
                         <label for="filtro-categoria-cartao" class="text-[11px] font-black uppercase tracking-wider text-gray-400">Buscar categoria da fatura</label>
                         <input id="filtro-categoria-cartao" list="categorias-cartao-list" placeholder="Ex: Moradia, Transporte..." class="input-field mt-2">
                         <datalist id="categorias-cartao-list"></datalist>
                     </div>
-                    <div class="sm:min-w-[220px] rounded-xl bg-slate-50 border border-slate-200 px-3 py-3">
+                    <div>
+                        <label for="filtro-responsavel-cartao" class="text-[11px] font-black uppercase tracking-wider text-gray-400">Responsável</label>
+                        <select id="filtro-responsavel-cartao" class="input-field mt-2">
+                            <option value="todos">Todos</option>
+                        </select>
+                    </div>
+                    <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-3">
                         <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Total filtrado</p>
                         <p id="total-categoria-cartao" class="text-lg font-black text-slate-900 mono mt-1">R$ 0,00</p>
                         <p id="resumo-categoria-cartao" class="text-[11px] text-gray-400 mt-1">Todas as categorias da fatura selecionada.</p>
                     </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                    <p class="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-2">Subtotal por responsável</p>
+                    <div id="subtotal-responsavel-cartao" class="grid grid-cols-1 sm:grid-cols-3 gap-2"></div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Pessoas da fatura</p>
+                            <p class="text-[11px] text-gray-400 mt-1">Cada usuário pode cadastrar os próprios nomes para classificar as compras do cartão.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <input id="responsavel-cartao-novo" type="text" maxlength="24" placeholder="Ex: João, Maria..." class="input-field !py-2.5 text-sm min-w-0">
+                            <button id="btn-add-responsavel-cartao" type="button" class="px-3.5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-black hover:bg-slate-800 active:scale-95 transition whitespace-nowrap">Adicionar</button>
+                        </div>
+                    </div>
+                    <div id="lista-responsaveis-cartao-config" class="flex flex-wrap gap-2 mt-3"></div>
                 </div>
             </div>
             <!-- Gastos do cartão no mês -->
@@ -1729,6 +1854,10 @@ async function verificarEDisparar(){
                     </select>
                 </div>
                 <div id="cartao-select-wrap" class="hidden"><label class="label-xs">💳 Cartão vinculado</label><select id="input-cartao" class="input-field"><option value="">-- Nenhum --</option></select></div>
+                <div id="responsavel-cartao-wrap" class="hidden">
+                    <label class="label-xs">👤 Responsável pela compra</label>
+                    <select id="input-responsavel-cartao" class="input-field"></select>
+                </div>
                 <div id="origem-lancamento-wrap">
                     <label class="label-xs">Origem do lançamento</label>
                     <select id="input-origem-lancamento" class="input-field">
@@ -1961,7 +2090,7 @@ const db   = getFirestore(app);
 const auth = getAuth(app);
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let transacoes=[], recorrentes=[], recorrenciaExcecoes=[], metas=[], contas=[], cartoes=[], cartaoFechamentosMensais=[], transferencias=[], categoriasCustom=[], fechamentosMensais=[];
+let transacoes=[], recorrentes=[], recorrenciaExcecoes=[], metas=[], contas=[], cartoes=[], cartaoFechamentosMensais=[], transferencias=[], categoriasCustom=[], fechamentosMensais=[], responsaveisCartaoConfig=[];
 let currentUser=null;
 
 let modoEdicao=false;
@@ -1975,6 +2104,7 @@ let _globalSearchQuery='';
 let _globalSearchTipo='todos';
 let _buscaHighlightTarget=null;
 let _filtroCategoriaCartao='';
+let _filtroResponsavelCartao='todos';
 
 const $id = id => document.getElementById(id);
 const mesesNomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -2080,6 +2210,154 @@ function getCartaoFechamentoDocId(cartaoId, competencia){
 // Cores por conta
 const CORES = { blue:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, emerald:{bg:'bg-emerald-600',text:'text-white',chip:'bg-emerald-100 text-emerald-800'}, violet:{bg:'bg-blue-600',text:'text-white',chip:'bg-blue-100 text-blue-800'}, rose:{bg:'bg-rose-600',text:'text-white',chip:'bg-rose-100 text-rose-800'}, amber:{bg:'bg-amber-500',text:'text-white',chip:'bg-amber-100 text-amber-800'}, slate:{bg:'bg-slate-600',text:'text-white',chip:'bg-gray-200 text-slate-800'} };
 const TIPO_ICONE = { corrente:'🏦', poupanca:'💰', investimento:'📈', carteira:'👜', outro:'📦' };
+const RESPONSAVEIS_CARTAO_DEFAULT = ['Titular','Compartilhado'];
+const RESPONSAVEL_CARTAO_CHIPS = [
+    'bg-slate-100 text-slate-700 border border-slate-200',
+    'bg-blue-50 text-blue-700 border border-blue-100',
+    'bg-emerald-50 text-emerald-700 border border-emerald-100',
+    'bg-violet-50 text-violet-700 border border-violet-100',
+    'bg-amber-50 text-amber-700 border border-amber-100',
+    'bg-rose-50 text-rose-700 border border-rose-100'
+];
+
+function normalizarTextoBase(str=''){
+    return String(str).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function limparNomeResponsavelCartao(nome=''){
+    return String(nome).replace(/\s+/g,' ').trim().slice(0,24);
+}
+function escapeHtml(str=''){
+    return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+}
+function getResponsavelCartaoDocId(nome=''){
+    const base=normalizarTextoBase(nome).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,32) || 'titular';
+    return `${currentUser?.uid||'anon'}_${base}`;
+}
+function getResponsaveisCartaoEmUso(){
+    const usados=new Set();
+    [...transacoes, ...recorrentes].forEach(item=>{
+        const nome=limparNomeResponsavelCartao(item?.responsavelCartao||'');
+        if(nome && nome!=='Eu') usados.add(nome);
+    });
+    return usados;
+}
+function getResponsaveisCartaoDisponiveis(){
+    const configurados=responsaveisCartaoConfig
+        .map(item=>limparNomeResponsavelCartao(item?.nome))
+        .filter(Boolean);
+    const usados=[...getResponsaveisCartaoEmUso()];
+    const lista=[...new Set([...configurados, ...usados])];
+    if(!lista.length) return [...RESPONSAVEIS_CARTAO_DEFAULT];
+    return lista;
+}
+function getResponsavelCartaoPadrao(){
+    const nomes=getResponsaveisCartaoDisponiveis();
+    return nomes.find(nome=>normalizarTextoBase(nome)!=='compartilhado') || nomes[0] || 'Titular';
+}
+function resolverResponsavelCartao(nome=''){
+    const limpo=limparNomeResponsavelCartao(nome);
+    if(!limpo || limpo==='Eu') return getResponsavelCartaoPadrao();
+    return limpo;
+}
+function getClasseChipResponsavel(nome=''){
+    const base=resolverResponsavelCartao(nome);
+    const hash=[...base].reduce((acc,ch)=>acc+ch.charCodeAt(0),0);
+    return RESPONSAVEL_CARTAO_CHIPS[hash % RESPONSAVEL_CARTAO_CHIPS.length];
+}
+function popularSelectResponsaveisCartao(){
+    const nomes=getResponsaveisCartaoDisponiveis();
+    const sel=$id('input-responsavel-cartao');
+    if(sel){
+        const atual=resolverResponsavelCartao(sel.value||getResponsavelCartaoPadrao());
+        sel.innerHTML=nomes.map(nome=>`<option value="${escapeHtml(nome)}">${escapeHtml(nome)}</option>`).join('');
+        sel.value=nomes.includes(atual) ? atual : getResponsavelCartaoPadrao();
+    }
+    const filtro=$id('filtro-responsavel-cartao');
+    if(filtro){
+        const atual=_filtroResponsavelCartao;
+        filtro.innerHTML=`<option value="todos">Todos</option>${nomes.map(nome=>`<option value="${escapeHtml(nome)}">${escapeHtml(nome)}</option>`).join('')}`;
+        filtro.value=(atual!=='todos' && nomes.includes(atual)) ? atual : 'todos';
+        _filtroResponsavelCartao=filtro.value;
+    }
+}
+function renderizarResponsaveisCartaoConfig(){
+    popularSelectResponsaveisCartao();
+    const wrap=$id('lista-responsaveis-cartao-config');
+    if(!wrap) return;
+    const configurados=new Map(responsaveisCartaoConfig.map(item=>[limparNomeResponsavelCartao(item.nome), item]));
+    const usados=getResponsaveisCartaoEmUso();
+    const nomes=getResponsaveisCartaoDisponiveis();
+    wrap.innerHTML=nomes.map(nome=>{
+        const item=configurados.get(nome);
+        const emUso=usados.has(nome);
+        const chipClass=getClasseChipResponsavel(nome);
+        const origem=item ? 'Configurado' : 'Histórico';
+        const podeExcluir=!!item && !emUso;
+        return `<div class="inline-flex items-center gap-2 rounded-xl px-3 py-2 ${chipClass}">
+            <span class="text-xs font-black">${escapeHtml(nome)}</span>
+            <span class="text-[10px] font-bold opacity-70">${origem}</span>
+            ${emUso?'<span class="text-[10px] font-bold opacity-70">em uso</span>':''}
+            ${podeExcluir?`<button type="button" onclick="removerResponsavelCartao('${item.id}')" class="text-[10px] font-black rounded-full bg-white/70 text-slate-700 w-5 h-5 flex items-center justify-center hover:bg-white active:scale-90 transition">×</button>`:''}
+        </div>`;
+    }).join('');
+}
+async function adicionarResponsavelCartao(){
+    if(!currentUser) return;
+    const input=$id('responsavel-cartao-novo');
+    const nome=limparNomeResponsavelCartao(input?.value||'');
+    if(nome.length<2){ toast('Informe um nome com pelo menos 2 caracteres.','aviso'); return; }
+    const existe=getResponsaveisCartaoDisponiveis().some(item=>normalizarTextoBase(item)===normalizarTextoBase(nome));
+    if(existe){ toast('Esse nome já está cadastrado.','aviso'); return; }
+    try{
+        const precisaSeedBase=!responsaveisCartaoConfig.length && !getResponsaveisCartaoEmUso().size;
+        if(precisaSeedBase){
+            await seedResponsaveisCartaoIniciais(currentUser.uid, nome);
+        }else{
+            await setDoc(doc(db,'responsaveis_cartao',getResponsavelCartaoDocId(nome)),{
+                userId:currentUser.uid,
+                nome,
+                criadoEm:new Date().toISOString()
+            });
+        }
+        if(input) input.value='';
+        toast('👤 Responsável adicionado!');
+    }catch(err){
+        erroFirestore(err,'responsavel-cartao-add');
+    }
+}
+async function seedResponsaveisCartaoIniciais(userId, nomeBase=''){
+    const nomePrincipal=limparNomeResponsavelCartao(nomeBase) || 'Titular';
+    const itens=[nomePrincipal, 'Compartilhado'];
+    for(const nome of itens){
+        const ref=doc(db,'responsaveis_cartao',`${userId}_${normalizarTextoBase(nome).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,32) || 'titular'}`);
+        await setDoc(ref,{
+            userId,
+            nome,
+            criadoEm:new Date().toISOString()
+        },{ merge:true });
+    }
+}
+window.removerResponsavelCartao=async id=>{
+    const item=responsaveisCartaoConfig.find(resp=>resp.id===id);
+    if(!item) return;
+    const nome=limparNomeResponsavelCartao(item.nome);
+    if(getResponsaveisCartaoEmUso().has(nome)){
+        toast('Esse responsável está em uso em compras ou recorrências. Edite os lançamentos antes de remover.','aviso');
+        return;
+    }
+    if(!await confirmar(`Remover "${nome}" da lista de responsáveis?`)) return;
+    try{
+        await deleteDoc(doc(db,'responsaveis_cartao',id));
+        toast('Responsável removido.');
+    }catch(err){
+        erroFirestore(err,'responsavel-cartao-delete');
+    }
+};
 
 // ── INIT FILTROS ──────────────────────────────────────────────────────────────
 mesesNomes.forEach((m,i)=>{ const o=document.createElement('option'); o.value=i+1; o.innerText=m; if(i+1===mesAtual)o.selected=true; $id('filtro-mes').appendChild(o); });
@@ -2167,14 +2445,19 @@ function syncLancamentoCartaoUI(){
     const origemSel=$id('input-origem-lancamento');
     const origem=origemSel?.value||'padrao';
     const wrapCartao=$id('cartao-select-wrap');
+    const wrapResponsavel=$id('responsavel-cartao-wrap');
     const wrapRec=$id('recorrente-wrap');
     const wrapOrigem=$id('origem-lancamento-wrap');
     const usaCartao=tipo==='despesa' && (origem==='cartao' || origem==='pagamento-fatura');
+    const usaResponsavel=tipo==='despesa' && origem==='cartao';
 
     if(wrapCartao) wrapCartao.classList.toggle('hidden', !usaCartao);
+    if(wrapResponsavel) wrapResponsavel.classList.toggle('hidden', !usaResponsavel);
     if(wrapRec) wrapRec.classList.toggle('hidden', origem==='pagamento-fatura');
     if(wrapOrigem) wrapOrigem.classList.toggle('hidden', tipo!=='despesa');
     if(!usaCartao) $id('input-cartao').value='';
+    popularSelectResponsaveisCartao();
+    if(!usaResponsavel) $id('input-responsavel-cartao').value=getResponsavelCartaoPadrao();
 
     if(!modoEdicao){
         $id('modal-titulo').innerText=getTituloLancamento(origem, false);
@@ -2198,6 +2481,8 @@ function abrirModalNovo(){
     $id('input-edit-id').value='';
     $id('input-data').value=hojeStr();
     $id('input-data').disabled=false;
+    popularSelectResponsaveisCartao();
+    $id('input-responsavel-cartao').value=getResponsavelCartaoPadrao();
     $id('parcelas-row').classList.remove('hidden');
     $id('input-origem-lancamento').value='padrao';
     $id('recorrente-wrap').classList.remove('hidden');
@@ -2222,6 +2507,8 @@ function abrirModalEditar(t){
     $id('input-tags').value=(t.tags||[]).join(', ');
     $id('input-conta').value=t.contaId||'';
     $id('input-cartao').value=t.cartaoId||'';
+    popularSelectResponsaveisCartao();
+    $id('input-responsavel-cartao').value=resolverResponsavelCartao(t.responsavelCartao||'');
     $id('input-origem-lancamento').value=isPagamentoFatura(t)?'pagamento-fatura':(isTransacaoCartao(t)?'cartao':'padrao');
     $id('parcelas-row').classList.add('hidden');
     syncLancamentoCartaoUI();
@@ -2267,6 +2554,17 @@ $id('filtro-categoria-cartao')?.addEventListener('input',e=>{
     _filtroCategoriaCartao=e.target.value.trim();
     if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
 });
+$id('filtro-responsavel-cartao')?.addEventListener('change',e=>{
+    _filtroResponsavelCartao=e.target.value||'todos';
+    if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
+});
+$id('btn-add-responsavel-cartao')?.addEventListener('click', adicionarResponsavelCartao);
+$id('responsavel-cartao-novo')?.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+        e.preventDefault();
+        adicionarResponsavelCartao();
+    }
+});
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, user=>{
@@ -2279,13 +2577,13 @@ onAuthStateChanged(auth, user=>{
         $id('dashboard-screen').classList.remove('hidden');
         $id('btn-fab').classList.remove('hidden');
         $id('input-data').value=hojeStr();
-        iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarFechamentosCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom(); carregarFechamentosMensais();
+        iniciarSincronizacao(); carregarContas(); carregarCartoes(); carregarResponsaveisCartao(); carregarFechamentosCartoes(); carregarRecorrentes(); carregarMetas(); carregarCategoriasCustom(); carregarFechamentosMensais();
         setTimeout(()=>window._exibirBannerNotif?.(), 6000);
     }else{
         _unsubscribers.forEach(unsub=>{ try{ unsub(); }catch(_){} });
         _unsubscribers=[];
         transacoes=[]; contas=[]; cartoes=[]; cartaoFechamentosMensais=[]; transferencias=[]; fechamentosMensais=[];
-        metas=[]; categoriasCustom=[]; recorrenciaExcecoes=[];
+        metas=[]; categoriasCustom=[]; recorrenciaExcecoes=[]; responsaveisCartaoConfig=[];
         _transacoesInicializadas=false; _recorrentesInicializadas=false; _recorrenciaExcecoesInicializadas=false;
         currentUser=null;
         $id('dashboard-screen').classList.add('hidden');
@@ -2331,7 +2629,9 @@ $id('auth-form-cadastro').addEventListener('submit', async e=>{ e.preventDefault
     const btn=$id('btn-register'); btn.disabled=true; btn.innerText='Criando conta...';
     $id('login-error').classList.add('hidden');
     try{
+        const nomeCadastro=limparNomeResponsavelCartao($id('auth-nome').value||'');
         const cred=await createUserWithEmailAndPassword(auth,$id('auth-email-cad').value,$id('auth-password-cad').value);
+        try{ await seedResponsaveisCartaoIniciais(cred.user.uid, nomeCadastro); }catch(_){}
         // Marcar como novo usuário para exibir onboarding
         localStorage.setItem('finapp-new-user','1');
         // Após login bem-sucedido, onAuthStateChanged cuida do resto
@@ -2509,7 +2809,8 @@ $id('form-transacao').addEventListener('submit', async e=>{
     if(!valorRaw||isNaN(valorRaw)||valorRaw<=0){ toast('Informe um valor válido.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
     if(!dataVal){ toast('Informe a data.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
     if(origemLancamento==='cartao' && !cartaoId){ toast('Selecione o cartão vinculado.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
-    const payload={ userId:currentUser.uid, tipo:$id('input-tipo').value, data:dataVal, valor:valorRaw, desc:$id('input-desc').value.trim(), categoria:$id('input-categoria').value, status:$id('input-status').value, tags, contaId, cartaoId, cartaoFechamentoDia, competenciaFatura:isCompraCartao({tipo:$id('input-tipo').value,cartaoId,tipoRegistro,origemLancamento}) ? calcularCompetenciaFatura(dataVal, cartaoFechamentoDia) : null, origemLancamento, tipoRegistro };
+    const responsavelCartao=tipoRegistro==='cartao-compra' ? resolverResponsavelCartao($id('input-responsavel-cartao').value||'') : null;
+    const payload={ userId:currentUser.uid, tipo:$id('input-tipo').value, data:dataVal, valor:valorRaw, desc:$id('input-desc').value.trim(), categoria:$id('input-categoria').value, status:$id('input-status').value, tags, contaId, cartaoId, cartaoFechamentoDia, competenciaFatura:isCompraCartao({tipo:$id('input-tipo').value,cartaoId,tipoRegistro,origemLancamento}) ? calcularCompetenciaFatura(dataVal, cartaoFechamentoDia) : null, origemLancamento, tipoRegistro, responsavelCartao };
     try{
         if(modoEdicao){
             const original=window._editTransacaoOriginal||transacoes.find(x=>x.id===$id('input-edit-id').value)||{};
@@ -2545,6 +2846,7 @@ $id('form-transacao').addEventListener('submit', async e=>{
                         origemLancamento:payload.origemLancamento||'padrao',
                         tipoRegistro:payload.tipoRegistro||'padrao',
                         tags:[...new Set(tags.filter(t=>t!=='recorrente'))],
+                        responsavelCartao:payload.responsavelCartao||null,
                         mesInicio:parseInt(mesLanc),
                         anoInicio:parseInt(anoLanc),
                         criadoEm:new Date().toISOString()
@@ -2785,6 +3087,17 @@ function carregarCartoes(){
         }, err=>erroFirestore(err,'cartoes'))
     );
 }
+function carregarResponsaveisCartao(){
+    if(!currentUser) return;
+    _unsubscribers.push(
+        onSnapshot(query(collection(db,'responsaveis_cartao'),where('userId','==',currentUser.uid)), snap=>{
+            responsaveisCartaoConfig=[]; snap.forEach(d=>responsaveisCartaoConfig.push({id:d.id,...d.data()}));
+            responsaveisCartaoConfig.sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+            renderizarResponsaveisCartaoConfig();
+            if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
+        }, err=>erroFirestore(err,'responsaveis-cartao'))
+    );
+}
 function carregarFechamentosCartoes(){
     _unsubscribers.push(
         onSnapshot(query(collection(db,'cartao_fechamentos'),where('userId','==',currentUser.uid)), snap=>{
@@ -2797,6 +3110,7 @@ function carregarFechamentosCartoes(){
 function renderizarCartoes(){
     const cont=$id('lista-cartoes-container'), vazio=$id('cartoes-vazio');
     cont.innerHTML='';
+    renderizarResponsaveisCartaoConfig();
     atualizarGraficosCartoes();
     if(!cartoes.length){ vazio.classList.remove('hidden'); }
     else{ vazio.classList.add('hidden'); }
@@ -2849,25 +3163,51 @@ function renderizarCartoes(){
         datalist.innerHTML=categoriasGastos.map(cat=>`<option value="${cat.replace(/"/g,'&quot;')}"></option>`).join('');
     }
     if(filtroInput && filtroInput.value!==_filtroCategoriaCartao) filtroInput.value=_filtroCategoriaCartao;
-
     // Lista de gastos no cartão no mês
     const lt=$id('lista-gastos-cartao'); lt.innerHTML='';
     const gastosBase=transacoes.filter(t=>isCompraCartao(t)&&t.cartaoId&&getCompetenciaFaturaTransacao(t)===competenciaSel).sort((a,b)=>b.data.localeCompare(a.data));
+    const filtroResponsavelSel=$id('filtro-responsavel-cartao');
+    popularSelectResponsaveisCartao();
+    if(filtroResponsavelSel && filtroResponsavelSel.value!==_filtroResponsavelCartao) filtroResponsavelSel.value=_filtroResponsavelCartao;
+    const subtotalWrap=$id('subtotal-responsavel-cartao');
+    if(subtotalWrap){
+        const subtotais=getResponsaveisCartaoDisponiveis().map(nome=>{
+            const total=gastosBase
+                .filter(t=>resolverResponsavelCartao(t.responsavelCartao||'')===nome)
+                .reduce((sum,t)=>sum+t.valor,0);
+            return `<div class="rounded-xl border border-gray-100 bg-white px-3 py-2">
+                <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">${escapeHtml(nome)}</p>
+                <p class="text-sm font-black mono text-slate-900 mt-1">${fmt(total)}</p>
+            </div>`;
+        }).join('');
+        subtotalWrap.innerHTML=subtotais;
+    }
     const filtroCategoria=normalizarBusca(_filtroCategoriaCartao);
-    const gastos=!filtroCategoria ? gastosBase : gastosBase.filter(t=>normalizarBusca(t.categoria).includes(filtroCategoria));
+    const filtroResponsavel=_filtroResponsavelCartao==='todos' ? '' : _filtroResponsavelCartao;
+    const gastos=gastosBase.filter(t=>{
+        const okCategoria=!filtroCategoria || normalizarBusca(t.categoria).includes(filtroCategoria);
+        const okResponsavel=!filtroResponsavel || resolverResponsavelCartao(t.responsavelCartao||'')===filtroResponsavel;
+        return okCategoria && okResponsavel;
+    });
     const totalFiltrado=gastos.reduce((sum,t)=>sum+t.valor,0);
     $id('total-categoria-cartao').innerText=fmt(totalFiltrado);
-    $id('resumo-categoria-cartao').innerText=!filtroCategoria
-        ? 'Todas as categorias da fatura selecionada.'
-        : `${gastos.length} lançamento(s) encontrados para "${_filtroCategoriaCartao}".`;
+    const partesResumo=[];
+    if(filtroCategoria) partesResumo.push(`categoria "${_filtroCategoriaCartao}"`);
+    if(filtroResponsavel) partesResumo.push(`responsável ${filtroResponsavel}`);
+    $id('resumo-categoria-cartao').innerText=partesResumo.length
+        ? `${gastos.length} lançamento(s) para ${partesResumo.join(' · ')}.`
+        : 'Todas as categorias e responsáveis da fatura selecionada.';
     if(!gastos.length){ lt.innerHTML='<p class="text-xs text-gray-400 text-center py-4">Nenhum lançamento encontrado para essa categoria nesta fatura.</p>'; return; }
     gastos.forEach(t=>{
         const cartao=cartoes.find(c=>c.id===t.cartaoId);
         const isP=t.status==='pendente';
+        const responsavel=resolverResponsavelCartao(t.responsavelCartao||'');
+        const chipResponsavel=getClasseChipResponsavel(responsavel);
         lt.innerHTML+=`<li class="flex items-center justify-between gap-3 p-3 rounded-xl ${isP?'bg-amber-50 border border-amber-200':'bg-gray-50'}">
             <div class="min-w-0 flex-1">
                 <p class="font-bold text-gray-800 text-sm truncate">${t.desc}</p>
                 <p class="text-xs text-gray-400">${fmtData(t.data)} · ${cartao?.nome||'Cartão'} · ${t.categoria} · Fatura ${getCompetenciaFaturaTransacao(t)}</p>
+                <div class="mt-1"><span class="px-2 py-0.5 rounded-full text-[10px] font-black ${chipResponsavel}">${escapeHtml(responsavel)}</span></div>
             </div>
             <div class="shrink-0 text-right">
                 <span class="${isP?'text-rose-400':'text-rose-600'} font-black text-sm mono block">-${fmt(t.valor)}</span>
@@ -5080,6 +5420,7 @@ async function materializarRecorrencia(rec, opts={}){
                 status:rec.status,
                 contaId:rec.contaId||null,
                 cartaoId:rec.cartaoId||null,
+                responsavelCartao:rec.responsavelCartao||null,
                 cartaoFechamentoDia:fechamentoRecorrencia,
                 competenciaFatura:isCompraCartao(rec) ? calcularCompetenciaFatura(ds, fechamentoRecorrencia) : null,
                 origemLancamento:rec.origemLancamento||((rec.cartaoId||rec.tipoRegistro==='pagamento-fatura')?'cartao':'padrao'),
