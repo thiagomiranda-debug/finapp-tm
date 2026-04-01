@@ -1594,8 +1594,14 @@ async function verificarEDisparar(){
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div class="flex-1 min-w-0">
                         <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">💼 Patrimônio Líquido Acumulado</p>
+                        <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-bold text-blue-100 shadow-sm mb-3">
+                            <span class="inline-flex h-2 w-2 rounded-full bg-cyan-300"></span>
+                            <span>Visão Analítica</span>
+                            <span class="text-blue-200/80">•</span>
+                            <span class="text-blue-100/90">Cartão por competência da fatura</span>
+                        </div>
                         <p class="text-4xl sm:text-5xl font-black mono leading-none" id="pat-liquido-total">R$ 0,00</p>
-                        <p class="text-gray-400 text-xs mt-2">Soma de todo o histórico confirmado (receitas − despesas)</p>
+                        <p class="text-gray-400 text-xs mt-2">Visão analítica acumulada do histórico confirmado, incluindo compras no cartão pela competência da fatura.</p>
                     </div>
                     <div class="flex flex-row sm:flex-col gap-3 sm:gap-2 sm:text-right shrink-0">
                         <div class="bg-white/10 rounded-xl px-4 py-3 flex-1 sm:flex-none">
@@ -1603,7 +1609,7 @@ async function verificarEDisparar(){
                             <p class="font-black text-xl mono mt-0.5" id="pat-var-mes">—</p>
                         </div>
                         <div class="bg-white/10 rounded-xl px-4 py-3 flex-1 sm:flex-none">
-                            <p class="text-gray-400 text-xs font-bold uppercase">Sobra do Mês</p>
+                            <p class="text-gray-400 text-xs font-bold uppercase">Resultado Analítico do Mês</p>
                             <p class="font-black text-xl mono mt-0.5" id="pat-sobra-mes">R$ 0,00</p>
                         </div>
                     </div>
@@ -1618,19 +1624,19 @@ async function verificarEDisparar(){
                     <p class="text-xs text-gray-400 mt-1">Soma real de todas as contas</p>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-emerald-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📈 Entradas</p>
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📈 Entradas Analíticas</p>
                     <p class="text-xl sm:text-2xl font-black text-emerald-600 mono leading-tight" id="pat-total-receitas">R$ 0,00</p>
-                    <p class="text-xs text-gray-400 mt-1" id="pat-rec-label">Mês selecionado</p>
+                    <p class="text-xs text-gray-400 mt-1" id="pat-rec-label">Mês selecionado • competência analítica</p>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-rose-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📉 Saídas</p>
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">📉 Saídas Analíticas</p>
                     <p class="text-xl sm:text-2xl font-black text-rose-600 mono leading-tight" id="pat-total-despesas">R$ 0,00</p>
-                    <p class="text-xs text-gray-400 mt-1" id="pat-desp-label">Mês selecionado</p>
+                    <p class="text-xs text-gray-400 mt-1" id="pat-desp-label">Mês selecionado • inclui cartão na competência da fatura</p>
                 </div>
                 <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-sm p-4 text-white">
-                    <p class="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">🏁 Fim do Mês</p>
+                    <p class="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">🏁 Posição Analítica</p>
                     <p class="text-xl sm:text-2xl font-black mono leading-tight" id="pat-fim-mes">R$ 0,00</p>
-                    <p class="text-blue-300 text-xs mt-1">Contas + sobra do mês</p>
+                    <p class="text-blue-300 text-xs mt-1">Contas + resultado analítico do mês</p>
                 </div>
             </div>
 
