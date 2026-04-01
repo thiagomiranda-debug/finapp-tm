@@ -615,12 +615,12 @@ async function verificarEDisparar(){
 <!-- Toast -->
 <div id="toast-container" class="fixed top-4 right-4 z-[300] flex flex-col gap-2 pointer-events-none"></div>
 
-<!-- Notificações Mobile Backdrop -->
+<!-- Notificações Backdrop -->
 <div id="notif-backdrop" class="hidden fixed inset-0 bg-slate-950/30 backdrop-blur-[2px] z-[185]"></div>
 
-<!-- Notificações Mobile Modal -->
-<div id="notif-mobile-modal" class="hidden fixed inset-0 z-[195] px-3 pt-[calc(env(safe-area-inset-top,0px)+72px)] pb-4">
-    <div class="w-full max-w-md mx-auto rounded-[1.4rem] border border-gray-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-[0_28px_64px_rgba(15,23,42,.22)] overflow-hidden">
+<!-- Notificações Modal -->
+<div id="notif-mobile-modal" class="hidden fixed inset-0 z-[195] px-3 sm:px-4 pt-[calc(env(safe-area-inset-top,0px)+72px)] sm:pt-24 pb-4">
+    <div class="w-full max-w-md sm:max-w-lg mx-auto rounded-[1.4rem] border border-gray-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-[0_28px_64px_rgba(15,23,42,.22)] overflow-hidden">
         <div class="p-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <h3 class="font-bold text-sm text-gray-800">🧠 Alertas</h3>
             <button id="btn-fechar-notif-mobile" class="text-xs text-gray-400 hover:text-gray-600">Fechar</button>
@@ -2584,18 +2584,34 @@ $id('btn-nova-transacao-nav').onclick = abrirModalNovo;
 $id('btn-fab').onclick = abrirModalNovo;
 
 // ── NOTIF ─────────────────────────────────────────────────────────────────────
+const ALERTAS_LIDOS_KEY='finapp-alertas-lidos';
+let _alertasAtuais=[];
 const btnN=$id('btn-notif'), dropN=$id('notif-dropdown');
 const notifBackdrop=$id('notif-backdrop');
 const notifMobileModal=$id('notif-mobile-modal');
+function getAlertasLidos(){
+    try{ return JSON.parse(localStorage.getItem(ALERTAS_LIDOS_KEY)||'[]'); }
+    catch(_){ return []; }
+}
+function setAlertasLidos(ids){
+    localStorage.setItem(ALERTAS_LIDOS_KEY, JSON.stringify([...new Set(ids)]));
+}
+function sincronizarAlertasLidos(alertas){
+    const idsAtuais=alertas.map(a=>a.id);
+    const lidos=getAlertasLidos().filter(id=>idsAtuais.includes(id));
+    setAlertasLidos(lidos);
+    return lidos;
+}
+function marcarAlertasAtuaisComoLidos(){
+    if(!_alertasAtuais.length) return;
+    setAlertasLidos(_alertasAtuais.map(a=>a.id));
+    gerenciarNotificacoes();
+}
 function abrirNotifDropdown(){
-    if(window.innerWidth<=640){
-        notifBackdrop?.classList.remove('hidden');
-        notifMobileModal?.classList.remove('hidden');
-        dropN.classList.add('hidden');
-        return;
-    }
-    dropN.classList.remove('hidden');
-    posicionarNotifDropdown();
+    notifBackdrop?.classList.remove('hidden');
+    notifMobileModal?.classList.remove('hidden');
+    dropN.classList.add('hidden');
+    marcarAlertasAtuaisComoLidos();
 }
 function fecharNotifDropdown(){
     dropN.classList.add('hidden');
@@ -2603,33 +2619,18 @@ function fecharNotifDropdown(){
     notifMobileModal?.classList.add('hidden');
 }
 function posicionarNotifDropdown(){
-    if(dropN.classList.contains('hidden')) return;
-    if(window.innerWidth<=640){
-        dropN.classList.add('hidden');
-        return;
-    }
-    const rect=btnN.getBoundingClientRect();
-    notifBackdrop?.classList.add('hidden');
-    notifMobileModal?.classList.add('hidden');
-    dropN.style.left='auto';
-    dropN.style.right='0px';
-    dropN.style.top=`${rect.height + 8}px`;
-    dropN.style.width='320px';
+    dropN.classList.add('hidden');
 }
 btnN.addEventListener('click',e=>{
     e.stopPropagation();
-    if(dropN.classList.contains('hidden')) abrirNotifDropdown();
+    if(notifMobileModal?.classList.contains('hidden')) abrirNotifDropdown();
     else fecharNotifDropdown();
 });
-document.addEventListener('click',e=>{ if(!dropN.contains(e.target)&&!btnN.contains(e.target)) fecharNotifDropdown(); });
+document.addEventListener('click',e=>{ if(!notifMobileModal?.contains(e.target)&&!btnN.contains(e.target)) fecharNotifDropdown(); });
 $id('btn-limpar-notif').onclick=()=>fecharNotifDropdown();
 $id('btn-fechar-notif-mobile')?.addEventListener('click', fecharNotifDropdown);
 notifBackdrop?.addEventListener('click', fecharNotifDropdown);
 window.addEventListener('resize', ()=>{
-    if(window.innerWidth>640){
-        notifBackdrop?.classList.add('hidden');
-        notifMobileModal?.classList.add('hidden');
-    }
     posicionarNotifDropdown();
 });
 window.addEventListener('scroll', posicionarNotifDropdown, {passive:true});
@@ -5161,8 +5162,8 @@ function gerenciarNotificacoes(){
         const[ano,mes]=t.data.split('-'); const a=parseInt(ano),m=parseInt(mes);
         if(t.status==='pendente'&&t.tipo==='despesa'){
             const diff=Math.ceil((new Date(t.data+'T12:00:00').getTime()-hoje.getTime())/864e5);
-            if(diff<0&&t.data!==strHoje) alertas.push({tipo:'erro',titulo:'Conta Atrasada!',desc:`${t.desc} venceu ${fmtData(t.data)} (${fmt(t.valor)})`,icone:'🔴'});
-        else if(diff>=0&&diff<=3) alertas.push({tipo:'aviso',titulo:isPagamentoFatura(t)?'Fatura Vencendo':'Conta Vencendo',desc:`${t.desc} — ${diff===0?'HOJE':`em ${diff} dia(s)`} (${fmt(t.valor)})`,icone:'⏳'});
+            if(diff<0&&t.data!==strHoje) alertas.push({id:`atraso-${t.id}-${t.data}`,tipo:'erro',titulo:'Conta Atrasada!',desc:`${t.desc} venceu ${fmtData(t.data)} (${fmt(t.valor)})`,icone:'🔴'});
+        else if(diff>=0&&diff<=3) alertas.push({id:`vence-${t.id}-${t.data}`,tipo:'aviso',titulo:isPagamentoFatura(t)?'Fatura Vencendo':'Conta Vencendo',desc:`${t.desc} — ${diff===0?'HOJE':`em ${diff} dia(s)`} (${fmt(t.valor)})`,icone:'⏳'});
         }
     });
     getTransacoesRelatorioDoMes(transacoes, mA, aA).forEach(t=>{
@@ -5181,19 +5182,26 @@ function gerenciarNotificacoes(){
     cartoes.forEach(c=>{
         const diaFecha=getDiaFechamentoCartao(c.id, c.fechamento, getCompetencia(strHoje));
         const diff=diasAteDiaDoMes(diaFecha, hoje);
-        if(diff<=3) alertas.push({tipo:'aviso',titulo:`💳 Fatura Fechando: ${c.nome}`,desc:`Fecha ${diff===0?'hoje':`em ${diff} dia(s)`} (dia ${diaFecha})`,icone:'💳'});
+        if(diff<=3) alertas.push({id:`cartao-fechamento-${c.id}-${strHoje}`,tipo:'aviso',titulo:`💳 Fatura Fechando: ${c.nome}`,desc:`Fecha ${diff===0?'hoje':`em ${diff} dia(s)`} (dia ${diaFecha})`,icone:'💳'});
     });
     // Saldo negativo em conta
-    contas.forEach(c=>{ const saldo=calcularSaldoConta(c.id); if(saldo<0) alertas.push({tipo:'erro',titulo:`Conta Negativa: ${c.nome}`,desc:`Saldo: ${fmt(saldo)}`,icone:'🔴'}); });
-    metas.forEach(meta=>{ const g=catAtual[meta.categoria]||0; if(g>meta.valor) alertas.push({tipo:'erro',titulo:`🎯 Meta: ${meta.categoria}`,desc:`${fmt(g)} de ${fmt(meta.valor)} (${((g/meta.valor)*100).toFixed(0)}%)`,icone:'🎯'}); else if(g/meta.valor>=0.8) alertas.push({tipo:'aviso',titulo:'Meta Quase Atingida',desc:`${meta.categoria}: ${((g/meta.valor)*100).toFixed(0)}% do limite.`,icone:'⚠️'}); });
-    if(recMes>0){ const pct=(despMes/recMes)*100; if(pct>90)alertas.push({tipo:'erro',titulo:'Orçamento Estourando!',desc:`${pct.toFixed(1)}% da renda comprometida.`,icone:'🚨'}); else if(pct>80)alertas.push({tipo:'alerta',titulo:'Alerta de Orçamento',desc:`${pct.toFixed(1)}% comprometido.`,icone:'⚠️'}); }
-    for(let c in catAtual){ if(catAnt[c]>0){ const p=((catAtual[c]-catAnt[c])/catAnt[c])*100; if(p>40&&catAtual[c]>100) alertas.push({tipo:'alerta',titulo:'Gasto Fora do Padrão',desc:`${c} subiu ${p.toFixed(0)}% vs mês anterior.`,icone:'📈'}); } }
+    contas.forEach(c=>{ const saldo=calcularSaldoConta(c.id); if(saldo<0) alertas.push({id:`conta-negativa-${c.id}-${strHoje}`,tipo:'erro',titulo:`Conta Negativa: ${c.nome}`,desc:`Saldo: ${fmt(saldo)}`,icone:'🔴'}); });
+    metas.forEach(meta=>{ const g=catAtual[meta.categoria]||0; if(g>meta.valor) alertas.push({id:`meta-estouro-${meta.id||meta.categoria}-${strHoje}`,tipo:'erro',titulo:`🎯 Meta: ${meta.categoria}`,desc:`${fmt(g)} de ${fmt(meta.valor)} (${((g/meta.valor)*100).toFixed(0)}%)`,icone:'🎯'}); else if(g/meta.valor>=0.8) alertas.push({id:`meta-alerta-${meta.id||meta.categoria}-${strHoje}`,tipo:'aviso',titulo:'Meta Quase Atingida',desc:`${meta.categoria}: ${((g/meta.valor)*100).toFixed(0)}% do limite.`,icone:'⚠️'}); });
+    if(recMes>0){ const pct=(despMes/recMes)*100; if(pct>90)alertas.push({id:`orcamento-estouro-${strHoje}`,tipo:'erro',titulo:'Orçamento Estourando!',desc:`${pct.toFixed(1)}% da renda comprometida.`,icone:'🚨'}); else if(pct>80)alertas.push({id:`orcamento-alerta-${strHoje}`,tipo:'alerta',titulo:'Alerta de Orçamento',desc:`${pct.toFixed(1)}% comprometido.`,icone:'⚠️'}); }
+    for(let c in catAtual){ if(catAnt[c]>0){ const p=((catAtual[c]-catAnt[c])/catAnt[c])*100; if(p>40&&catAtual[c]>100) alertas.push({id:`categoria-alta-${normalizarTextoBase(c)}-${strHoje}`,tipo:'alerta',titulo:'Gasto Fora do Padrão',desc:`${c} subiu ${p.toFixed(0)}% vs mês anterior.`,icone:'📈'}); } }
+    _alertasAtuais=alertas;
+    const lidos=sincronizarAlertasLidos(alertas);
+    const naoLidos=alertas.filter(a=>!lidos.includes(a.id));
     const badge=$id('notif-badge'), lista=$id('lista-notificacoes'), listaMobile=$id('lista-notificacoes-mobile');
     if(lista) lista.innerHTML='';
     if(listaMobile) listaMobile.innerHTML='';
     if(alertas.length){
-        badge.innerText=alertas.length;
-        badge.classList.remove('hidden');
+        if(naoLidos.length){
+            badge.innerText=naoLidos.length;
+            badge.classList.remove('hidden');
+        }else{
+            badge.classList.add('hidden');
+        }
         alertas.forEach(a=>{
             const bg=a.tipo==='erro'?'bg-rose-50':a.tipo==='aviso'?'bg-amber-50':'bg-amber-50';
             const item=`<li class="p-3 ${bg} border-b border-gray-50 last:border-none"><div class="flex gap-2.5 items-start rounded-xl bg-white/70 px-2.5 py-2"><span class="text-base">${a.icone}</span><div><p class="font-bold text-gray-800 text-xs">${a.titulo}</p><p class="text-xs text-gray-500 mt-0.5">${a.desc}</p></div></div></li>`;
