@@ -3843,6 +3843,20 @@ function calcularResumoDashboard(lista, mes, ano){
     };
 }
 
+function calcularComprometimentoMensal(lista, mes, ano){
+    const resumo=calcularResumoDashboard(lista, mes, ano);
+    const receitas=Number(resumo.receitasConfirmadas||0);
+    const despesas=Number(resumo.despesasConfirmadas||0);
+    const pctRaw=receitas>0 ? (despesas/receitas)*100 : 0;
+    return {
+        receitas,
+        despesas,
+        pctRaw,
+        pctExibicao:Math.min(Math.max(pctRaw,0),100),
+        temBase:receitas>0
+    };
+}
+
 function calcularReservaMetasDoMes(mes, ano){
     const gastosCat={};
     getTransacoesRelatorioDoMes(transacoes, mes, ano).forEach(t=>{
@@ -4561,9 +4575,11 @@ function atualizarDashboard(){
     }
     atualizarSaldosMini();
     // Comprometimento
-    if(rR>0){
-        const pct=Math.min((dR/rR)*100,100);
-        $id('barra-comprometimento').style.width=pct+'%';
+    const comprometimento=calcularComprometimentoMensal(transacoes, mS, aS);
+    if(comprometimento.temBase){
+        const pct=comprometimento.pctRaw;
+        const pctBarra=comprometimento.pctExibicao;
+        $id('barra-comprometimento').style.width=pctBarra+'%';
         $id('barra-comprometimento').className=`h-3 rounded-full progress-bar ${pct>=90?'bg-rose-500':pct>=80?'bg-amber-400':'bg-emerald-500'}`;
         $id('pct-comprometido-label').innerText=pct.toFixed(0)+'%';
         $id('comprometimento-msg').innerText=pct>=90?`🚨 ${pct.toFixed(1)}% da renda comprometida!`:pct>=80?`⚠️ ${pct.toFixed(1)}% da renda em despesas.`:`✅ ${pct.toFixed(1)}% — dentro do esperado.`;
@@ -5216,7 +5232,7 @@ window.deletarMeta=async id=>{ if(!await confirmar('Remover esta meta?'))return;
 function gerenciarNotificacoes(){
     const alertas=[], hoje=new Date(), strHoje=hojeStr();
     const mA=hoje.getMonth()+1, aA=hoje.getFullYear();
-    let recMes=0,despMes=0,catAtual={},catAnt={};
+    let catAtual={},catAnt={};
     transacoes.forEach(t=>{
         if(t.tipo==='transferencia' || isCompraCartao(t))return;
         const[ano,mes]=t.data.split('-'); const a=parseInt(ano),m=parseInt(mes);
@@ -5228,9 +5244,7 @@ function gerenciarNotificacoes(){
     });
     getTransacoesRelatorioDoMes(transacoes, mA, aA).forEach(t=>{
         if(t.status!=='confirmada') return;
-        if(t.tipo==='receita') recMes+=t.valor;
         if(t.tipo==='despesa'){
-            despMes+=t.valor;
             catAtual[t.categoria]=(catAtual[t.categoria]||0)+t.valor;
         }
     });
@@ -5247,7 +5261,12 @@ function gerenciarNotificacoes(){
     // Saldo negativo em conta
     contas.forEach(c=>{ const saldo=calcularSaldoConta(c.id); if(saldo<0) alertas.push({id:`conta-negativa-${c.id}-${strHoje}`,tipo:'erro',titulo:`Conta Negativa: ${c.nome}`,desc:`Saldo: ${fmt(saldo)}`,icone:'🔴'}); });
     metas.forEach(meta=>{ const g=catAtual[meta.categoria]||0; if(g>meta.valor) alertas.push({id:`meta-estouro-${meta.id||meta.categoria}-${strHoje}`,tipo:'erro',titulo:`🎯 Meta: ${meta.categoria}`,desc:`${fmt(g)} de ${fmt(meta.valor)} (${((g/meta.valor)*100).toFixed(0)}%)`,icone:'🎯'}); else if(g/meta.valor>=0.8) alertas.push({id:`meta-alerta-${meta.id||meta.categoria}-${strHoje}`,tipo:'aviso',titulo:'Meta Quase Atingida',desc:`${meta.categoria}: ${((g/meta.valor)*100).toFixed(0)}% do limite.`,icone:'⚠️'}); });
-    if(recMes>0){ const pct=(despMes/recMes)*100; if(pct>90)alertas.push({id:`orcamento-estouro-${strHoje}`,tipo:'erro',titulo:'Orçamento Estourando!',desc:`${pct.toFixed(1)}% da renda comprometida.`,icone:'🚨'}); else if(pct>80)alertas.push({id:`orcamento-alerta-${strHoje}`,tipo:'alerta',titulo:'Alerta de Orçamento',desc:`${pct.toFixed(1)}% comprometido.`,icone:'⚠️'}); }
+    const comprometimentoAtual=calcularComprometimentoMensal(transacoes, mA, aA);
+    if(comprometimentoAtual.temBase){
+        const pct=comprometimentoAtual.pctRaw;
+        if(pct>90)alertas.push({id:`orcamento-estouro-${strHoje}`,tipo:'erro',titulo:'Orçamento Estourando!',desc:`${pct.toFixed(1)}% da renda comprometida.`,icone:'🚨'});
+        else if(pct>80)alertas.push({id:`orcamento-alerta-${strHoje}`,tipo:'alerta',titulo:'Alerta de Orçamento',desc:`${pct.toFixed(1)}% comprometido.`,icone:'⚠️'});
+    }
     for(let c in catAtual){ if(catAnt[c]>0){ const p=((catAtual[c]-catAnt[c])/catAnt[c])*100; if(p>40&&catAtual[c]>100) alertas.push({id:`categoria-alta-${normalizarTextoBase(c)}-${strHoje}`,tipo:'alerta',titulo:'Gasto Fora do Padrão',desc:`${c} subiu ${p.toFixed(0)}% vs mês anterior.`,icone:'📈'}); } }
     _alertasAtuais=alertas;
     const lidos=sincronizarAlertasLidos(alertas);
