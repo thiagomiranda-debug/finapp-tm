@@ -282,12 +282,15 @@ async function verificarEDisparar(){
                 margin-top:0!important;
                 border-radius:1.25rem!important;
                 z-index:190!important;
-                max-height:min(62vh, 440px)!important;
+                max-height:min(72vh, 520px)!important;
+                min-height:180px;
                 overflow:hidden!important;
-                box-shadow:0 24px 56px rgba(15,23,42,.18)!important;
+                box-shadow:0 28px 64px rgba(15,23,42,.22)!important;
+                border:1px solid rgba(226,232,240,.95)!important;
             }
             #notif-dropdown ul{
-                max-height:min(calc(62vh - 56px), 380px)!important;
+                max-height:min(calc(72vh - 56px), 450px)!important;
+                overflow-y:auto!important;
             }
         }
         ::-webkit-scrollbar { width:4px; height:4px; }
@@ -499,6 +502,7 @@ async function verificarEDisparar(){
         html.dark #notif-dropdown .bg-gray-50{ background:#0b1424!important; }
         html.dark #notif-dropdown li p:first-child{ color:#e2e8f0!important; }
         html.dark #notif-dropdown li p:last-child{ color:#94a3b8!important; }
+        html.dark #notif-backdrop{ background:rgba(2,6,23,.52)!important; }
         html.dark #confirm-modal .border-gray-200{ border-color:var(--border)!important; color:var(--text2)!important; background:#101b2d!important; }
         html.dark .quick-btn{ filter:brightness(.92) saturate(1.04); }
         html.dark body.privacy-on .mono,
@@ -602,6 +606,9 @@ async function verificarEDisparar(){
 
 <!-- Toast -->
 <div id="toast-container" class="fixed top-4 right-4 z-[300] flex flex-col gap-2 pointer-events-none"></div>
+
+<!-- Notificações Mobile Backdrop -->
+<div id="notif-backdrop" class="hidden fixed inset-0 bg-slate-950/30 backdrop-blur-[2px] z-[185]"></div>
 
 <!-- Confirm Modal -->
 <div id="confirm-modal" class="hidden fixed inset-0 bg-black/60 overlay flex items-center justify-center px-6 z-[200]">
@@ -2559,16 +2566,27 @@ $id('btn-fab').onclick = abrirModalNovo;
 
 // ── NOTIF ─────────────────────────────────────────────────────────────────────
 const btnN=$id('btn-notif'), dropN=$id('notif-dropdown');
+const notifBackdrop=$id('notif-backdrop');
+function abrirNotifDropdown(){
+    dropN.classList.remove('hidden');
+    if(window.innerWidth<=640) notifBackdrop?.classList.remove('hidden');
+    posicionarNotifDropdown();
+}
+function fecharNotifDropdown(){
+    dropN.classList.add('hidden');
+    notifBackdrop?.classList.add('hidden');
+}
 function posicionarNotifDropdown(){
     if(dropN.classList.contains('hidden')) return;
     if(window.innerWidth<=640){
         dropN.style.left='12px';
         dropN.style.right='12px';
         dropN.style.width='auto';
-        dropN.style.top=`calc(env(safe-area-inset-top,0px) + 68px)`;
+        dropN.style.top=`calc(env(safe-area-inset-top,0px) + 76px)`;
         return;
     }
     const rect=btnN.getBoundingClientRect();
+    notifBackdrop?.classList.add('hidden');
     dropN.style.left='auto';
     dropN.style.right='0px';
     dropN.style.top=`${rect.height + 8}px`;
@@ -2576,12 +2594,16 @@ function posicionarNotifDropdown(){
 }
 btnN.addEventListener('click',e=>{
     e.stopPropagation();
-    dropN.classList.toggle('hidden');
-    if(!dropN.classList.contains('hidden')) posicionarNotifDropdown();
+    if(dropN.classList.contains('hidden')) abrirNotifDropdown();
+    else fecharNotifDropdown();
 });
-document.addEventListener('click',e=>{ if(!dropN.contains(e.target)&&!btnN.contains(e.target)) dropN.classList.add('hidden'); });
-$id('btn-limpar-notif').onclick=()=>dropN.classList.add('hidden');
-window.addEventListener('resize', posicionarNotifDropdown);
+document.addEventListener('click',e=>{ if(!dropN.contains(e.target)&&!btnN.contains(e.target)) fecharNotifDropdown(); });
+$id('btn-limpar-notif').onclick=()=>fecharNotifDropdown();
+notifBackdrop?.addEventListener('click', fecharNotifDropdown);
+window.addEventListener('resize', ()=>{
+    if(window.innerWidth>640) notifBackdrop?.classList.add('hidden');
+    posicionarNotifDropdown();
+});
 window.addEventListener('scroll', posicionarNotifDropdown, {passive:true});
 $id('btn-global-search').onclick=()=>{
     $id('modal-global-search').classList.remove('hidden');
@@ -5139,7 +5161,7 @@ function gerenciarNotificacoes(){
     if(recMes>0){ const pct=(despMes/recMes)*100; if(pct>90)alertas.push({tipo:'erro',titulo:'Orçamento Estourando!',desc:`${pct.toFixed(1)}% da renda comprometida.`,icone:'🚨'}); else if(pct>80)alertas.push({tipo:'alerta',titulo:'Alerta de Orçamento',desc:`${pct.toFixed(1)}% comprometido.`,icone:'⚠️'}); }
     for(let c in catAtual){ if(catAnt[c]>0){ const p=((catAtual[c]-catAnt[c])/catAnt[c])*100; if(p>40&&catAtual[c]>100) alertas.push({tipo:'alerta',titulo:'Gasto Fora do Padrão',desc:`${c} subiu ${p.toFixed(0)}% vs mês anterior.`,icone:'📈'}); } }
     const badge=$id('notif-badge'), lista=$id('lista-notificacoes'); lista.innerHTML='';
-    if(alertas.length){ badge.innerText=alertas.length; badge.classList.remove('hidden'); alertas.forEach(a=>{ const bg=a.tipo==='erro'?'bg-rose-50':a.tipo==='aviso'?'bg-amber-50':'bg-amber-50'; lista.innerHTML+=`<li class="p-3 ${bg} border-b border-gray-50 last:border-none"><div class="flex gap-2.5 items-start"><span class="text-base">${a.icone}</span><div><p class="font-bold text-gray-800 text-xs">${a.titulo}</p><p class="text-xs text-gray-500 mt-0.5">${a.desc}</p></div></div></li>`; }); }
+    if(alertas.length){ badge.innerText=alertas.length; badge.classList.remove('hidden'); alertas.forEach(a=>{ const bg=a.tipo==='erro'?'bg-rose-50':a.tipo==='aviso'?'bg-amber-50':'bg-amber-50'; lista.innerHTML+=`<li class="p-3 ${bg} border-b border-gray-50 last:border-none"><div class="flex gap-2.5 items-start rounded-xl bg-white/70 px-2.5 py-2"><span class="text-base">${a.icone}</span><div><p class="font-bold text-gray-800 text-xs">${a.titulo}</p><p class="text-xs text-gray-500 mt-0.5">${a.desc}</p></div></div></li>`; }); }
     else{ badge.classList.add('hidden'); lista.innerHTML='<li class="p-5 text-center text-gray-300 text-sm">Tudo tranquilo ✌️</li>'; }
 }
 
