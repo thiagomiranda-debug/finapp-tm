@@ -2596,6 +2596,66 @@ function getAlertasLidos(){
 function setAlertasLidos(ids){
     localStorage.setItem(ALERTAS_LIDOS_KEY, JSON.stringify([...new Set(ids)]));
 }
+function getMetaTipoAlerta(tipo=''){
+    if(tipo==='erro') return {
+        titulo:'Urgente',
+        subtitulo:'Resolver agora',
+        wrap:'bg-rose-50/90 border border-rose-100',
+        badge:'bg-rose-100 text-rose-700 border border-rose-200'
+    };
+    if(tipo==='aviso') return {
+        titulo:'Atenção',
+        subtitulo:'Acompanhar de perto',
+        wrap:'bg-amber-50/90 border border-amber-100',
+        badge:'bg-amber-100 text-amber-700 border border-amber-200'
+    };
+    return {
+        titulo:'Informativos',
+        subtitulo:'Leitura do período',
+        wrap:'bg-blue-50/90 border border-blue-100',
+        badge:'bg-blue-100 text-blue-700 border border-blue-200'
+    };
+}
+function renderizarAlertasLista(host, alertas=[], naoLidosIds=[]){
+    if(!host) return;
+    if(!alertas.length){
+        host.innerHTML='<li class="p-5 text-center text-gray-300 text-sm">Tudo tranquilo ✌️</li>';
+        return;
+    }
+    const grupos=[['erro',[]],['aviso',[]],['alerta',[]]].map(([tipo])=>({
+        tipo,
+        itens: alertas.filter(a=>a.tipo===tipo)
+    })).filter(grupo=>grupo.itens.length);
+    host.innerHTML=grupos.map(grupo=>{
+        const meta=getMetaTipoAlerta(grupo.tipo);
+        return `<li class="p-3 sm:p-4 border-b border-gray-100 last:border-none">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <div>
+                    <p class="text-[11px] font-black uppercase tracking-[.22em] text-slate-400">${meta.titulo}</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">${meta.subtitulo}</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-black ${meta.badge}">${grupo.itens.length}</span>
+            </div>
+            <div class="space-y-2.5">
+                ${grupo.itens.map(a=>{
+                    const novo=naoLidosIds.includes(a.id);
+                    return `<div class="rounded-2xl ${meta.wrap} px-3 py-3">
+                        <div class="flex gap-2.5 items-start">
+                            <div class="shrink-0 w-9 h-9 rounded-xl bg-white/80 border border-white/70 flex items-center justify-center text-base shadow-sm">${a.icone}</div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-start justify-between gap-3">
+                                    <p class="font-black text-slate-800 text-sm leading-tight">${a.titulo}</p>
+                                    ${novo?'<span class="shrink-0 mt-0.5 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-[.12em]">novo</span>':''}
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${a.desc}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </li>`;
+    }).join('');
+}
 function sincronizarAlertasLidos(alertas){
     const idsAtuais=alertas.map(a=>a.id);
     const lidos=getAlertasLidos().filter(id=>idsAtuais.includes(id));
@@ -5193,8 +5253,6 @@ function gerenciarNotificacoes(){
     const lidos=sincronizarAlertasLidos(alertas);
     const naoLidos=alertas.filter(a=>!lidos.includes(a.id));
     const badge=$id('notif-badge'), lista=$id('lista-notificacoes'), listaMobile=$id('lista-notificacoes-mobile');
-    if(lista) lista.innerHTML='';
-    if(listaMobile) listaMobile.innerHTML='';
     if(alertas.length){
         if(naoLidos.length){
             badge.innerText=naoLidos.length;
@@ -5202,17 +5260,12 @@ function gerenciarNotificacoes(){
         }else{
             badge.classList.add('hidden');
         }
-        alertas.forEach(a=>{
-            const bg=a.tipo==='erro'?'bg-rose-50':a.tipo==='aviso'?'bg-amber-50':'bg-amber-50';
-            const item=`<li class="p-3 ${bg} border-b border-gray-50 last:border-none"><div class="flex gap-2.5 items-start rounded-xl bg-white/70 px-2.5 py-2"><span class="text-base">${a.icone}</span><div><p class="font-bold text-gray-800 text-xs">${a.titulo}</p><p class="text-xs text-gray-500 mt-0.5">${a.desc}</p></div></div></li>`;
-            if(lista) lista.innerHTML+=item;
-            if(listaMobile) listaMobile.innerHTML+=item;
-        });
+        renderizarAlertasLista(lista, alertas, naoLidos.map(a=>a.id));
+        renderizarAlertasLista(listaMobile, alertas, naoLidos.map(a=>a.id));
     }else{
         badge.classList.add('hidden');
-        const vazio='<li class="p-5 text-center text-gray-300 text-sm">Tudo tranquilo ✌️</li>';
-        if(lista) lista.innerHTML=vazio;
-        if(listaMobile) listaMobile.innerHTML=vazio;
+        renderizarAlertasLista(lista, [], []);
+        renderizarAlertasLista(listaMobile, [], []);
     }
 }
 
