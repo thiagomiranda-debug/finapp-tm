@@ -1948,7 +1948,7 @@ async function verificarEDisparar(){
                     </div>
                     <select id="rec-edit-categoria" class="input-field"></select>
                 </div>
-                <div><label class="label-xs">Descrição</label><input type="text" id="rec-edit-desc" class="input-field" autocomplete="off" required></div>
+                <div><label class="label-xs">Descrição</label><input type="text" id="rec-edit-desc" class="input-field" autocomplete="off" list="desc-suggestions" required></div>
                 <div><label class="label-xs">Conta</label><select id="rec-edit-conta" class="input-field"><option value="">-- Sem conta --</option></select></div>
                 <div><label class="label-xs">Status ao repetir</label><select id="rec-edit-status" class="input-field"><option value="pendente">⏳ Pendente</option><option value="confirmada">✔️ Confirmada</option></select></div>
                 <div class="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-700 font-medium">
@@ -2038,7 +2038,8 @@ async function verificarEDisparar(){
 
                 <!-- Descrição -->
                 <div><label class="label-xs">Descrição</label>
-                    <input type="text" id="input-desc" placeholder="Ex: Supermercado Atacadão" class="input-field" autocomplete="off" required>
+                    <input type="text" id="input-desc" placeholder="Ex: Supermercado Atacadão" class="input-field" autocomplete="off" list="desc-suggestions" required>
+                    <datalist id="desc-suggestions"></datalist>
                 </div>
 
                 <!-- Tags colapsadas -->
@@ -2720,6 +2721,33 @@ function popularSelectsCartoes(){
 }
 
 // ── MODAL TRANSAÇÃO ───────────────────────────────────────────────────────────
+function atualizarSugestoesDesc(){
+    const dl=$id('desc-suggestions');
+    if(!dl) return;
+    const tipo=$id('input-tipo')?.value||'despesa';
+    const categoria=$id('input-categoria')?.value||'';
+    const atual=($id('input-desc')?.value||'').toLowerCase().trim();
+
+    // Conta frequência de cada descrição filtrada por tipo
+    const freq={};
+    transacoes.forEach(t=>{
+        if(!t.desc || t.tipo!==tipo) return;
+        // Prioriza mesma categoria, mas inclui outras com menor peso
+        const mesmaCateg=t.categoria===categoria;
+        const key=t.desc.trim();
+        if(!freq[key]) freq[key]=0;
+        freq[key]+= mesmaCateg ? 3 : 1;
+    });
+    // Ordena por frequência, filtra pelo que já está digitado
+    const sugestoes=Object.entries(freq)
+        .filter(([desc])=> !atual || normalizarTextoBase(desc).includes(normalizarTextoBase(atual)))
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,10)
+        .map(([desc])=>desc);
+
+    dl.innerHTML=sugestoes.map(s=>`<option value="${escapeHtml(s)}">`).join('');
+}
+
 function syncLancamentoCartaoUI(){
     const tipo=$id('input-tipo')?.value||'despesa';
     const origemHidden=$id('input-origem-lancamento');
@@ -2791,7 +2819,11 @@ $id('btn-toggle-tags')?.addEventListener('click',()=>{
 
 $id('input-tipo')?.addEventListener('change', ()=>{
     syncLancamentoCartaoUI();
+    atualizarSugestoesDesc();
 });
+
+$id('input-categoria')?.addEventListener('change', atualizarSugestoesDesc);
+$id('input-desc')?.addEventListener('input', atualizarSugestoesDesc);
 
 function abrirModalNovo(){
     modoEdicao=false;
@@ -2817,6 +2849,7 @@ function abrirModalNovo(){
     if(tagsIcon) tagsIcon.innerText='＋';
     if(window._resetToggleRec) window._resetToggleRec();
     syncLancamentoCartaoUI();
+    atualizarSugestoesDesc();
     $id('modal-transacao').classList.remove('hidden');
     setTimeout(()=>$id('input-valor')?.focus(),150);
 }
@@ -2849,6 +2882,7 @@ function abrirModalEditar(t){
     $id('btn-submit-form').innerText='Salvar Alterações';
     $id('parcelas-row').classList.add('hidden');
     syncLancamentoCartaoUI();
+    atualizarSugestoesDesc();
     // Oculta bloco recorrente na edição
     $id('recorrente-wrap').classList.add('hidden');
     if(window._resetToggleRec) window._resetToggleRec();
@@ -2862,6 +2896,7 @@ window.abrirRapido = (tipo, categoria)=>{
     $id('input-tipo').value=tipo;
     $id('input-categoria').value=categoria;
     syncLancamentoCartaoUI();
+    atualizarSugestoesDesc();
     setTimeout(()=>$id('input-valor').focus(), 200);
 };
 $id('btn-nova-transacao-nav').onclick = abrirModalNovo;
