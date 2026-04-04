@@ -1822,58 +1822,54 @@ async function verificarEDisparar(){
                 <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
                     <p class="text-xs font-black uppercase tracking-wider text-gray-400">Ativas</p>
                     <p id="rec-count-ativas" class="text-2xl font-black text-slate-900 mt-1">0</p>
-                    <p class="text-xs text-gray-400 mt-1">Gerando proximos meses</p>
+                    <p class="text-xs text-gray-400 mt-1">Gerando próximos meses</p>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
                     <p class="text-xs font-black uppercase tracking-wider text-gray-400">Pausadas</p>
                     <p id="rec-count-pausadas" class="text-2xl font-black text-amber-600 mt-1">0</p>
-                    <p class="text-xs text-gray-400 mt-1">Sem materializacao automatica</p>
+                    <p class="text-xs text-gray-400 mt-1">Sem materialização automática</p>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
-                    <p class="text-xs font-black uppercase tracking-wider text-gray-400">Arquivadas</p>
-                    <p id="rec-count-arquivadas" class="text-2xl font-black text-gray-700 mt-1">0</p>
-                    <p class="text-xs text-gray-400 mt-1">Historico preservado</p>
-                </div>
-                <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
-                    <p class="text-xs font-black uppercase tracking-wider text-gray-400">Proximos 30 dias</p>
+                    <p class="text-xs font-black uppercase tracking-wider text-gray-400">Próximos 30 dias</p>
                     <p id="rec-count-30dias" class="text-2xl font-black text-blue-600 mt-1">0</p>
-                    <p class="text-xs text-gray-400 mt-1">Ocorrencias previstas</p>
+                    <p class="text-xs text-gray-400 mt-1">Ocorrências previstas</p>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 border-l-4 border-l-rose-400">
+                    <p class="text-xs font-black uppercase tracking-wider text-gray-400">Custo fixo/mês</p>
+                    <p id="rec-kpi-custo-fixo" class="text-2xl font-black text-rose-600 mono mt-1">R$ 0,00</p>
+                    <p class="text-xs text-gray-400 mt-1">Soma das saídas ativas</p>
                 </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-4">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
-                    <div>
-                        <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider">Assinaturas e cobrancas recorrentes</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Sugestoes com base nas recorrentes e no historico recente para reduzir trabalho manual.</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4 overflow-hidden">
+                <button id="btn-toggle-assinaturas" class="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 hover:bg-gray-50 transition active:scale-[0.99]">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-gray-500 uppercase tracking-wider">Assinaturas detectadas</span>
+                        <span id="rec-ass-count" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-600">0</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 sm:gap-3">
-                        <div class="rounded-xl bg-slate-50 border border-gray-100 px-3 py-2">
-                            <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Detectadas</p>
-                            <p id="rec-ass-count" class="text-lg font-black text-slate-900 mt-1">0</p>
-                        </div>
-                        <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2">
-                            <p class="text-[10px] font-black uppercase tracking-wider text-blue-700">Mensal / anual</p>
-                            <p id="rec-ass-mensal" class="text-sm font-black text-blue-700 mono mt-1">R$ 0,00</p>
-                            <p id="rec-ass-anual" class="text-[11px] text-blue-500 mono mt-0.5">R$ 0,00/ano</p>
-                        </div>
+                    <div class="flex items-center gap-3">
+                        <span id="rec-ass-mensal" class="text-xs font-black text-blue-600 mono">R$ 0,00</span>
+                        <span id="rec-ass-anual" class="hidden sm:block text-[11px] text-gray-400 mono"></span>
+                        <span id="rec-ass-chevron" class="text-gray-400 text-sm transition-transform duration-200">▼</span>
                     </div>
+                </button>
+                <div id="rec-ass-body" class="hidden border-t border-gray-100 p-4 sm:p-5">
+                    <div id="rec-ass-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center">
+                        <p class="text-3xl">🔎</p>
+                        <p class="text-gray-400 font-medium mt-3">Nenhuma assinatura candidata encontrada.</p>
+                        <p class="text-gray-300 text-sm mt-1">Quando houver padrão mensal recorrente, ele aparecerá aqui.</p>
+                    </div>
+                    <div id="rec-ass-lista" class="space-y-3"></div>
                 </div>
-                <div id="rec-ass-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center">
-                    <p class="text-3xl">🔎</p>
-                    <p class="text-gray-400 font-medium mt-3">Nenhuma assinatura candidata encontrada.</p>
-                    <p class="text-gray-300 text-sm mt-1">Quando houver padrao mensal recorrente, ele aparecera aqui.</p>
-                </div>
-                <div id="rec-ass-lista" class="space-y-3"></div>
             </div>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
                 <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
                     <h2 id="rec-lista-titulo" class="text-xs font-black text-gray-500 uppercase tracking-wider">Recorrentes ativas</h2>
-                    <span id="rec-lista-sub" class="text-xs text-gray-400 font-medium">Revisao mensal centralizada</span>
+                    <span id="rec-lista-sub" class="text-xs text-gray-400 font-medium">Revisão mensal centralizada</span>
                 </div>
                 <div id="recorrentes-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
                     <p class="text-4xl">🔁</p>
                     <p class="text-gray-400 font-medium mt-3">Nenhuma recorrente nesta visualização.</p>
-                    <p class="text-gray-300 text-sm mt-1">Ative o toggle no modal de lancamento para criar recorrencias.</p>
+                    <p class="text-gray-300 text-sm mt-1">Ative o toggle no modal de lançamento para criar recorrências.</p>
                 </div>
                 <div id="lista-recorrentes" class="space-y-3"></div>
             </div>
@@ -1951,7 +1947,7 @@ async function verificarEDisparar(){
                 </div>
 
                 <!-- Data + Conta -->
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div><label class="label-xs">Data</label><input type="date" id="input-data" class="input-field" required></div>
                     <div id="conta-wrap"><label class="label-xs">Conta</label><select id="input-conta" class="input-field"><option value="">-- Sem conta --</option></select></div>
                 </div>
@@ -1990,20 +1986,29 @@ async function verificarEDisparar(){
                 <input type="hidden" id="input-origem-lancamento" value="padrao">
 
                 <!-- Toggle Recorrente -->
-                <div id="recorrente-wrap" class="border border-blue-200 bg-blue-50 rounded-xl p-3">
-                    <div class="flex items-center justify-between">
+                <div id="recorrente-wrap" class="flex items-center justify-between px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 transition">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm" aria-hidden="true">🔁</span>
                         <div>
-                            <p class="text-xs font-black text-blue-700 uppercase tracking-wider">🔁 Lançamento Recorrente</p>
-                            <p class="text-xs text-blue-400 mt-0.5">Repetir todo mês automaticamente</p>
+                            <p class="text-xs font-bold text-gray-700 leading-tight">Recorrente</p>
+                            <p class="text-[11px] text-gray-400 leading-tight">Repetir todo mês</p>
                         </div>
-                        <button type="button" id="btn-toggle-recorrente" class="w-12 h-6 rounded-full bg-gray-200 relative transition-colors duration-200 focus:outline-none" role="switch" aria-checked="false">
-                            <span id="toggle-rec-knob" class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200"></span>
-                        </button>
                     </div>
-                    <div id="rec-fields" class="hidden mt-3 grid grid-cols-2 gap-3">
-                        <div><label class="label-xs">Dia do mês</label><input type="number" id="input-rec-dia" min="1" max="31" placeholder="Ex: 5" class="input-field"></div>
-                        <div><label class="label-xs">Status ao repetir</label><select id="input-rec-status" class="input-field"><option value="pendente">⏳ Pendente</option><option value="confirmada">✔️ Confirmada</option></select></div>
+                    <button type="button" id="btn-toggle-recorrente" class="w-10 h-5 rounded-full bg-gray-300 relative transition-colors duration-200 focus:outline-none flex-shrink-0" role="switch" aria-checked="false">
+                        <span id="toggle-rec-knob" class="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"></span>
+                    </button>
+                </div>
+                <div id="rec-fields" class="hidden grid grid-cols-2 gap-3 px-1">
+                    <div><label class="label-xs">Frequência</label>
+                        <select id="input-rec-frequencia" class="input-field">
+                            <option value="mensal">📅 Mensal</option>
+                            <option value="semanal">📆 Semanal</option>
+                            <option value="quinzenal">📆 Quinzenal</option>
+                            <option value="anual">🗓️ Anual</option>
+                        </select>
                     </div>
+                    <div id="rec-dia-wrap"><label class="label-xs">Dia do mês</label><input type="number" id="input-rec-dia" min="1" max="31" placeholder="Ex: 5" class="input-field"></div>
+                    <div class="col-span-2"><label class="label-xs">Status ao repetir</label><select id="input-rec-status" class="input-field"><option value="pendente">⏳ Pendente</option><option value="confirmada">✔️ Confirmada</option></select></div>
                 </div>
 
                 <button type="submit" id="btn-submit-form" class="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md text-base">Salvar</button>
@@ -3195,15 +3200,15 @@ $id('form-transacao').addEventListener('submit', async e=>{
             if(recAtivo && par===1){
                 const diaRec=parseInt($id('input-rec-dia').value)||parseInt(dataVal.split('-')[2]);
                 const statusRec=$id('input-rec-status').value||payload.status;
+                const frequenciaRec=$id('input-rec-frequencia')?.value||'mensal';
                 const jaExiste=recorrentes.find(r=>r.desc===payload.desc&&r.tipo===payload.tipo&&Math.abs(r.valor-payload.valor)<0.01);
                 if(jaExiste){
                     toast('⚠️ Já existe uma recorrente igual cadastrada.','aviso');
                 }else{
-                    // Salva o mês/ano de início explicitamente a partir da data do lançamento
                     const [anoLanc,mesLanc]=dataVal.split('-');
                     const recorrentePayload={
                         userId:currentUser.uid, tipo:payload.tipo, valor:payload.valor,
-                        dia:diaRec, categoria:payload.categoria, desc:payload.desc,
+                        dia:diaRec, frequencia:frequenciaRec, categoria:payload.categoria, desc:payload.desc,
                         status:statusRec,
                         estado:'ativa',
                         contaId:payload.contaId||null,
@@ -5593,7 +5598,41 @@ function getEstadoRecorrencia(rec){
 }
 
 function getPrimeiraProximaOcorrencia(rec, baseStr=hojeStr()){
+    const freq=rec.frequencia||'mensal';
     const base=new Date(baseStr+'T00:00:00');
+
+    if(freq==='semanal'||freq==='quinzenal'){
+        const intervalo=freq==='semanal'?7:14;
+        // Parte da data de início da recorrência ou hoje, o que for mais recente
+        const inicioRec=rec.mesInicio&&rec.anoInicio
+            ? new Date(`${rec.anoInicio}-${String(rec.mesInicio).padStart(2,'0')}-${String(rec.dia||1).padStart(2,'0')}T00:00:00`)
+            : base;
+        let cursor=new Date(inicioRec);
+        for(let i=0;i<200;i++){
+            if(cursor>=base){
+                const ds=formatDateLocal(cursor);
+                if(!existeExcecaoRecorrente(rec.id, getCompetencia(ds))) return ds;
+            }
+            cursor.setDate(cursor.getDate()+intervalo);
+        }
+        return '';
+    }
+
+    if(freq==='anual'){
+        const diaBase=rec.dia||new Date(baseStr+'T00:00:00').getDate();
+        const mesBase=rec.mesInicio||1;
+        for(let i=0;i<5;i++){
+            const ano=base.getFullYear()+i;
+            const diasNoMes=new Date(ano,mesBase,0).getDate();
+            const dia=Math.min(diaBase,diasNoMes);
+            const ds=`${ano}-${String(mesBase).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+            const dt=new Date(ds+'T00:00:00');
+            if(dt>=base && !existeExcecaoRecorrente(rec.id, getCompetencia(ds))) return ds;
+        }
+        return '';
+    }
+
+    // mensal (default)
     let ano=base.getFullYear();
     let mes=base.getMonth()+1;
     for(let i=0;i<18;i++){
@@ -5763,10 +5802,14 @@ function atualizarCentralRecorrentes(){
     };
     $id('rec-lista-titulo').innerText=tituloMap[_recorrentesFiltro]||'Recorrentes';
     $id('rec-lista-sub').innerText='Revisão mensal centralizada';
-    $id('rec-count-ativas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='ativa').length;
+    const ativas=recorrentes.filter(r=>getEstadoRecorrencia(r)==='ativa');
+    $id('rec-count-ativas').innerText=ativas.length;
     $id('rec-count-pausadas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='pausada').length;
-    $id('rec-count-arquivadas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='arquivada').length;
     $id('rec-count-30dias').innerText=contarOcorrenciasRecorrentes30Dias();
+    // KPI custo fixo: soma das recorrentes ativas do tipo despesa
+    const custoFixo=ativas.filter(r=>r.tipo==='despesa').reduce((s,r)=>s+r.valor,0);
+    const elCusto=$id('rec-kpi-custo-fixo');
+    if(elCusto) elCusto.innerText=fmt(custoFixo);
 
     const lista=$id('lista-recorrentes');
     const vazio=$id('recorrentes-vazio');
@@ -5780,15 +5823,20 @@ function atualizarCentralRecorrentes(){
         return;
     }
     vazio.classList.add('hidden');
+
+    const freqLabel={'semanal':'Semanal','quinzenal':'Quinzenal','mensal':'Mensal','anual':'Anual'};
+
     exibidas.forEach(rec=>{
         const estado=getEstadoRecorrencia(rec);
         const prox=getPrimeiraProximaOcorrencia(rec);
         const valorCor=rec.tipo==='receita'?'text-emerald-600':'text-rose-600';
+        const freq=freqLabel[rec.frequencia||'mensal']||'Mensal';
         const estadoChip=estado==='ativa'
             ? '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">ATIVA</span>'
             : estado==='pausada'
                 ? '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-100">PAUSADA</span>'
                 : '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200">ARQUIVADA</span>';
+        const freqChip=`<span class="px-2 py-1 rounded-full text-[10px] font-black bg-gray-100 text-gray-500">${freq}</span>`;
         const acoes=estado==='ativa'
             ? `<button onclick="pausarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition">Pausar</button>
                <button onclick="arquivarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Arquivar</button>`
@@ -5800,8 +5848,8 @@ function atualizarCentralRecorrentes(){
         const tagsHtml=(rec.tags||[]).slice(0,2).map(tag=>`<span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">#${escapeHtml(tag)}</span>`).join('');
         lista.innerHTML+=renderCard({
             titulo: escapeHtml(rec.desc),
-            subtitulo: `${rec.tipo==='receita'?'Receita':'Despesa'} · ${escapeHtml(rec.categoria)} · Dia ${rec.dia}${proxLabel}`,
-            chips: estadoChip,
+            subtitulo: `${rec.tipo==='receita'?'Receita':'Despesa'} · ${escapeHtml(rec.categoria)}${proxLabel}`,
+            chips: `${estadoChip}${freqChip}`,
             extra: `<div class="flex flex-wrap items-center gap-2 mt-3">
                 <span class="${valorCor} font-black text-lg mono">${rec.tipo==='receita'?'+':'-'}${fmt(rec.valor)}</span>
                 ${tagsHtml}
@@ -5847,25 +5895,49 @@ function existeExcecaoRecorrente(recorrenteId, competencia){
 async function materializarRecorrencia(rec, opts={}){
     if(!rec?.id) return 0;
     if(getEstadoRecorrencia(rec)!=='ativa') return 0;
+
     const hoje=new Date();
     const skipCompetencias=opts.skipCompetencias||new Set();
-    const limiteMax=opts.limiteMax || new Date(hoje.getFullYear(), hoje.getMonth()+12, hoje.getDate());
-    let {ano, mes}=getPrimeiraCompetenciaMaterializavel(rec);
+    // Rolling window: só materializa até 60 dias a partir de hoje
+    const limiteMax=opts.limiteMax||new Date(hoje.getFullYear(),hoje.getMonth(),hoje.getDate()+60);
+    const freq=rec.frequencia||'mensal';
     let criados=0;
 
-    while(ano*12+mes <= (limiteMax.getFullYear()*12 + (limiteMax.getMonth()+1))){
-        const diasNoMes=new Date(ano,mes,0).getDate();
-        const dia=Math.min(rec.dia, diasNoMes);
-        const ds=`${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-        const competencia=getCompetencia(ds);
-        const dataLanc=new Date(ano, mes-1, dia);
+    // Gera array de datas a materializar conforme frequência
+    function proximaData(cursor){
+        const d=new Date(cursor+'T00:00:00');
+        switch(freq){
+            case 'semanal':    d.setDate(d.getDate()+7); break;
+            case 'quinzenal':  d.setDate(d.getDate()+14); break;
+            case 'anual':      d.setFullYear(d.getFullYear()+1); break;
+            default:{ // mensal
+                const dia=rec.dia||1;
+                d.setMonth(d.getMonth()+1);
+                const ultimo=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+                d.setDate(Math.min(dia,ultimo));
+            }
+        }
+        return formatDateLocal(d);
+    }
 
-        if(!skipCompetencias.has(competencia) && !existeExcecaoRecorrente(rec.id, competencia) && dataLanc<=limiteMax && !existeOcorrenciaRecorrente(rec, ds, competencia)){
-            const fechamentoRecorrencia=rec.cartaoId ? getDiaFechamentoCartao(rec.cartaoId, rec.cartaoFechamentoDia||null, getCompetencia(ds)) : (rec.cartaoFechamentoDia||null);
+    // Primeira data a partir do início da recorrência
+    let {ano,mes}=getPrimeiraCompetenciaMaterializavel(rec);
+    const diasNoMes=new Date(ano,mes,0).getDate();
+    const diaInicio=Math.min(rec.dia||1,diasNoMes);
+    let cursor=`${ano}-${String(mes).padStart(2,'0')}-${String(diaInicio).padStart(2,'0')}`;
+
+    // Limite de iterações de segurança
+    for(let i=0;i<500;i++){
+        const dataLanc=new Date(cursor+'T00:00:00');
+        if(dataLanc>limiteMax) break;
+
+        const competencia=getCompetencia(cursor);
+        if(!skipCompetencias.has(competencia) && !existeExcecaoRecorrente(rec.id,competencia) && !existeOcorrenciaRecorrente(rec,cursor,competencia)){
+            const fechamentoRecorrencia=rec.cartaoId?getDiaFechamentoCartao(rec.cartaoId,rec.cartaoFechamentoDia||null,competencia):(rec.cartaoFechamentoDia||null);
             await addDoc(collection(db,'transacoes'),{
                 userId:currentUser.uid,
                 tipo:rec.tipo,
-                data:ds,
+                data:cursor,
                 valor:rec.valor,
                 desc:rec.desc,
                 categoria:rec.categoria,
@@ -5874,7 +5946,7 @@ async function materializarRecorrencia(rec, opts={}){
                 cartaoId:rec.cartaoId||null,
                 responsavelCartao:rec.responsavelCartao||null,
                 cartaoFechamentoDia:fechamentoRecorrencia,
-                competenciaFatura:isCompraCartao(rec) ? calcularCompetenciaFatura(ds, fechamentoRecorrencia) : null,
+                competenciaFatura:isCompraCartao(rec)?calcularCompetenciaFatura(cursor,fechamentoRecorrencia):null,
                 origemLancamento:rec.origemLancamento||((rec.cartaoId||rec.tipoRegistro==='pagamento-fatura')?'cartao':'padrao'),
                 tipoRegistro:rec.tipoRegistro||((rec.cartaoId||hasTag(rec,'pagamento-fatura'))?'cartao-compra':'padrao'),
                 tags:[...new Set([...(rec.tags||[]),'recorrente'])],
@@ -5884,9 +5956,7 @@ async function materializarRecorrencia(rec, opts={}){
             });
             criados++;
         }
-
-        mes++;
-        if(mes>12){ mes=1; ano++; }
+        cursor=proximaData(cursor);
     }
     return criados;
 }
@@ -5981,6 +6051,15 @@ $id('rec-filtro-ativas')?.addEventListener('click',()=>{ _recorrentesFiltro='ati
 $id('rec-filtro-pausadas')?.addEventListener('click',()=>{ _recorrentesFiltro='pausadas'; atualizarCentralRecorrentes(); });
 $id('rec-filtro-arquivadas')?.addEventListener('click',()=>{ _recorrentesFiltro='arquivadas'; atualizarCentralRecorrentes(); });
 
+// Toggle bloco assinaturas
+$id('btn-toggle-assinaturas')?.addEventListener('click',()=>{
+    const body=$id('rec-ass-body');
+    const chevron=$id('rec-ass-chevron');
+    const aberto=!body.classList.contains('hidden');
+    body.classList.toggle('hidden', aberto);
+    if(chevron) chevron.style.transform=aberto?'':'rotate(180deg)';
+});
+
 // Toggle visual
 (()=>{ 
     let ativo=false;
@@ -5988,24 +6067,33 @@ $id('rec-filtro-arquivadas')?.addEventListener('click',()=>{ _recorrentesFiltro=
     const knob=$id('toggle-rec-knob');
     const fields=$id('rec-fields');
     if(!btn) return;
+
+    function syncDiaWrap(){
+        const freq=$id('input-rec-frequencia')?.value||'mensal';
+        const diaWrap=$id('rec-dia-wrap');
+        if(diaWrap) diaWrap.classList.toggle('hidden', freq==='semanal'||freq==='quinzenal'||freq==='anual');
+    }
+
+    $id('input-rec-frequencia')?.addEventListener('change', syncDiaWrap);
+
     btn.addEventListener('click',()=>{
         ativo=!ativo;
         btn.setAttribute('aria-checked', ativo);
         btn.classList.toggle('bg-blue-500', ativo);
-        btn.classList.toggle('bg-gray-200', !ativo);
-        knob.style.transform = ativo ? 'translateX(24px)' : 'translateX(0)';
+        btn.classList.toggle('bg-gray-300', !ativo);
+        knob.style.transform = ativo ? 'translateX(20px)' : 'translateX(0)';
         fields.classList.toggle('hidden', !ativo);
         if(ativo){
-            // Preenche dia com o dia atual do campo data
             const d=$id('input-data').value;
             if(d) $id('input-rec-dia').value=parseInt(d.split('-')[2]);
+            syncDiaWrap();
         }
     });
     // Reset ao fechar/abrir modal
     window._resetToggleRec=()=>{
         ativo=false;
         btn.setAttribute('aria-checked','false');
-        btn.classList.remove('bg-blue-500'); btn.classList.add('bg-gray-200');
+        btn.classList.remove('bg-blue-500'); btn.classList.add('bg-gray-300');
         knob.style.transform='translateX(0)';
         fields.classList.add('hidden');
     };
