@@ -391,6 +391,7 @@ async function verificarEDisparar(){
             --bg2:#ffffff;
             --bg3:#f1f5f9;
             --border:#e5e7eb;
+            --border-subtle:rgba(226,232,240,.88);
             --text:#1e293b;
             --text2:#64748b;
             --text3:#94a3b8;
@@ -398,12 +399,20 @@ async function verificarEDisparar(){
             --input-bg:#f8fafc;
             --card-bg:#ffffff;
             --card-bg-elev:#ffffff;
+            --modal-bg:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+            --surface-hover:#f8fafc;
+            --shadow-card:0 14px 34px rgba(15,23,42,.05);
+            --shadow-modal:0 22px 54px rgba(15,23,42,.10);
+            --chip-bg:#f1f5f9;
+            --chip-text:#64748b;
+            --input-placeholder:#94a3b8;
         }
         .dark{
             --bg:#08111d;
             --bg2:#0d1728;
             --bg3:#122033;
             --border:rgba(148,163,184,.16);
+            --border-subtle:rgba(148,163,184,.14);
             --text:#e8eef9;
             --text2:#a7b4ca;
             --text3:#70819b;
@@ -411,7 +420,16 @@ async function verificarEDisparar(){
             --input-bg:#091120;
             --card-bg:rgba(12,21,36,.88);
             --card-bg-elev:rgba(15,27,46,.96);
+            --modal-bg:linear-gradient(180deg,#0f1a2d 0%,#0b1424 100%);
+            --surface-hover:rgba(148,163,184,.06);
+            --shadow-card:0 14px 30px rgba(0,0,0,.26);
+            --shadow-modal:0 22px 54px rgba(0,0,0,.32);
+            --chip-bg:rgba(148,163,184,.10);
+            --chip-text:#a7b4ca;
+            --input-placeholder:#5f738f;
         }
+
+        /* ── DARK: body e backgrounds estruturais ── */
         html.dark body{
             color:var(--text)!important;
             background:
@@ -426,20 +444,33 @@ async function verificarEDisparar(){
         }
         html.dark #dashboard-screen::before{ background:rgba(37,99,235,.18); }
         html.dark #dashboard-screen::after{ background:rgba(8,145,178,.12); }
-        html.dark .bg-white{
-            background:linear-gradient(180deg,var(--card-bg-elev) 0%, var(--card-bg) 100%)!important;
-        }
-        html.dark .bg-gray-50{ background:#0f1a2b!important; }
+
+        /* ── DARK: superfícies (cards, modais, backgrounds) ── */
+        html.dark .bg-white,
+        html.dark .border-gray-100.bg-white{ background:linear-gradient(180deg,var(--card-bg-elev) 0%, var(--card-bg) 100%)!important; }
+        html.dark .bg-gray-50,
+        html.dark #notif-dropdown .bg-gray-50,
+        html.dark #notif-mobile-modal .bg-gray-50,
+        html.dark #modal-fechamento-pendencias .bg-gray-50{ background:#0f1a2b!important; }
         html.dark .bg-gray-100{ background:#131f31!important; }
-        html.dark .border-gray-100,
-        html.dark .border-gray-200{ border-color:var(--border)!important; }
-        html.dark .text-gray-800,
-        html.dark .text-gray-900{ color:var(--text)!important; }
-        html.dark .text-gray-600,
-        html.dark .text-gray-700{ color:var(--text2)!important; }
-        html.dark .text-gray-400,
-        html.dark .text-gray-500{ color:var(--text3)!important; }
-        html.dark .divide-gray-50>*{ border-color:var(--border)!important; }
+        html.dark .bg-slate-50,
+        html.dark #modal-fechamento-pendencias .bg-slate-50{ background:#0d1829!important; }
+
+        /* ── DARK: modais (dropdown + painéis) ── */
+        html.dark #notif-dropdown,
+        html.dark #notif-mobile-modal > div,
+        html.dark #modal-fechamento-pendencias > div{
+            background:var(--modal-bg)!important;
+            border-color:var(--border-subtle)!important;
+            box-shadow:var(--shadow-modal)!important;
+        }
+        html.dark .modal-inner,
+        html.dark #confirm-modal .bg-white,
+        html.dark #modal-editar-recorrente .modal-inner{ background:linear-gradient(180deg,var(--card-bg-elev) 0%, var(--card-bg) 100%)!important; border-color:var(--border-subtle)!important; box-shadow:var(--shadow-modal)!important; }
+        html.dark #notif-backdrop{ background:rgba(2,6,23,.52)!important; }
+        html.dark #confirm-modal .border-gray-200{ border-color:var(--border)!important; color:var(--text2)!important; background:#101b2d!important; }
+
+        /* ── DARK: nav ── */
         html.dark nav.bg-white{
             background:rgba(7,13,24,.72)!important;
             border-color:rgba(148,163,184,.12)!important;
@@ -447,31 +478,48 @@ async function verificarEDisparar(){
             backdrop-filter:blur(24px);
             -webkit-backdrop-filter:blur(24px);
         }
+
+        /* ── DARK: bordas e sombras ── */
+        html.dark .border-gray-100,
+        html.dark .border-gray-200,
+        html.dark #modal-fechamento-pendencias .border-gray-100,
+        html.dark #modal-fechamento-pendencias .border-slate-100{ border-color:var(--border)!important; }
         html.dark .bg-white.rounded-2xl,
-        html.dark .bg-white.rounded-xl,
-        html.dark .modal-inner,
-        html.dark #confirm-modal .bg-white,
-        html.dark #notif-dropdown{
-            border-color:rgba(148,163,184,.14)!important;
-            box-shadow:0 22px 54px rgba(0,0,0,.32)!important;
-        }
-        html.dark .shadow-sm{ box-shadow:0 14px 30px rgba(0,0,0,.26)!important; }
+        html.dark .bg-white.rounded-xl{ border-color:var(--border-subtle)!important; box-shadow:var(--shadow-card)!important; }
+        html.dark .shadow-sm{ box-shadow:var(--shadow-card)!important; }
+
+        /* ── DARK: tipografia ── */
+        html.dark .text-gray-800,
+        html.dark .text-gray-900,
+        html.dark #modal-fechamento-pendencias .text-gray-800,
+        html.dark #modal-fechamento-pendencias .text-slate-800,
+        html.dark #notif-dropdown li p:first-child,
+        html.dark #notif-mobile-modal li p:first-child{ color:var(--text)!important; }
+        html.dark .text-gray-600,
+        html.dark .text-gray-700{ color:var(--text2)!important; }
+        html.dark .text-gray-400,
+        html.dark .text-gray-500,
+        html.dark #modal-fechamento-pendencias .text-gray-400,
+        html.dark #modal-fechamento-pendencias .text-slate-500,
+        html.dark #notif-dropdown li p:last-child,
+        html.dark #notif-mobile-modal li p:last-child{ color:var(--text3)!important; }
+        html.dark .text-blue-900{ color:#c7d2fe!important; }
+        html.dark .text-rose-900{ color:#fecdd3!important; }
+        html.dark .divide-gray-50>*{ border-color:var(--border)!important; }
+
+        /* ── DARK: inputs e formulários ── */
         html.dark .input-field{
             background:linear-gradient(180deg,#091120 0%,#0d1626 100%)!important;
-            border-color:rgba(148,163,184,.14)!important;
+            border-color:var(--border-subtle)!important;
             color:var(--text)!important;
-            box-shadow:inset 0 1px 0 rgba(255,255,255,.02), 0 1px 0 rgba(255,255,255,.01);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
         }
-        html.dark .input-field::placeholder{ color:#5f738f!important; }
-        html.dark .input-field:focus{
-            border-color:rgba(96,165,250,.48)!important;
-            box-shadow:0 0 0 4px rgba(59,130,246,.16), inset 0 1px 0 rgba(255,255,255,.02)!important;
-        }
+        html.dark .input-field::placeholder{ color:var(--input-placeholder)!important; }
+        html.dark .input-field:focus{ border-color:rgba(96,165,250,.48)!important; box-shadow:0 0 0 4px rgba(59,130,246,.16), inset 0 1px 0 rgba(255,255,255,.02)!important; }
         html.dark select option{ background:#0d1728; color:var(--text); }
-        html.dark .tab-inactive{ color:#5f6e86!important; }
-        html.dark .tab-active{ color:#dbeafe!important; border-color:#3b82f6!important; }
-        html.dark .tab-fade-right::after{ background:linear-gradient(to right,transparent,#08111d); }
-        html.dark #extrato-sort{ background:#0d1728; border-color:var(--border); color:var(--text2); }
+        html.dark #extrato-sort{ background:var(--input-bg); border-color:var(--border); color:var(--text2); }
+
+        /* ── DARK: botões e chips ── */
         html.dark #btn-privacy,
         html.dark #btn-dark,
         html.dark .premium-icon-btn,
@@ -479,99 +527,68 @@ async function verificarEDisparar(){
         html.dark button.border-gray-200{
             background:linear-gradient(180deg,#111c30 0%,#0c1525 100%)!important;
             color:var(--text)!important;
-            border:1px solid rgba(148,163,184,.14)!important;
+            border:1px solid var(--border-subtle)!important;
             box-shadow:0 12px 26px rgba(0,0,0,.26)!important;
         }
+        html.dark .quick-btn{ filter:brightness(.92) saturate(1.04); }
+
+        /* ── DARK: tabs ── */
+        html.dark .tab-inactive{ color:#5f6e86!important; }
+        html.dark .tab-active{ color:#dbeafe!important; border-color:#3b82f6!important; }
+        html.dark .tab-fade-right::after{ background:linear-gradient(to right,transparent,#08111d); }
+
+        /* ── DARK: chips semânticos (amber, emerald, rose, blue) ── */
         html.dark .bg-amber-50{ background:rgba(120,53,15,.18)!important; }
+        html.dark .bg-amber-50.border-amber-100,
+        html.dark .border-amber-200.bg-amber-50{ border-color:rgba(217,119,6,.24)!important; }
         html.dark .bg-emerald-50{ background:rgba(6,95,70,.18)!important; }
-        html.dark .bg-rose-50{ background:rgba(136,19,55,.18)!important; }
-        html.dark .bg-blue-50{ background:rgba(29,78,216,.16)!important; }
-        html.dark .bg-slate-50{ background:#0d1829!important; }
-        html.dark .bg-amber-50.border-amber-100{ border-color:rgba(217,119,6,.24)!important; }
         html.dark .bg-emerald-50.border-emerald-100{ border-color:rgba(16,185,129,.22)!important; }
+        html.dark .bg-rose-50{ background:rgba(136,19,55,.18)!important; }
         html.dark .bg-rose-50.border-rose-100,
         html.dark .bg-rose-50.border-rose-200{ border-color:rgba(244,63,94,.20)!important; }
+        html.dark .bg-blue-50{ background:rgba(29,78,216,.16)!important; }
         html.dark .bg-blue-50.border-blue-100,
         html.dark .bg-blue-50.border-blue-200{ border-color:rgba(59,130,246,.22)!important; }
-        html.dark .border-amber-200.bg-amber-50{ background:rgba(120,53,15,.18)!important; border-color:rgba(217,119,6,.24)!important; }
-        html.dark .border-gray-100.bg-white,
-        html.dark .border-gray-100.bg-white.shadow-sm{ background:linear-gradient(180deg,var(--card-bg-elev) 0%, var(--card-bg) 100%)!important; }
-        html.dark .text-blue-900{ color:#c7d2fe!important; }
-        html.dark .text-rose-900{ color:#fecdd3!important; }
-        html.dark #notif-dropdown{ background:linear-gradient(180deg,#0f1a2d 0%, #0b1424 100%)!important; }
-        html.dark #notif-dropdown .bg-gray-50{ background:#0b1424!important; }
-        html.dark #notif-dropdown li p:first-child{ color:#e2e8f0!important; }
-        html.dark #notif-dropdown li p:last-child{ color:#94a3b8!important; }
-        html.dark #notif-backdrop{ background:rgba(2,6,23,.52)!important; }
-        html.dark #notif-mobile-modal > div{
-            background:linear-gradient(180deg,#0f1a2d 0%, #0b1424 100%)!important;
-            border-color:rgba(148,163,184,.14)!important;
-            box-shadow:0 22px 54px rgba(0,0,0,.32)!important;
-        }
-        html.dark #notif-mobile-modal .bg-gray-50{ background:#0b1424!important; }
-        html.dark #notif-mobile-modal li p:first-child{ color:#e2e8f0!important; }
-        html.dark #notif-mobile-modal li p:last-child{ color:#94a3b8!important; }
-        html.dark #modal-fechamento-pendencias > div{
-            background:linear-gradient(180deg,#0f1a2d 0%, #0b1424 100%)!important;
-            border-color:rgba(148,163,184,.14)!important;
-            box-shadow:0 22px 54px rgba(0,0,0,.32)!important;
-        }
-        html.dark #modal-fechamento-pendencias .bg-gray-50{ background:#0b1424!important; }
-        html.dark #modal-fechamento-pendencias .bg-white,
-        html.dark #modal-fechamento-pendencias .bg-slate-50{ background:#0f172a!important; }
-        html.dark #modal-fechamento-pendencias .border-gray-100,
-        html.dark #modal-fechamento-pendencias .border-slate-100{ border-color:#1e293b!important; }
-        html.dark #modal-fechamento-pendencias .text-gray-800,
-        html.dark #modal-fechamento-pendencias .text-slate-800{ color:#e2e8f0!important; }
-        html.dark #modal-fechamento-pendencias .text-gray-400,
-        html.dark #modal-fechamento-pendencias .text-slate-500{ color:#94a3b8!important; }
-        html.dark #confirm-modal .border-gray-200{ border-color:var(--border)!important; color:var(--text2)!important; background:#101b2d!important; }
-        html.dark .quick-btn{ filter:brightness(.92) saturate(1.04); }
+
+        /* ── DARK: novos componentes ── */
+        html.dark #btn-toggle-cartao,
+        html.dark #recorrente-wrap,
+        html.dark #btn-toggle-assinaturas,
+        html.dark #btn-toggle-lista-rec{ background:var(--surface-hover)!important; border-color:var(--border)!important; color:var(--text2)!important; }
+        html.dark #btn-toggle-cartao:hover,
+        html.dark #recorrente-wrap:hover,
+        html.dark #btn-toggle-assinaturas:hover,
+        html.dark #btn-toggle-lista-rec:hover{ background:rgba(148,163,184,.10)!important; }
+        html.dark #cartao-toggle-knob-wrap{ background:rgba(148,163,184,.25)!important; }
+        html.dark #rec-ass-body,
+        html.dark #rec-lista-body{ border-color:var(--border)!important; }
+
+        /* ── DARK: privacidade ── */
         html.dark body.privacy-on .mono,
         html.dark body.privacy-on [data-sensitive="true"]{
             text-shadow:0 0 12px rgba(15,23,42,.92), 0 0 20px rgba(59,130,246,.18);
         }
+
+        /* ── DARK: login ── */
         html.dark #login-screen{
             background:
                 radial-gradient(circle at 18% 12%, rgba(59,130,246,.18), transparent 22%),
                 radial-gradient(circle at 82% 8%, rgba(56,189,248,.12), transparent 26%),
                 linear-gradient(180deg,#060d19 0%,#08111d 44%,#0d1728 100%)!important;
         }
-        html.dark #login-screen [class*="bg-white/95"]{
-            background:linear-gradient(180deg,rgba(10,18,32,.88) 0%, rgba(12,22,38,.94) 100%)!important;
-            border-color:rgba(148,163,184,.14)!important;
-            box-shadow:0 32px 90px rgba(0,0,0,.42)!important;
-        }
-        html.dark #login-screen [class*="bg-white/90"]{
-            background:rgba(15,27,46,.88)!important;
-            border-color:rgba(148,163,184,.12)!important;
-            color:#c8d4e7!important;
-        }
+        html.dark #login-screen [class*="bg-white/95"]{ background:linear-gradient(180deg,rgba(10,18,32,.88) 0%, rgba(12,22,38,.94) 100%)!important; border-color:var(--border-subtle)!important; box-shadow:0 32px 90px rgba(0,0,0,.42)!important; }
+        html.dark #login-screen [class*="bg-white/90"]{ background:rgba(15,27,46,.88)!important; border-color:rgba(148,163,184,.12)!important; color:#c8d4e7!important; }
         html.dark #login-screen .text-slate-900{ color:#f4f8ff!important; }
         html.dark #login-screen .text-slate-500{ color:#7f92ad!important; }
         html.dark #login-screen .text-gray-500{ color:#8ca0bc!important; }
         html.dark #login-screen .text-gray-400{ color:#6d7f99!important; }
         html.dark #login-screen .bg-white\/10{ background:rgba(255,255,255,.06)!important; }
         html.dark #tab-login,
-        html.dark #tab-cadastro{
-            background:linear-gradient(180deg,#121d31 0%,#0d1626 100%)!important;
-            color:#8ea2bf!important;
-            box-shadow:none!important;
-        }
+        html.dark #tab-cadastro{ background:linear-gradient(180deg,#121d31 0%,#0d1626 100%)!important; color:#8ea2bf!important; box-shadow:none!important; }
         html.dark #tab-login.tab-on,
-        html.dark #tab-cadastro.tab-on{
-            background:linear-gradient(180deg,#1a2942 0%,#13213a 100%)!important;
-            color:#f8fbff!important;
-            box-shadow:0 12px 28px rgba(2,8,23,.30)!important;
-        }
-        html.dark #btn-register{
-            background:linear-gradient(180deg,#131f33 0%,#0d1728 100%)!important;
-            color:#edf4ff!important;
-            border-color:rgba(148,163,184,.14)!important;
-        }
-        html.dark #btn-login{
-            box-shadow:0 18px 40px rgba(37,99,235,.30)!important;
-        }
+        html.dark #tab-cadastro.tab-on{ background:linear-gradient(180deg,#1a2942 0%,#13213a 100%)!important; color:#f8fbff!important; box-shadow:0 12px 28px rgba(2,8,23,.30)!important; }
+        html.dark #btn-register{ background:linear-gradient(180deg,#131f33 0%,#0d1728 100%)!important; color:#edf4ff!important; border-color:var(--border-subtle)!important; }
+        html.dark #btn-login{ box-shadow:0 18px 40px rgba(37,99,235,.30)!important; }
         /* tab bar fade indicator on mobile */
         .tab-fade-right::after{
             content:'';position:absolute;right:0;top:0;bottom:0;width:24px;
@@ -1861,17 +1878,25 @@ async function verificarEDisparar(){
                     <div id="rec-ass-lista" class="space-y-3"></div>
                 </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
-                <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
-                    <h2 id="rec-lista-titulo" class="text-xs font-black text-gray-500 uppercase tracking-wider">Recorrentes ativas</h2>
-                    <span id="rec-lista-sub" class="text-xs text-gray-400 font-medium">Revisão mensal centralizada</span>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <button id="btn-toggle-lista-rec" class="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 hover:bg-gray-50 transition active:scale-[0.99]">
+                    <div class="flex items-center gap-2">
+                        <h2 id="rec-lista-titulo" class="text-xs font-black text-gray-500 uppercase tracking-wider">Recorrentes ativas</h2>
+                        <span id="rec-lista-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-600">0</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span id="rec-lista-sub" class="hidden sm:block text-xs text-gray-400 font-medium">Revisão mensal centralizada</span>
+                        <span id="rec-lista-chevron" class="text-gray-400 text-sm transition-transform duration-200">▼</span>
+                    </div>
+                </button>
+                <div id="rec-lista-body" class="hidden border-t border-gray-100 p-4 sm:p-5">
+                    <div id="recorrentes-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
+                        <p class="text-4xl">🔁</p>
+                        <p class="text-gray-400 font-medium mt-3">Nenhuma recorrente nesta visualização.</p>
+                        <p class="text-gray-300 text-sm mt-1">Ative o toggle no modal de lançamento para criar recorrências.</p>
+                    </div>
+                    <div id="lista-recorrentes" class="space-y-3"></div>
                 </div>
-                <div id="recorrentes-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
-                    <p class="text-4xl">🔁</p>
-                    <p class="text-gray-400 font-medium mt-3">Nenhuma recorrente nesta visualização.</p>
-                    <p class="text-gray-300 text-sm mt-1">Ative o toggle no modal de lançamento para criar recorrências.</p>
-                </div>
-                <div id="lista-recorrentes" class="space-y-3"></div>
             </div>
         </div>
 
@@ -1890,6 +1915,50 @@ async function verificarEDisparar(){
 
     <!-- Print area for PDF -->
 <div id="pdf-print-area" style="display:none; padding:24px; font-family:'DM Sans',sans-serif; font-size:13px;"></div>
+
+<!-- ════ MODAL EDITAR RECORRENTE ════ -->
+<div id="modal-editar-recorrente" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+    <div class="modal-inner bg-white w-full sm:max-w-md sm:rounded-2xl shadow-2xl border-t-4 border-blue-600 overflow-y-auto" style="max-height:92vh">
+        <div class="p-4 sm:p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-black text-gray-800">✏️ Editar Recorrente</h2>
+                <button id="btn-fechar-modal-rec-editar" aria-label="Fechar edição" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <form id="form-editar-recorrente" class="space-y-3.5">
+                <input type="hidden" id="rec-edit-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="label-xs">Tipo</label><select id="rec-edit-tipo" class="input-field"><option value="despesa">💸 Saída</option><option value="receita">💰 Entrada</option></select></div>
+                    <div><label class="label-xs">Valor (R$)</label><input type="text" inputmode="decimal" id="rec-edit-valor" placeholder="0,00" class="input-field text-xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="label-xs">Frequência</label>
+                        <select id="rec-edit-frequencia" class="input-field">
+                            <option value="mensal">📅 Mensal</option>
+                            <option value="semanal">📆 Semanal</option>
+                            <option value="quinzenal">📆 Quinzenal</option>
+                            <option value="anual">🗓️ Anual</option>
+                        </select>
+                    </div>
+                    <div id="rec-edit-dia-wrap"><label class="label-xs">Dia do mês</label><input type="number" id="rec-edit-dia" min="1" max="31" placeholder="Ex: 5" class="input-field"></div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="label-xs">Categoria</label>
+                        <button type="button" id="btn-abrir-nova-cat-rec" class="text-xs text-blue-600 font-bold hover:text-blue-700 active:scale-95 transition">+ Nova</button>
+                    </div>
+                    <select id="rec-edit-categoria" class="input-field"></select>
+                </div>
+                <div><label class="label-xs">Descrição</label><input type="text" id="rec-edit-desc" class="input-field" autocomplete="off" required></div>
+                <div><label class="label-xs">Conta</label><select id="rec-edit-conta" class="input-field"><option value="">-- Sem conta --</option></select></div>
+                <div><label class="label-xs">Status ao repetir</label><select id="rec-edit-status" class="input-field"><option value="pendente">⏳ Pendente</option><option value="confirmada">✔️ Confirmada</option></select></div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-700 font-medium">
+                    ⚠️ Salvar irá atualizar o template <strong>e ressincronizar</strong> as transações pendentes dos próximos 60 dias.
+                </div>
+                <button type="submit" id="btn-salvar-rec-editar" class="w-full bg-blue-600 text-white py-3.5 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md">Salvar e Sincronizar</button>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- ════ MODAL EXTRATO MENSAL ════ -->
 <div id="modal-extrato-mensal" class="hidden fixed inset-0 bg-black/70 overlay flex items-end sm:items-center justify-center z-[205] p-0 sm:p-4">
@@ -1919,7 +1988,7 @@ async function verificarEDisparar(){
                 <!-- Tipo + Valor -->
                 <div class="grid grid-cols-2 gap-3">
                     <div><label class="label-xs">Tipo</label><select id="input-tipo" class="input-field"><option value="despesa">💸 Saída</option><option value="receita">💰 Entrada</option></select></div>
-                    <div><label class="label-xs">Valor (R$)</label><input type="number" id="input-valor" step="0.01" min="0.01" placeholder="0,00" class="input-field text-2xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
+                    <div><label class="label-xs">Valor (R$)</label><input type="text" inputmode="decimal" id="input-valor" placeholder="0,00" class="input-field text-2xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
                 </div>
 
                 <!-- Compra no cartão toggle — só aparece em Saída -->
@@ -2039,7 +2108,7 @@ async function verificarEDisparar(){
                         <option value="amber">🟡 Amarelo</option><option value="slate">⚫ Cinza</option>
                     </select></div>
                 </div>
-                <div><label class="label-xs">Saldo Inicial (R$)</label><input type="number" id="conta-saldo-inicial" step="0.01" placeholder="0,00" class="input-field text-xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
+                <div><label class="label-xs">Saldo Inicial (R$)</label><input type="text" inputmode="decimal" id="conta-saldo-inicial" placeholder="0,00" class="input-field text-xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
                 <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md">Salvar Conta</button>
             </form>
         </div>
@@ -2056,7 +2125,7 @@ async function verificarEDisparar(){
                 <div><label class="label-xs">De (Conta Origem)</label><select id="transf-origem" class="input-field" required><option value="">Selecione...</option></select></div>
                 <div><label class="label-xs">Para (Conta Destino)</label><select id="transf-destino" class="input-field" required><option value="">Selecione...</option></select></div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label class="label-xs">Valor (R$)</label><input type="number" id="transf-valor" step="0.01" min="0.01" placeholder="0,00" class="input-field text-xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
+                    <div><label class="label-xs">Valor (R$)</label><input type="text" inputmode="decimal" id="transf-valor" placeholder="0,00" class="input-field text-xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
                     <div><label class="label-xs">Data</label><input type="date" id="transf-data" class="input-field" required></div>
                 </div>
                 <div><label class="label-xs">Descrição (opcional)</label><input type="text" id="transf-desc" placeholder="Ex: Reserva de emergência" class="input-field" autocomplete="off"></div>
@@ -2074,7 +2143,7 @@ async function verificarEDisparar(){
             <form id="form-cartao" class="space-y-3.5">
                 <div><label class="label-xs">Nome do Cartão</label><input type="text" id="cartao-nome" placeholder="Ex: Nubank, Itaú Platinum" class="input-field" autocomplete="off" required></div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label class="label-xs">Limite (R$)</label><input type="number" id="cartao-limite" step="0.01" min="0" placeholder="5000,00" class="input-field mono font-black text-rose-700 bg-rose-50 border-rose-200" required></div>
+                    <div><label class="label-xs">Limite (R$)</label><input type="text" inputmode="decimal" id="cartao-limite" placeholder="5.000,00" class="input-field mono font-black text-rose-700 bg-rose-50 border-rose-200" required></div>
                     <div><label class="label-xs">Dia Fechamento</label><input type="number" id="cartao-fechamento" min="1" max="31" placeholder="Ex: 20" class="input-field" required></div>
                 </div>
                 <div><label class="label-xs">Dia Vencimento</label><input type="number" id="cartao-vencimento" min="1" max="31" placeholder="Ex: 5 (do mês seguinte)" class="input-field" required></div>
@@ -2098,7 +2167,7 @@ async function verificarEDisparar(){
                     <option value="Educação">📚 Educação</option><option value="Assinaturas">📱 Assinaturas</option>
                     <option value="Outros">📦 Outros</option>
                 </select></div>
-                <div><label class="label-xs">Limite Mensal (R$)</label><input type="number" id="meta-valor" step="0.01" min="1" placeholder="500,00" class="input-field text-2xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
+                <div><label class="label-xs">Limite Mensal (R$)</label><input type="text" inputmode="decimal" id="meta-valor" placeholder="500,00" class="input-field text-2xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
                 <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md">Salvar Meta</button>
             </form>
         </div>
@@ -2235,6 +2304,49 @@ const mesAtual=new Date().getMonth()+1, anoAtual=new Date().getFullYear();
 const fmt      = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 const fmtData  = d => d ? d.split('-').reverse().join('/') : '';
 const hojeStr  = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+
+// ── MÁSCARA DE VALOR MONETÁRIO ────────────────────────────────────────────────
+function aplicarMascaraReais(el){
+    if(!el) return;
+    function formatar(v){
+        // Remove tudo que não for dígito
+        const digits=v.replace(/\D/g,'').replace(/^0+/,'');
+        if(!digits) return '';
+        // Interpreta os últimos 2 dígitos como centavos
+        const num=parseInt(digits,10);
+        return (num/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    }
+    el.addEventListener('input',e=>{
+        const pos=el.selectionStart;
+        const antes=el.value.length;
+        el.value=formatar(el.value);
+        // Mantém cursor no fim
+        const depois=el.value.length;
+        el.setSelectionRange(depois,depois);
+    });
+    el.addEventListener('focus',()=>{
+        if(!el.value) return;
+        // Ao focar, move cursor pro fim
+        setTimeout(()=>{ const l=el.value.length; el.setSelectionRange(l,l); },0);
+    });
+}
+
+// Lê um input mascarado e retorna float (0 se vazio/inválido)
+function lerReais(id){
+    const el=$id(id); if(!el) return 0;
+    const raw=el.value.replace(/\./g,'').replace(',','.');
+    const v=parseFloat(raw);
+    return isNaN(v)?0:v;
+}
+
+// Preenche um input mascarado com um valor float
+function preencherReais(id, valor){
+    const el=$id(id); if(!el) return;
+    if(valor===null||valor===undefined||valor==='') { el.value=''; return; }
+    const num=parseFloat(valor)||0;
+    el.value=num.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ── RENDER HELPERS ────────────────────────────────────────────────────────────
 // Helpers centralizados para geração de HTML repetitivo.
@@ -2714,7 +2826,7 @@ function abrirModalEditar(t){
     window._editTransacaoOriginal=t;
     $id('input-edit-id').value=t.id;
     $id('input-tipo').value=t.tipo;
-    $id('input-valor').value=t.valor;
+    preencherReais('input-valor',t.valor);
     $id('input-data').value=t.data;
     $id('input-data').disabled=!!t.recorrenteId;
     $id('input-categoria').value=t.categoria;
@@ -2754,6 +2866,10 @@ window.abrirRapido = (tipo, categoria)=>{
 };
 $id('btn-nova-transacao-nav').onclick = abrirModalNovo;
 $id('btn-fab').onclick = abrirModalNovo;
+
+// Inicializar máscaras monetárias
+['input-valor','rec-edit-valor','transf-valor','conta-saldo-inicial','cartao-limite','meta-valor']
+    .forEach(id=>aplicarMascaraReais($id(id)));
 
 // ── NOTIF ─────────────────────────────────────────────────────────────────────
 const ALERTAS_LIDOS_KEY='finapp-alertas-lidos';
@@ -3176,7 +3292,7 @@ $id('form-transacao').addEventListener('submit', async e=>{
     const dataVal=$id('input-data').value;
     const cartaoFechamentoDia=cartaoId && dataVal ? getDiaFechamentoCartao(cartaoId, null, getCompetencia(dataVal)) : (cartaoId ? getDiaFechamentoCartao(cartaoId) : null);
     const labelSubmitAtual=modoEdicao?'Salvar Alterações':'Salvar';
-    const valorRaw=parseFloat($id('input-valor').value);
+    const valorRaw=lerReais('input-valor');
     if(!valorRaw||isNaN(valorRaw)||valorRaw<=0){ toast('Informe um valor válido.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
     if(!dataVal){ toast('Informe a data.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
     if(origemLancamento==='cartao' && !cartaoId){ toast('Selecione o cartão vinculado.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
@@ -3374,7 +3490,19 @@ function renderizarContas(){
                 </div>
                 <div class="mb-2">
                     <p class="text-xs text-gray-400 font-medium mb-0.5">Saldo atual</p>
-                    <p class="text-xl font-black mono ${saldoPos?'text-gray-900':'text-rose-600'} leading-tight">${fmt(saldo)}</p>
+                    <div class="flex items-baseline gap-2 flex-wrap">
+                        <p class="text-xl font-black mono ${saldoPos?'text-gray-900':'text-rose-600'} leading-tight">${fmt(saldo)}</p>
+                        ${(()=>{
+                            if(c.saldoInicialAnterior===undefined||c.saldoInicialAnterior===null) return '';
+                            const delta=c.saldoInicial - c.saldoInicialAnterior;
+                            if(delta===0) return '';
+                            const up=delta>0;
+                            const seta=up?'▲':'▼';
+                            const cor=up?'text-emerald-600':'text-rose-500';
+                            const bg=up?'bg-emerald-50':'bg-rose-50';
+                            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black ${cor} ${bg}">${seta} ${fmt(Math.abs(delta))}</span>`;
+                        })()}
+                    </div>
                 </div>
                 ${dataLabel?`<p class="text-[10px] text-gray-300 mb-3">🕐 Atualizado em ${dataLabel}</p>`:`<div class="mb-3"></div>`}
                 <div class="flex gap-2 pt-3 border-t border-gray-100">
@@ -3408,11 +3536,17 @@ function renderizarContas(){
 
 // Modal Nova/Editar Conta
 $id('btn-nova-conta').onclick=()=>{ $id('form-conta').reset(); $id('conta-edit-id').value=''; $id('conta-modal-titulo').innerText='🏦 Nova Conta'; $id('modal-conta').classList.remove('hidden'); };
-window.editarConta=id=>{ const c=contas.find(x=>x.id===id); if(!c)return; $id('conta-edit-id').value=c.id; $id('conta-modal-titulo').innerText='✏️ Editar Conta'; $id('conta-nome').value=c.nome; $id('conta-tipo').value=c.tipo; $id('conta-cor').value=c.cor||'blue'; $id('conta-saldo-inicial').value=c.saldoInicial||0; $id('modal-conta').classList.remove('hidden'); };
+window.editarConta=id=>{ const c=contas.find(x=>x.id===id); if(!c)return; $id('conta-edit-id').value=c.id; $id('conta-modal-titulo').innerText='✏️ Editar Conta'; $id('conta-nome').value=c.nome; $id('conta-tipo').value=c.tipo; $id('conta-cor').value=c.cor||'blue'; preencherReais('conta-saldo-inicial',c.saldoInicial||0); $id('conta-saldo-inicial').dataset.anterior=c.saldoInicial||0; $id('modal-conta').classList.remove('hidden'); };
 $id('form-conta').addEventListener('submit', async e=>{
     e.preventDefault();
     const id=$id('conta-edit-id').value;
-    const payload={ userId:currentUser.uid, nome:$id('conta-nome').value.trim(), tipo:$id('conta-tipo').value, cor:$id('conta-cor').value, saldoInicial:parseFloat($id('conta-saldo-inicial').value||0), atualizadoEm:new Date().toISOString() };
+    const novoSaldo=lerReais('conta-saldo-inicial');
+    const anteriorStr=$id('conta-saldo-inicial').dataset.anterior;
+    const saldoInicialAnterior= id && anteriorStr!==undefined ? parseFloat(anteriorStr) : null;
+    const payload={ userId:currentUser.uid, nome:$id('conta-nome').value.trim(), tipo:$id('conta-tipo').value, cor:$id('conta-cor').value, saldoInicial:novoSaldo, atualizadoEm:new Date().toISOString() };
+    if(id && saldoInicialAnterior!==null && saldoInicialAnterior!==novoSaldo){
+        payload.saldoInicialAnterior=saldoInicialAnterior;
+    }
     try{
         if(id) await updateDoc(doc(db,'contas',id),payload);
         else await addDoc(collection(db,'contas'),{...payload,criadoEm:new Date().toISOString()});
@@ -3441,7 +3575,7 @@ $id('form-transferencia').addEventListener('submit', async e=>{
     if(!orig||!dest){ toast('Selecione origem e destino.','aviso'); return; }
     if(orig===dest){ toast('Origem e destino devem ser diferentes.','aviso'); return; }
     try{
-        await addDoc(collection(db,'transferencias'),{ userId:currentUser.uid, contaOrigemId:orig, contaDestinoId:dest, valor:parseFloat($id('transf-valor').value), data:$id('transf-data').value, desc:$id('transf-desc').value.trim()||null, status:'confirmada', criadoEm:new Date().toISOString() });
+        await addDoc(collection(db,'transferencias'),{ userId:currentUser.uid, contaOrigemId:orig, contaDestinoId:dest, valor:lerReais('transf-valor'), data:$id('transf-data').value, desc:$id('transf-desc').value.trim()||null, status:'confirmada', criadoEm:new Date().toISOString() });
         toast('↔️ Transferência registrada!'); $id('modal-transferencia').classList.add('hidden');
     }catch(err){ erroFirestore(err,'transferencia'); }
 });
@@ -3630,7 +3764,7 @@ $id('btn-novo-cartao').onclick=()=>{ $id('form-cartao').reset(); $id('modal-cart
 $id('form-cartao').addEventListener('submit', async e=>{
     e.preventDefault();
     try{
-        await addDoc(collection(db,'cartoes'),{ userId:currentUser.uid, nome:$id('cartao-nome').value.trim(), limite:parseFloat($id('cartao-limite').value), fechamento:parseInt($id('cartao-fechamento').value), vencimento:parseInt($id('cartao-vencimento').value), contaPagamentoId:$id('cartao-conta-pagamento').value||null, criadoEm:new Date().toISOString() });
+        await addDoc(collection(db,'cartoes'),{ userId:currentUser.uid, nome:$id('cartao-nome').value.trim(), limite:lerReais('cartao-limite'), fechamento:parseInt($id('cartao-fechamento').value), vencimento:parseInt($id('cartao-vencimento').value), contaPagamentoId:$id('cartao-conta-pagamento').value||null, criadoEm:new Date().toISOString() });
         toast('💳 Cartão salvo!'); $id('modal-cartao').classList.add('hidden');
     }catch(err){ erroFirestore(err,'cartao'); }
 });
@@ -5515,7 +5649,7 @@ function atualizarMetas(){
     });
 }
 $id('btn-nova-meta').onclick=()=>{ $id('form-meta').reset(); $id('modal-meta').classList.remove('hidden'); };
-$id('form-meta').addEventListener('submit', async e=>{ e.preventDefault(); const cat=$id('meta-categoria').value; if(metas.find(m=>m.categoria===cat)){ toast('Já existe meta para esta categoria.','aviso'); return; } try{ await addDoc(collection(db,'metas'),{userId:currentUser.uid,categoria:cat,valor:parseFloat($id('meta-valor').value),criadoEm:new Date().toISOString()}); toast('🎯 Meta criada!'); $id('modal-meta').classList.add('hidden'); }catch(err){ erroFirestore(err,'meta'); } });
+$id('form-meta').addEventListener('submit', async e=>{ e.preventDefault(); const cat=$id('meta-categoria').value; if(metas.find(m=>m.categoria===cat)){ toast('Já existe meta para esta categoria.','aviso'); return; } try{ await addDoc(collection(db,'metas'),{userId:currentUser.uid,categoria:cat,valor:lerReais('meta-valor'),criadoEm:new Date().toISOString()}); toast('🎯 Meta criada!'); $id('modal-meta').classList.add('hidden'); }catch(err){ erroFirestore(err,'meta'); } });
 window.deletarMeta=async id=>{ if(!await confirmar('Remover esta meta?'))return; try{ await deleteDoc(doc(db,'metas',id)); toast('Meta removida.'); }catch(err){ erroFirestore(err,'delete'); } };
 
 // ── NOTIFICAÇÕES ──────────────────────────────────────────────────────────────
@@ -5818,6 +5952,8 @@ function atualizarCentralRecorrentes(){
         .filter(r=>getEstadoRecorrencia(r)===estadoSelecionado)
         .sort((a,b)=>(a.desc||'').localeCompare(b.desc||''));
     lista.innerHTML='';
+    const badge=$id('rec-lista-count-badge');
+    if(badge) badge.innerText=exibidas.length;
     if(!exibidas.length){
         vazio.classList.remove('hidden');
         return;
@@ -5838,10 +5974,12 @@ function atualizarCentralRecorrentes(){
                 : '<span class="px-2 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200">ARQUIVADA</span>';
         const freqChip=`<span class="px-2 py-1 rounded-full text-[10px] font-black bg-gray-100 text-gray-500">${freq}</span>`;
         const acoes=estado==='ativa'
-            ? `<button onclick="pausarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition">Pausar</button>
+            ? `<button onclick="editarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Editar</button>
+               <button onclick="pausarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition">Pausar</button>
                <button onclick="arquivarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Arquivar</button>`
             : estado==='pausada'
-                ? `<button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">Reativar</button>
+                ? `<button onclick="editarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Editar</button>
+                   <button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">Reativar</button>
                    <button onclick="arquivarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Arquivar</button>`
                 : `<button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Restaurar</button>`;
         const proxLabel=prox?` · Próxima: ${fmtData(prox)}`:'';
@@ -6037,6 +6175,123 @@ window.reabrirFechamentoMensal=async ()=>{
 window.pausarRecorrente=id=>atualizarEstadoRecorrente(id,'pausada');
 window.arquivarRecorrente=id=>atualizarEstadoRecorrente(id,'arquivada');
 window.ativarRecorrente=id=>atualizarEstadoRecorrente(id,'ativa');
+
+// ── EDITAR RECORRENTE + SINCRONIZAÇÃO ─────────────────────────────────────────
+function popularSelectCategoriasRec(){
+    const sel=$id('rec-edit-categoria'); if(!sel) return;
+    const categorias=['Alimentação','Transporte','Moradia','Cartão de Crédito','Lazer','Saúde','Educação','Assinaturas','Salário/Vendas','Outros',
+        ...categoriasCustom.map(c=>c.nome)];
+    const val=sel.value;
+    sel.innerHTML=[...new Set(categorias)].map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    if(val) sel.value=val;
+}
+
+function syncRecEditDiaWrap(){
+    const freq=$id('rec-edit-frequencia')?.value||'mensal';
+    const wrap=$id('rec-edit-dia-wrap');
+    if(wrap) wrap.classList.toggle('hidden', freq!=='mensal'&&freq!=='anual');
+}
+
+window.editarRecorrente=id=>{
+    const rec=recorrentes.find(r=>r.id===id);
+    if(!rec) return;
+    $id('rec-edit-id').value=id;
+    $id('rec-edit-tipo').value=rec.tipo||'despesa';
+    preencherReais('rec-edit-valor',rec.valor||0);
+    $id('rec-edit-frequencia').value=rec.frequencia||'mensal';
+    $id('rec-edit-dia').value=rec.dia||'';
+    $id('rec-edit-desc').value=rec.desc||'';
+    $id('rec-edit-status').value=rec.status||'pendente';
+    popularSelectCategoriasRec();
+    $id('rec-edit-categoria').value=rec.categoria||'Outros';
+    // Popular contas
+    const selConta=$id('rec-edit-conta');
+    if(selConta){
+        selConta.innerHTML='<option value="">-- Sem conta --</option>';
+        contas.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.innerText=`${TIPO_ICONE[c.tipo]||'🏦'} ${c.nome}`; selConta.appendChild(o); });
+        selConta.value=rec.contaId||'';
+    }
+    syncRecEditDiaWrap();
+    $id('modal-editar-recorrente').classList.remove('hidden');
+};
+
+$id('rec-edit-frequencia')?.addEventListener('change', syncRecEditDiaWrap);
+
+$id('btn-fechar-modal-rec-editar')?.addEventListener('click',()=>{
+    $id('modal-editar-recorrente').classList.add('hidden');
+});
+$id('modal-editar-recorrente')?.addEventListener('click',e=>{
+    if(e.target===$id('modal-editar-recorrente')) $id('modal-editar-recorrente').classList.add('hidden');
+});
+
+$id('form-editar-recorrente')?.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const btn=$id('btn-salvar-rec-editar');
+    btn.disabled=true; btn.innerText='Salvando...';
+    const id=$id('rec-edit-id').value;
+    const rec=recorrentes.find(r=>r.id===id);
+    if(!id||!rec){ btn.disabled=false; btn.innerText='Salvar e Sincronizar'; return; }
+
+    const novosDados={
+        tipo:$id('rec-edit-tipo').value,
+        valor:lerReais('rec-edit-valor'),
+        frequencia:$id('rec-edit-frequencia').value||'mensal',
+        dia:parseInt($id('rec-edit-dia').value)||rec.dia||1,
+        categoria:$id('rec-edit-categoria').value,
+        desc:$id('rec-edit-desc').value.trim(),
+        contaId:$id('rec-edit-conta').value||null,
+        status:$id('rec-edit-status').value,
+        atualizadoEm:new Date().toISOString()
+    };
+
+    if(!novosDados.valor||isNaN(novosDados.valor)||novosDados.valor<=0){
+        toast('Informe um valor válido.','aviso'); btn.disabled=false; btn.innerText='Salvar e Sincronizar'; return;
+    }
+    if(!novosDados.desc){
+        toast('Informe a descrição.','aviso'); btn.disabled=false; btn.innerText='Salvar e Sincronizar'; return;
+    }
+
+    try{
+        // 1. Atualiza o template na coleção recorrentes
+        await updateDoc(doc(db,'recorrentes',id), novosDados);
+
+        // 2. Apaga transações pendentes futuras vinculadas a essa recorrente (janela 60 dias)
+        const hoje=hojeStr();
+        const limite=formatDateLocal(new Date(new Date().getTime()+60*24*60*60*1000));
+        const futuras=transacoes.filter(t=>
+            t.recorrenteId===id &&
+            t.status==='pendente' &&
+            t.data>=hoje &&
+            t.data<=limite
+        );
+        if(futuras.length){
+            const batch=writeBatch(db);
+            futuras.forEach(t=>batch.delete(doc(db,'transacoes',t.id)));
+            await batch.commit();
+        }
+
+        // 3. Re-materializa com novos dados dentro da janela de 60 dias
+        const recAtualizado={...rec,...novosDados,id};
+        // Limpa exceções para garantir materialização limpa nas competências apagadas
+        const competenciasApagadas=new Set(futuras.map(t=>t.competenciaRecorrencia||getCompetencia(t.data)).filter(Boolean));
+        // Remove exceções antigas apenas das competências que foram limpas
+        const excecoesParaApagar=recorrenciaExcecoes.filter(e=>e.recorrenteId===id && competenciasApagadas.has(e.competencia));
+        if(excecoesParaApagar.length){
+            const batchEx=writeBatch(db);
+            excecoesParaApagar.forEach(e=>batchEx.delete(doc(db,'recorrencia_excecoes',e.id)));
+            await batchEx.commit();
+        }
+        await materializarRecorrencia(recAtualizado,{skipCompetencias:new Set()});
+
+        toast('✅ Recorrente atualizada e transações sincronizadas!');
+        $id('modal-editar-recorrente').classList.add('hidden');
+    }catch(err){
+        erroFirestore(err,'recorrente-editar');
+    }finally{
+        btn.disabled=false; btn.innerText='Salvar e Sincronizar';
+    }
+});
+// ─────────────────────────────────────────────────────────────────────────────
 window.deletarRecorrente=async id=>{
     if(!await confirmar('Excluir esta recorrente?')) return;
     try{
@@ -6055,6 +6310,15 @@ $id('rec-filtro-arquivadas')?.addEventListener('click',()=>{ _recorrentesFiltro=
 $id('btn-toggle-assinaturas')?.addEventListener('click',()=>{
     const body=$id('rec-ass-body');
     const chevron=$id('rec-ass-chevron');
+    const aberto=!body.classList.contains('hidden');
+    body.classList.toggle('hidden', aberto);
+    if(chevron) chevron.style.transform=aberto?'':'rotate(180deg)';
+});
+
+// Toggle lista recorrentes
+$id('btn-toggle-lista-rec')?.addEventListener('click',()=>{
+    const body=$id('rec-lista-body');
+    const chevron=$id('rec-lista-chevron');
     const aberto=!body.classList.contains('hidden');
     body.classList.toggle('hidden', aberto);
     if(chevron) chevron.style.transform=aberto?'':'rotate(180deg)';
