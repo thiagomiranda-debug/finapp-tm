@@ -676,18 +676,18 @@ async function verificarEDisparar(){
     <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden fade-in">
         <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
             <div class="flex-1">
-                <input id="global-search-input" type="search" placeholder="Buscar lancamentos, contas, cartoes, recorrentes..." class="input-field !mb-0">
+                <input id="global-search-input" type="search" placeholder="Buscar lançamentos, contas, cartões, recorrentes..." class="input-field !mb-0">
             </div>
-            <button id="btn-fechar-global-search" class="text-gray-400 hover:text-rose-500 text-2xl leading-none active:scale-90 transition">&times;</button>
+            <button id="btn-fechar-global-search" aria-label="Fechar busca" class="text-gray-400 hover:text-rose-500 text-2xl leading-none active:scale-90 transition"><span aria-hidden="true">&times;</span></button>
         </div>
         <div class="px-4 py-3 border-b border-gray-100 bg-white">
             <div class="flex flex-col gap-3">
                 <p id="global-search-meta" class="text-xs text-gray-400">Digite para buscar em todo o app.</p>
                 <div class="flex flex-wrap gap-2">
                     <button type="button" data-search-filter="todos" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-black bg-slate-900 text-white">Todos</button>
-                    <button type="button" data-search-filter="transacao" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Lancamentos</button>
+                    <button type="button" data-search-filter="transacao" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Lançamentos</button>
                     <button type="button" data-search-filter="conta" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Contas</button>
-                    <button type="button" data-search-filter="cartao" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Cartoes</button>
+                    <button type="button" data-search-filter="cartao" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Cartões</button>
                     <button type="button" data-search-filter="recorrente" class="search-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">Recorrentes</button>
                 </div>
             </div>
@@ -728,7 +728,7 @@ async function verificarEDisparar(){
 </div>
 
 <!-- FAB -->
-<button id="btn-fab" class="hidden fixed bottom-6 right-5 bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-2xl hover:bg-blue-700 active:scale-95 transition-all z-40">+</button>
+<button id="btn-fab" aria-label="Novo lançamento" class="hidden fixed bottom-6 right-5 bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-2xl hover:bg-blue-700 active:scale-95 transition-all z-40"><span aria-hidden="true">+</span></button>
 
 <!-- ═══════════ LOGIN ═══════════ -->
 <div id="login-screen" class="relative flex items-center justify-center min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 p-4 sm:p-6">
@@ -838,7 +838,7 @@ async function verificarEDisparar(){
                 <h2 class="text-lg font-black text-gray-900">📄 Termos de Uso</h2>
                 <p class="text-xs text-gray-400 mt-0.5">FinApp PRO — última atualização: março de 2026</p>
             </div>
-            <button id="btn-fechar-termos" class="text-gray-300 hover:text-rose-400 text-3xl leading-none active:scale-90 transition">&times;</button>
+            <button id="btn-fechar-termos" aria-label="Fechar termos" class="text-gray-300 hover:text-rose-400 text-3xl leading-none active:scale-90 transition"><span aria-hidden="true">&times;</span></button>
         </div>
         <div class="overflow-y-auto p-5 space-y-4 text-sm text-gray-600 leading-relaxed">
 
@@ -908,7 +908,7 @@ async function verificarEDisparar(){
                 <h2 class="text-lg font-black text-gray-900">🔒 Política de Privacidade</h2>
                 <p class="text-xs text-gray-400 mt-0.5">FinApp PRO — em conformidade com a LGPD (Lei 13.709/2018)</p>
             </div>
-            <button id="btn-fechar-privacidade" class="text-gray-300 hover:text-rose-400 text-3xl leading-none active:scale-90 transition">&times;</button>
+            <button id="btn-fechar-privacidade" aria-label="Fechar política de privacidade" class="text-gray-300 hover:text-rose-400 text-3xl leading-none active:scale-90 transition"><span aria-hidden="true">&times;</span></button>
         </div>
         <div class="overflow-y-auto p-5 space-y-4 text-sm text-gray-600 leading-relaxed">
 
@@ -1217,16 +1217,16 @@ async function verificarEDisparar(){
                 </div>
                 <div class="flex items-center gap-2 sm:gap-3">
                     <div class="relative">
-                        <button id="btn-notif" class="relative p-2 text-xl text-gray-500 hover:text-blue-600 active:scale-90 transition">🔔<span id="notif-badge" class="hidden absolute top-0.5 right-0.5 bg-rose-500 text-white text-[8px] font-black min-w-[16px] h-4 px-1 rounded-full border-2 border-white flex items-center justify-center"></span></button>
+                        <button id="btn-notif" aria-label="Alertas e notificações" class="relative p-2 text-xl text-gray-500 hover:text-blue-600 active:scale-90 transition"><span aria-hidden="true">🔔</span><span id="notif-badge" class="hidden absolute top-0.5 right-0.5 bg-rose-500 text-white text-[8px] font-black min-w-[16px] h-4 px-1 rounded-full border-2 border-white flex items-center justify-center"></span></button>
                         <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 fade-in overflow-hidden">
                             <div class="p-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between"><h3 class="font-bold text-sm text-gray-800">🧠 Alertas</h3><button id="btn-limpar-notif" class="text-xs text-gray-400 hover:text-gray-600">Fechar</button></div>
                             <ul id="lista-notificacoes" class="divide-y divide-gray-50 text-sm max-h-80 overflow-y-auto"></ul>
                         </div>
                     </div>
-                    <button id="btn-global-search" title="Busca global" class="premium-icon-btn p-2 text-gray-500 hover:text-slate-900 active:scale-90 transition text-lg leading-none">⌕</button>
+                    <button id="btn-global-search" title="Busca global" aria-label="Busca global" class="premium-icon-btn p-2 text-gray-500 hover:text-slate-900 active:scale-90 transition text-lg leading-none"><span aria-hidden="true">⌕</span></button>
                     <button id="btn-nova-transacao-nav" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 active:scale-95 transition font-bold shadow-sm hidden sm:flex items-center gap-1 text-sm">+ Lançar</button>
-                    <button id="btn-privacy" title="Ocultar valores" aria-label="Ocultar valores" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none">👁️</button>
-                    <button id="btn-dark" title="Alternar modo escuro" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none">🌙</button>
+                    <button id="btn-privacy" title="Ocultar valores" aria-label="Ocultar valores" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none"><span aria-hidden="true">👁️</span></button>
+                    <button id="btn-dark" title="Alternar modo escuro" aria-label="Alternar modo escuro" class="p-2 rounded-xl text-gray-500 hover:bg-gray-100 active:scale-90 transition text-lg leading-none"><span aria-hidden="true">🌙</span></button>
                     <span id="user-email-display" class="text-xs text-gray-400 hidden lg:block max-w-[120px] truncate font-medium"></span>
                     <button id="btn-logout" class="text-xs text-gray-400 hover:text-rose-500 font-bold transition px-1">Sair</button>
                 </div>
@@ -1242,9 +1242,9 @@ async function verificarEDisparar(){
                     <button data-tab="operacao"    class="tab-btn pb-2.5 px-3 tab-active   text-sm whitespace-nowrap transition-colors">Operacional</button>
                     <button data-tab="insights"    class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Insights</button>
                     <button data-tab="contas"      class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Contas</button>
-                    <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Cartoes</button>
-                    <button data-tab="calendario"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Calendario</button>
-                    <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Patrimonio</button>
+                    <button data-tab="cartoes"     class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Cartões</button>
+                    <button data-tab="calendario"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Calendário</button>
+                    <button data-tab="patrimonio"  class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Patrimônio</button>
                     <button data-tab="metas"       class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Metas</button>
                     <button data-tab="recorrentes" class="tab-btn pb-2.5 px-3 tab-inactive text-sm whitespace-nowrap transition-colors">Recorrentes</button>
                 </div>
@@ -1292,9 +1292,9 @@ async function verificarEDisparar(){
                         <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Pode gastar hoje</p>
                         <div class="flex items-end gap-3 mt-2 flex-wrap">
                             <p id="val-pode-gastar" class="text-3xl sm:text-4xl font-black text-slate-900 mono leading-none">R$ 0,00</p>
-                            <span id="pode-gastar-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Estavel</span>
+                            <span id="pode-gastar-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Estável</span>
                         </div>
-                        <p id="pode-gastar-label" class="text-sm text-gray-400 mt-2">Saldo livre considerando contas, receitas previstas e obrigacoes do periodo.</p>
+                        <p id="pode-gastar-label" class="text-sm text-gray-400 mt-2">Saldo livre considerando contas, receitas previstas e obrigações do período.</p>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:w-auto lg:min-w-[460px]">
                         <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
@@ -1316,7 +1316,7 @@ async function verificarEDisparar(){
                     </div>
                 </div>
                 <div id="pode-gastar-recado" class="mt-4 rounded-xl bg-gradient-to-r from-slate-900 via-blue-900 to-blue-700 text-white px-4 py-3 text-sm font-medium">
-                    Use este valor como limite operacional do periodo atual.
+                    Use este valor como limite operacional do período atual.
                 </div>
             </div>
 
@@ -1410,8 +1410,8 @@ async function verificarEDisparar(){
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div class="min-w-0">
                         <div class="flex items-center gap-3 flex-wrap">
-                            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Score de Saude Financeira</p>
-                            <span id="score-saude-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Solido</span>
+                            <p class="text-xs font-black text-gray-500 uppercase tracking-wider">Score de Saúde Financeira</p>
+                            <span id="score-saude-badge" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Sólido</span>
                         </div>
                         <div class="flex items-end gap-3 mt-2 flex-wrap">
                             <p id="score-saude-valor" class="text-4xl sm:text-5xl font-black text-slate-900 mono leading-none">0</p>
@@ -1467,7 +1467,7 @@ async function verificarEDisparar(){
                         <p id="fechamento-kpi-resultado" class="text-lg font-black mono text-slate-900 mt-1">R$ 0,00</p>
                     </div>
                     <button type="button" id="btn-fechamento-pendencias" class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-3 text-left transition hover:shadow-sm active:scale-[0.99]">
-                        <p class="text-[10px] font-black uppercase tracking-wider text-amber-700">Pendencias</p>
+                        <p class="text-[10px] font-black uppercase tracking-wider text-amber-700">Pendências</p>
                         <p id="fechamento-kpi-pendencias" class="text-lg font-black mono text-amber-700 mt-1">0</p>
                     </button>
                     <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-3">
@@ -1724,12 +1724,12 @@ async function verificarEDisparar(){
             <!-- Header de navegação -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <button id="cal-prev" class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 active:scale-90 transition text-gray-500 font-black text-lg">‹</button>
+                    <button id="cal-prev" aria-label="Mês anterior" class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 active:scale-90 transition text-gray-500 font-black text-lg"><span aria-hidden="true">‹</span></button>
                     <div class="text-center">
                         <h2 id="cal-titulo" class="text-base font-black text-gray-800"></h2>
                         <p id="cal-resumo" class="text-xs text-gray-400 mt-0.5"></p>
                     </div>
-                    <button id="cal-next" class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 active:scale-90 transition text-gray-500 font-black text-lg">›</button>
+                    <button id="cal-next" aria-label="Próximo mês" class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 active:scale-90 transition text-gray-500 font-black text-lg"><span aria-hidden="true">›</span></button>
                 </div>
                 <!-- Cabeçalho dias da semana -->
                 <div class="grid grid-cols-7 border-b border-gray-100">
@@ -1749,9 +1749,9 @@ async function verificarEDisparar(){
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
                     <div>
                         <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider">Fluxo de Caixa Futuro</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Projecao dos proximos 15 dias com base no saldo atual e nos lancamentos previstos.</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Projeção dos próximos 15 dias com base no saldo atual e nos lançamentos previstos.</p>
                     </div>
-                    <span id="fluxo-futuro-alerta" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Estavel</span>
+                    <span id="fluxo-futuro-alerta" class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100">Estável</span>
                 </div>
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                     <div class="rounded-2xl border border-gray-100 bg-slate-50 p-4">
@@ -1790,7 +1790,7 @@ async function verificarEDisparar(){
             <div id="cal-detalhe" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
                 <div class="flex items-center justify-between mb-3">
                     <h3 id="cal-detalhe-titulo" class="font-black text-gray-800 text-sm"></h3>
-                    <button id="cal-fechar-detalhe" class="text-gray-300 hover:text-rose-400 text-xl leading-none active:scale-90 transition">×</button>
+                    <button id="cal-fechar-detalhe" aria-label="Fechar detalhe" class="text-gray-300 hover:text-rose-400 text-xl leading-none active:scale-90 transition"><span aria-hidden="true">×</span></button>
                 </div>
                 <ul id="cal-detalhe-lista" class="space-y-2"></ul>
             </div>
@@ -1872,7 +1872,7 @@ async function verificarEDisparar(){
                 </div>
                 <div id="recorrentes-vazio" class="hidden rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
                     <p class="text-4xl">🔁</p>
-                    <p class="text-gray-400 font-medium mt-3">Nenhuma recorrente nesta visualizacao.</p>
+                    <p class="text-gray-400 font-medium mt-3">Nenhuma recorrente nesta visualização.</p>
                     <p class="text-gray-300 text-sm mt-1">Ative o toggle no modal de lancamento para criar recorrencias.</p>
                 </div>
                 <div id="lista-recorrentes" class="space-y-3"></div>
@@ -1904,7 +1904,7 @@ async function verificarEDisparar(){
                     <p class="text-xl sm:text-2xl font-black text-gray-900">Detalhamento do saldo</p>
                     <p id="extrato-mensal-titulo" class="text-sm text-gray-400 mt-1">Mês selecionado</p>
                 </div>
-                <button id="btn-fechar-modal-extrato" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center active:scale-90 transition leading-none">&times;</button>
+                <button id="btn-fechar-modal-extrato" aria-label="Fechar extrato" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button>
             </div>
         </div>
         <div id="extrato-mensal-body" class="p-4 sm:p-6"></div>
@@ -1916,21 +1916,47 @@ async function verificarEDisparar(){
 <div id="modal-transacao" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-lg sm:rounded-2xl shadow-2xl border-t-4 border-blue-600 overflow-y-auto" style="max-height:92vh">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 id="modal-titulo" class="text-lg font-black text-gray-800">Novo Lançamento</h2><button id="btn-fechar-modal" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 id="modal-titulo" class="text-lg font-black text-gray-800">Nova Saída</h2><button id="btn-fechar-modal" aria-label="Fechar lançamento" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button></div>
             <form id="form-transacao" class="space-y-3.5">
                 <input type="hidden" id="input-edit-id">
+
+                <!-- Tipo + Valor -->
                 <div class="grid grid-cols-2 gap-3">
                     <div><label class="label-xs">Tipo</label><select id="input-tipo" class="input-field"><option value="despesa">💸 Saída</option><option value="receita">💰 Entrada</option></select></div>
                     <div><label class="label-xs">Valor (R$)</label><input type="number" id="input-valor" step="0.01" min="0.01" placeholder="0,00" class="input-field text-2xl font-black text-blue-900 bg-blue-50 border-blue-200 mono" required></div>
                 </div>
+
+                <!-- Compra no cartão toggle — só aparece em Saída -->
+                <div id="cartao-toggle-wrap" class="hidden">
+                    <button type="button" id="btn-toggle-cartao" role="switch" aria-checked="false"
+                        class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 transition active:scale-[0.99]">
+                        <span class="flex items-center gap-2 text-sm font-bold text-gray-700"><span aria-hidden="true">💳</span> Compra no cartão</span>
+                        <span id="cartao-toggle-knob-wrap" class="w-10 h-5 rounded-full bg-gray-300 relative transition-colors duration-200 flex-shrink-0">
+                            <span id="cartao-toggle-knob" class="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"></span>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Cartão + Responsável — só aparecem quando toggle ativo -->
+                <div id="cartao-select-wrap" class="hidden"><label class="label-xs">Cartão vinculado</label><select id="input-cartao" class="input-field"><option value="">-- Nenhum --</option></select></div>
+                <div id="responsavel-cartao-wrap" class="hidden">
+                    <label class="label-xs">👤 Responsável pela compra</label>
+                    <select id="input-responsavel-cartao" class="input-field"></select>
+                </div>
+
+                <!-- Parcelamento + Status -->
                 <div class="grid grid-cols-2 gap-3" id="parcelas-row">
                     <div><label class="label-xs">Parcelamento</label><select id="input-parcelas" class="input-field"><option value="1">À vista</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="10">10x</option><option value="12">12x</option></select></div>
                     <div><label class="label-xs">Status</label><select id="input-status" class="input-field"><option value="confirmada">✔️ Confirmada</option><option value="pendente">⏳ Pendente</option></select></div>
                 </div>
-                <div class="flex flex-col gap-3">
+
+                <!-- Data + Conta -->
+                <div class="grid grid-cols-2 gap-3">
                     <div><label class="label-xs">Data</label><input type="date" id="input-data" class="input-field" required></div>
-                    <div><label class="label-xs">Conta (opcional)</label><select id="input-conta" class="input-field"><option value="">-- Sem conta --</option></select></div>
+                    <div id="conta-wrap"><label class="label-xs">Conta</label><select id="input-conta" class="input-field"><option value="">-- Sem conta --</option></select></div>
                 </div>
+
+                <!-- Categoria -->
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="label-xs">Categoria</label>
@@ -1944,23 +1970,24 @@ async function verificarEDisparar(){
                         <option value="Salário/Vendas">💼 Salário/Vendas</option><option value="Outros">📦 Outros</option>
                     </select>
                 </div>
-                <div id="cartao-select-wrap" class="hidden"><label class="label-xs">💳 Cartão vinculado</label><select id="input-cartao" class="input-field"><option value="">-- Nenhum --</option></select></div>
-                <div id="responsavel-cartao-wrap" class="hidden">
-                    <label class="label-xs">👤 Responsável pela compra</label>
-                    <select id="input-responsavel-cartao" class="input-field"></select>
-                </div>
-                <div id="origem-lancamento-wrap">
-                    <label class="label-xs">Origem do lançamento</label>
-                    <select id="input-origem-lancamento" class="input-field">
-                        <option value="padrao">Lançamento normal</option>
-                        <option value="cartao">Compra no cartão</option>
-                        <option value="pagamento-fatura">Pagamento de fatura</option>
-                    </select>
-                </div>
+
+                <!-- Descrição -->
                 <div><label class="label-xs">Descrição</label>
                     <input type="text" id="input-desc" placeholder="Ex: Supermercado Atacadão" class="input-field" autocomplete="off" required>
                 </div>
-                <div><label class="label-xs">Tags <span class="normal-case font-normal text-gray-300">(vírgula)</span></label><input type="text" id="input-tags" placeholder="nubank, viagem, fixo" class="input-field"></div>
+
+                <!-- Tags colapsadas -->
+                <div>
+                    <button type="button" id="btn-toggle-tags" class="text-xs text-gray-400 font-bold hover:text-gray-600 transition flex items-center gap-1">
+                        <span id="tags-toggle-icon">＋</span> Tags
+                    </button>
+                    <div id="tags-wrap" class="hidden mt-2">
+                        <input type="text" id="input-tags" placeholder="nubank, viagem, fixo" class="input-field">
+                    </div>
+                </div>
+
+                <!-- input hidden para manter compatibilidade com lógica JS existente -->
+                <input type="hidden" id="input-origem-lancamento" value="padrao">
 
                 <!-- Toggle Recorrente -->
                 <div id="recorrente-wrap" class="border border-blue-200 bg-blue-50 rounded-xl p-3">
@@ -1979,7 +2006,7 @@ async function verificarEDisparar(){
                     </div>
                 </div>
 
-                <button type="submit" id="btn-submit-form" class="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md text-base">Salvar Transação</button>
+                <button type="submit" id="btn-submit-form" class="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 active:scale-95 transition font-black shadow-md text-base">Salvar</button>
             </form>
         </div>
     </div>
@@ -1989,7 +2016,7 @@ async function verificarEDisparar(){
 <div id="modal-conta" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-blue-500">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 id="conta-modal-titulo" class="text-lg font-black text-gray-800">🏦 Nova Conta</h2><button id="btn-fechar-modal-conta" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 id="conta-modal-titulo" class="text-lg font-black text-gray-800">🏦 Nova Conta</h2><button id="btn-fechar-modal-conta" aria-label="Fechar conta" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button></div>
             <form id="form-conta" class="space-y-3.5">
                 <input type="hidden" id="conta-edit-id">
                 <div><label class="label-xs">Nome da Conta</label><input type="text" id="conta-nome" placeholder="Ex: Nubank, Bradesco, Carteira" class="input-field" autocomplete="off" required></div>
@@ -2018,7 +2045,7 @@ async function verificarEDisparar(){
 <div id="modal-transferencia" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-blue-500">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">↔️ Transferência entre Contas</h2><button id="btn-fechar-modal-transf" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">↔️ Transferência entre Contas</h2><button id="btn-fechar-modal-transf" aria-label="Fechar transferência" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button></div>
             <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 text-xs text-blue-700 font-medium">💡 Transferências <strong>não afetam</strong> o total consolidado — apenas movimentam saldo entre contas.</div>
             <form id="form-transferencia" class="space-y-3.5">
                 <div><label class="label-xs">De (Conta Origem)</label><select id="transf-origem" class="input-field" required><option value="">Selecione...</option></select></div>
@@ -2038,7 +2065,7 @@ async function verificarEDisparar(){
 <div id="modal-cartao" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-rose-500">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">💳 Novo Cartão</h2><button id="btn-fechar-modal-cartao" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">💳 Novo Cartão</h2><button id="btn-fechar-modal-cartao" aria-label="Fechar cartão" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button></div>
             <form id="form-cartao" class="space-y-3.5">
                 <div><label class="label-xs">Nome do Cartão</label><input type="text" id="cartao-nome" placeholder="Ex: Nubank, Itaú Platinum" class="input-field" autocomplete="off" required></div>
                 <div class="grid grid-cols-2 gap-3">
@@ -2057,7 +2084,7 @@ async function verificarEDisparar(){
 <div id="modal-meta" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-blue-600">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🎯 Nova Meta</h2><button id="btn-fechar-modal-meta" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🎯 Nova Meta</h2><button id="btn-fechar-modal-meta" aria-label="Fechar meta" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button></div>
             <form id="form-meta" class="space-y-3.5">
                 <div><label class="label-xs">Categoria</label><select id="meta-categoria" class="input-field">
                     <option value="Alimentação">🍽️ Alimentação</option><option value="Transporte">🚗 Transporte</option>
@@ -2078,7 +2105,7 @@ async function verificarEDisparar(){
 <div id="modal-categoria" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-sm sm:rounded-2xl shadow-2xl border-t-4 border-blue-500">
         <div class="p-4 sm:p-6">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🏷️ Nova Categoria</h2><button id="btn-fechar-modal-cat" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">🏷️ Nova Categoria</h2><button id="btn-fechar-modal-cat" aria-label="Fechar categoria" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button></div>
             <form id="form-categoria" class="space-y-3.5">
                 <div><label class="label-xs">Nome da Categoria</label><input type="text" id="cat-nome" placeholder="Ex: Pet, Filhos, Freelance" class="input-field" autocomplete="off" required maxlength="30"></div>
                 <div class="grid grid-cols-2 gap-3">
@@ -2105,7 +2132,7 @@ async function verificarEDisparar(){
 <div id="modal-importar" class="hidden fixed inset-0 bg-black/60 overlay flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
     <div class="modal-inner bg-white w-full sm:max-w-2xl sm:rounded-2xl shadow-2xl border-t-4 border-blue-500" style="max-height:92vh">
         <div class="p-4 sm:p-6 overflow-y-auto" style="max-height:92vh">
-            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">📥 Importar Extrato CSV</h2><button id="btn-fechar-modal-imp" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black text-gray-800">📥 Importar Extrato CSV</h2><button id="btn-fechar-modal-imp" aria-label="Fechar importação" class="text-gray-300 hover:text-rose-400 text-3xl bg-gray-100 rounded-full w-9 h-9 flex items-center justify-center active:scale-90 transition leading-none"><span aria-hidden="true">&times;</span></button></div>
             <div class="bg-blue-50 border border-bluelet-200 rounded-xl p-3 mb-4 text-blue-800 text-xs font-medium">
                 <strong>Formato esperado:</strong> colunas Data, Descrição, Valor. Valor negativo = despesa, positivo = receita. Separador vírgula ou ponto-e-vírgula. Primeira linha pode ser cabeçalho.
             </div>
@@ -2170,7 +2197,7 @@ service cloud.firestore {
 
 <script type="module">
 import { initializeApp }      from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, where, writeBatch, setDoc }
+import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, where, limit, writeBatch, setDoc }
                                from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail }
                                from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -2203,6 +2230,51 @@ const mesAtual=new Date().getMonth()+1, anoAtual=new Date().getFullYear();
 const fmt      = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 const fmtData  = d => d ? d.split('-').reverse().join('/') : '';
 const hojeStr  = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+
+// ── RENDER HELPERS ────────────────────────────────────────────────────────────
+// Helpers centralizados para geração de HTML repetitivo.
+// Uso: renderCard({ titulo, subtitulo?, valor?, chips?, acoes?, extra?, attrs? })
+
+function renderChip(texto, classe='bg-gray-100 text-gray-500'){
+    if(!texto) return '';
+    return `<span class="px-2 py-0.5 rounded-full text-[10px] font-black ${escapeHtml(classe)}">${escapeHtml(String(texto))}</span>`;
+}
+
+function renderCard({ titulo='', subtitulo='', valor='', chips='', acoes='', extra='', attrs='' }={}){
+    return `<div class="rounded-2xl border border-gray-100 bg-white shadow-sm p-4" ${attrs}>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <p class="font-black text-gray-800 text-base truncate">${titulo}</p>
+                    ${chips}
+                </div>
+                ${subtitulo?`<p class="text-xs text-gray-400 mt-1 truncate">${subtitulo}</p>`:''}
+                ${extra}
+            </div>
+            <div class="flex items-center gap-3 sm:justify-end flex-wrap shrink-0">
+                ${valor?`<p class="font-black text-slate-900 mono text-sm text-right">${valor}</p>`:''}
+                ${acoes}
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderEmptyState(mensagem='Nenhum item encontrado.', classe='text-gray-300'){
+    return `<p class="text-center ${classe} py-8 text-sm">${escapeHtml(mensagem)}</p>`;
+}
+
+function renderAcaoBotao({ label, onclick, variante='default', ariaLabel='' }={}){
+    const estilos={
+        default:  'bg-gray-50 text-gray-600 hover:bg-gray-100',
+        primario: 'bg-blue-50 text-blue-600 hover:bg-blue-100',
+        perigo:   'bg-rose-50 text-rose-600 hover:bg-rose-100',
+        sucesso:  'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+    };
+    const cls=estilos[variante]||estilos.default;
+    const aria=ariaLabel?`aria-label="${escapeHtml(ariaLabel)}"`:'' ;
+    return `<button onclick="${escapeHtml(onclick)}" ${aria} class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition active:scale-90 ${cls}">${label}</button>`;
+}
+// ─────────────────────────────────────────────────────────────────────────────
 const parseDataLocal = dataStr => {
     if(!dataStr || !/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) return null;
     const [ano,mes,dia]=dataStr.split('-').map(Number);
@@ -2393,7 +2465,7 @@ function renderizarResponsaveisCartaoConfig(){
             <span class="text-xs font-black">${escapeHtml(nome)}</span>
             <span class="text-[10px] font-bold opacity-70">${origem}</span>
             ${emUso?'<span class="text-[10px] font-bold opacity-70">em uso</span>':''}
-            ${podeExcluir?`<button type="button" onclick="removerResponsavelCartao('${item.id}')" class="text-[10px] font-black rounded-full bg-white/70 text-slate-700 w-5 h-5 flex items-center justify-center hover:bg-white active:scale-90 transition">×</button>`:''}
+            ${podeExcluir?`<button type="button" onclick="removerResponsavelCartao('${item.id}')" aria-label="Remover responsável" class="text-[10px] font-black rounded-full bg-white/70 text-slate-700 w-5 h-5 flex items-center justify-center hover:bg-white active:scale-90 transition"><span aria-hidden="true">×</span></button>`:''}
         </div>`;
     }).join('');
 }
@@ -2533,32 +2605,74 @@ function popularSelectsCartoes(){
 // ── MODAL TRANSAÇÃO ───────────────────────────────────────────────────────────
 function syncLancamentoCartaoUI(){
     const tipo=$id('input-tipo')?.value||'despesa';
-    const origemSel=$id('input-origem-lancamento');
-    const origem=origemSel?.value||'padrao';
+    const origemHidden=$id('input-origem-lancamento');
+    const origem=origemHidden?.value||'padrao';
+    const isCartao=origem==='cartao';
+
+    const wrapCartaoToggle=$id('cartao-toggle-wrap');
     const wrapCartao=$id('cartao-select-wrap');
     const wrapResponsavel=$id('responsavel-cartao-wrap');
     const wrapRec=$id('recorrente-wrap');
-    const wrapOrigem=$id('origem-lancamento-wrap');
-    const usaCartao=tipo==='despesa' && (origem==='cartao' || origem==='pagamento-fatura');
-    const usaResponsavel=tipo==='despesa' && origem==='cartao';
+    const wrapConta=$id('conta-wrap');
+    const btnToggleCartao=$id('btn-toggle-cartao');
+    const knobWrap=$id('cartao-toggle-knob-wrap');
+    const knob=$id('cartao-toggle-knob');
 
-    if(wrapCartao) wrapCartao.classList.toggle('hidden', !usaCartao);
-    if(wrapResponsavel) wrapResponsavel.classList.toggle('hidden', !usaResponsavel);
-    if(wrapRec) wrapRec.classList.toggle('hidden', origem==='pagamento-fatura');
-    if(wrapOrigem) wrapOrigem.classList.toggle('hidden', tipo!=='despesa');
-    if(!usaCartao) $id('input-cartao').value='';
+    // Toggle de cartão só aparece em Saída
+    const ehSaida=tipo==='despesa';
+    if(wrapCartaoToggle) wrapCartaoToggle.classList.toggle('hidden',!ehSaida);
+
+    // Se mudou para Entrada, desativa cartão
+    if(!ehSaida && origemHidden) origemHidden.value='padrao';
+    const origemAtual=origemHidden?.value||'padrao';
+    const isCartaoAtual=origemAtual==='cartao';
+
+    // Atualiza visual do toggle
+    if(btnToggleCartao){
+        btnToggleCartao.setAttribute('aria-checked', isCartaoAtual?'true':'false');
+        if(knobWrap) knobWrap.style.background=isCartaoAtual?'#2563eb':'';
+        if(knob) knob.style.transform=isCartaoAtual?'translateX(20px)':'';
+    }
+
+    // Campos dependentes
+    if(wrapCartao)     wrapCartao.classList.toggle('hidden',!isCartaoAtual);
+    if(wrapResponsavel) wrapResponsavel.classList.toggle('hidden',!isCartaoAtual);
+    if(wrapRec)        wrapRec.classList.toggle('hidden',!ehSaida||isCartaoAtual);
+    // Conta não faz sentido em compra no cartão
+    if(wrapConta)      wrapConta.classList.toggle('hidden',isCartaoAtual);
+
+    if(!isCartaoAtual) { const sc=$id('input-cartao'); if(sc) sc.value=''; }
     popularSelectResponsaveisCartao();
-    if(!usaResponsavel) $id('input-responsavel-cartao').value=getResponsavelCartaoPadrao();
+    if(!isCartaoAtual){ const sr=$id('input-responsavel-cartao'); if(sr) sr.value=getResponsavelCartaoPadrao(); }
 
+    // Título dinâmico
     if(!modoEdicao){
-        $id('modal-titulo').innerText=getTituloLancamento(origem, false);
-        $id('btn-submit-form').innerText=getLabelSubmitLancamento(origem, false);
+        const titulo=isCartaoAtual?'💳 Compra no Cartão':(tipo==='receita'?'💰 Nova Entrada':'💸 Nova Saída');
+        $id('modal-titulo').innerText=titulo;
+        $id('btn-submit-form').innerText='Salvar';
     }
 }
 
-$id('input-origem-lancamento')?.addEventListener('change', syncLancamentoCartaoUI);
+// Toggle cartão
+$id('btn-toggle-cartao')?.addEventListener('click',()=>{
+    const origemHidden=$id('input-origem-lancamento');
+    const isCartao=(origemHidden?.value||'padrao')==='cartao';
+    if(origemHidden) origemHidden.value=isCartao?'padrao':'cartao';
+    syncLancamentoCartaoUI();
+    if(!isCartao) setTimeout(()=>{ const sc=$id('input-cartao'); if(sc&&sc.options.length>1) sc.focus(); },150);
+});
+
+// Toggle tags
+$id('btn-toggle-tags')?.addEventListener('click',()=>{
+    const wrap=$id('tags-wrap');
+    const icon=$id('tags-toggle-icon');
+    const aberto=!wrap.classList.contains('hidden');
+    wrap.classList.toggle('hidden',aberto);
+    if(icon) icon.innerText=aberto?'＋':'－';
+    if(!aberto) setTimeout(()=>$id('input-tags')?.focus(),100);
+});
+
 $id('input-tipo')?.addEventListener('change', ()=>{
-    if($id('input-tipo').value!=='despesa') $id('input-origem-lancamento').value='padrao';
     syncLancamentoCartaoUI();
 });
 
@@ -2566,8 +2680,6 @@ function abrirModalNovo(){
     modoEdicao=false;
     window._modalLancamentoEspecial=null;
     window._editTransacaoOriginal=null;
-    $id('modal-titulo').innerText=getTituloLancamento('padrao', false);
-    $id('btn-submit-form').innerText=getLabelSubmitLancamento('padrao', false);
     $id('form-transacao').reset();
     $id('input-edit-id').value='';
     $id('input-data').value=hojeStr();
@@ -2576,17 +2688,25 @@ function abrirModalNovo(){
     $id('input-responsavel-cartao').value=getResponsavelCartaoPadrao();
     $id('parcelas-row').classList.remove('hidden');
     $id('input-origem-lancamento').value='padrao';
-    $id('recorrente-wrap').classList.remove('hidden');
+    // Resetar toggle de cartão
+    const knobWrap=$id('cartao-toggle-knob-wrap');
+    const knob=$id('cartao-toggle-knob');
+    if(knobWrap) knobWrap.style.background='';
+    if(knob) knob.style.transform='';
+    // Resetar tags colapsadas
+    const tagsWrap=$id('tags-wrap');
+    const tagsIcon=$id('tags-toggle-icon');
+    if(tagsWrap) tagsWrap.classList.add('hidden');
+    if(tagsIcon) tagsIcon.innerText='＋';
     if(window._resetToggleRec) window._resetToggleRec();
     syncLancamentoCartaoUI();
     $id('modal-transacao').classList.remove('hidden');
+    setTimeout(()=>$id('input-valor')?.focus(),150);
 }
 function abrirModalEditar(t){
     modoEdicao=true;
     window._modalLancamentoEspecial=null;
     window._editTransacaoOriginal=t;
-    $id('modal-titulo').innerText=getTituloLancamento('padrao', true);
-    $id('btn-submit-form').innerText=getLabelSubmitLancamento('padrao', true);
     $id('input-edit-id').value=t.id;
     $id('input-tipo').value=t.tipo;
     $id('input-valor').value=t.valor;
@@ -2600,7 +2720,16 @@ function abrirModalEditar(t){
     $id('input-cartao').value=t.cartaoId||'';
     popularSelectResponsaveisCartao();
     $id('input-responsavel-cartao').value=resolverResponsavelCartao(t.responsavelCartao||'');
-    $id('input-origem-lancamento').value=isPagamentoFatura(t)?'pagamento-fatura':(isTransacaoCartao(t)?'cartao':'padrao');
+    $id('input-origem-lancamento').value=isTransacaoCartao(t)?'cartao':'padrao';
+    // Mostrar tags se tiver conteúdo
+    const tagsWrap=$id('tags-wrap');
+    const tagsIcon=$id('tags-toggle-icon');
+    const temTags=(t.tags||[]).length>0;
+    if(tagsWrap) tagsWrap.classList.toggle('hidden',!temTags);
+    if(tagsIcon) tagsIcon.innerText=temTags?'－':'＋';
+    // Título de edição
+    $id('modal-titulo').innerText=isTransacaoCartao(t)?'✏️ Editar Compra':(t.tipo==='receita'?'✏️ Editar Entrada':'✏️ Editar Saída');
+    $id('btn-submit-form').innerText='Salvar Alterações';
     $id('parcelas-row').classList.add('hidden');
     syncLancamentoCartaoUI();
     // Oculta bloco recorrente na edição
@@ -2962,11 +3091,40 @@ $id('ob-skip').addEventListener('click',()=>fecharOnboarding());
     }
 })();
 
-// ── SINCRONIZAÇÃO ─────────────────────────────────────────────────────────────
+// ── QUERY WINDOW ──────────────────────────────────────────────────────────────
+// Janela de competências carregadas do Firestore.
+// Aumentar JANELA_MESES se o usuário precisar de mais histórico sem recarregar.
+const JANELA_MESES = 6; // meses antes e depois do mês atual
+
+function competenciaOffset(ano, mes, offset){
+    let m = mes - 1 + offset; // 0-indexed
+    let a = ano + Math.floor(m / 12);
+    m = ((m % 12) + 12) % 12;
+    return `${a}-${String(m + 1).padStart(2,'0')}`;
+}
+
+function getJanelaCompetencias(){
+    const agora = new Date();
+    const ano = agora.getFullYear(), mes = agora.getMonth() + 1;
+    return {
+        inicio: competenciaOffset(ano, mes, -JANELA_MESES),
+        fim:    competenciaOffset(ano, mes,  JANELA_MESES)
+    };
+}
+// ─────────────────────────────────────────────────────────────────────────────
 function iniciarSincronizacao(){
     if(!currentUser)return;
+    const janela=getJanelaCompetencias();
+    const dataInicio=janela.inicio+'-01';
+    const dataFim=janela.fim+'-31';
     _unsubscribers.push(
-        onSnapshot(query(collection(db,'transacoes'),where('userId','==',currentUser.uid)), snap=>{
+        onSnapshot(query(
+            collection(db,'transacoes'),
+            where('userId','==',currentUser.uid),
+            where('data','>=',dataInicio),
+            where('data','<=',dataFim),
+            limit(2000)
+        ), snap=>{
             transacoes=[]; snap.forEach(d=>transacoes.push({id:d.id,...d.data()}));
             _transacoesInicializadas=true;
             agendarAplicacaoRecorrentes();
@@ -2983,7 +3141,13 @@ function iniciarSincronizacao(){
         }, err=>erroFirestore(err,'transacoes'))
     );
     _unsubscribers.push(
-        onSnapshot(query(collection(db,'transferencias'),where('userId','==',currentUser.uid)), snap=>{
+        onSnapshot(query(
+            collection(db,'transferencias'),
+            where('userId','==',currentUser.uid),
+            where('data','>=',dataInicio),
+            where('data','<=',dataFim),
+            limit(500)
+        ), snap=>{
             transferencias=[]; snap.forEach(d=>transferencias.push({id:d.id,...d.data()}));
             if(!$id('view-contas').classList.contains('hidden')) renderizarContas();
             if(!$id('view-calendario').classList.contains('hidden')) atualizarFluxoCaixaFuturo();
@@ -2999,14 +3163,14 @@ $id('form-transacao').addEventListener('submit', async e=>{
     const tagsInput=$id('input-tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
     const origemSel=$id('input-origem-lancamento').value||'padrao';
     const tipoRegistroEspecial=window._modalLancamentoEspecial?.tipoRegistro||null;
-    const tipoRegistro=tipoRegistroEspecial || (origemSel==='pagamento-fatura'?'pagamento-fatura':(origemSel==='cartao'?'cartao-compra':'padrao'));
+    const tipoRegistro=tipoRegistroEspecial || (origemSel==='cartao'?'cartao-compra':'padrao');
     const origemLancamento=tipoRegistro==='padrao'?'padrao':'cartao';
     const tags=[...new Set([...tagsInput, ...(window._modalLancamentoEspecial?.tags||[])])];
     const contaId=(origemLancamento==='cartao' && tipoRegistro==='cartao-compra') ? null : ($id('input-conta').value||null);
     const cartaoId=origemLancamento==='cartao'?($id('input-cartao').value||null):null;
     const dataVal=$id('input-data').value;
     const cartaoFechamentoDia=cartaoId && dataVal ? getDiaFechamentoCartao(cartaoId, null, getCompetencia(dataVal)) : (cartaoId ? getDiaFechamentoCartao(cartaoId) : null);
-    const labelSubmitAtual=getLabelSubmitLancamento(origemSel, modoEdicao);
+    const labelSubmitAtual=modoEdicao?'Salvar Alterações':'Salvar';
     const valorRaw=parseFloat($id('input-valor').value);
     if(!valorRaw||isNaN(valorRaw)||valorRaw<=0){ toast('Informe um valor válido.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
     if(!dataVal){ toast('Informe a data.','aviso'); btn.disabled=false; btn.innerText=labelSubmitAtual; return; }
@@ -3079,7 +3243,7 @@ $id('form-transacao').addEventListener('submit', async e=>{
     }catch(err){ erroFirestore(err,'transacao-submit'); }
     finally{
         btn.disabled=false;
-        btn.innerText=getLabelSubmitLancamento($id('input-origem-lancamento').value||'padrao', modoEdicao);
+        btn.innerText=modoEdicao?'Salvar Alterações':'Salvar';
         if(!modoEdicao) window._modalLancamentoEspecial=null;
     }
 });
@@ -3108,7 +3272,7 @@ window.alterarStatus = async(id,s)=>{ try{ await updateDoc(doc(db,'transacoes',i
 // ── CONTAS ────────────────────────────────────────────────────────────────────
 function carregarContas(){
     _unsubscribers.push(
-        onSnapshot(query(collection(db,'contas'),where('userId','==',currentUser.uid)), snap=>{
+        onSnapshot(query(collection(db,'contas'),where('userId','==',currentUser.uid),limit(100)), snap=>{
             contas=[]; snap.forEach(d=>contas.push({id:d.id,...d.data()}));
             popularSelectsContas(); atualizarSaldosMini();
             if(!$id('view-contas').classList.contains('hidden')) renderizarContas();
@@ -3157,7 +3321,7 @@ function calcularSaldoTotalAte(dataLimite=hojeStr()){
 
 function atualizarSaldosMini(){
     const wrap=$id('lista-saldos-mini'); if(wrap){ wrap.innerHTML='';
-    if(!contas.length){ wrap.innerHTML='<p class="text-xs text-gray-400">Nenhuma conta cadastrada.</p>'; }
+    if(!contas.length){ wrap.innerHTML=renderEmptyState('Nenhuma conta cadastrada.','text-xs text-gray-400'); }
     else{ contas.forEach(c=>{
         const saldo=calcularSaldoConta(c.id);
         const cor=CORES[c.cor||'blue'];
@@ -3219,7 +3383,7 @@ function renderizarContas(){
     // Transferências
     const lt=$id('lista-transferencias'); lt.innerHTML='';
     const trs=transferencias.sort((a,b)=>b.data?.localeCompare(a.data||'')||0).slice(0,20);
-    if(!trs.length){ lt.innerHTML='<p class="text-xs text-gray-400 text-center py-4">Nenhuma transferência registrada.</p>'; return; }
+    if(!trs.length){ lt.innerHTML=renderEmptyState('Nenhuma transferência registrada.','text-xs text-gray-400 py-4'); return; }
     trs.forEach(tr=>{
         const orig=contas.find(c=>c.id===tr.contaOrigemId)?.nome||'Conta';
         const dest=contas.find(c=>c.id===tr.contaDestinoId)?.nome||'Conta';
@@ -3230,7 +3394,7 @@ function renderizarContas(){
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <span class="font-black mono text-sm text-blue-600">${fmt(tr.valor)}</span>
-                <button onclick="deletarTransferencia('${tr.id}')" class="text-xs text-rose-400 hover:text-rose-600 active:scale-90 transition p-1">🗑️</button>
+                <button onclick="deletarTransferencia('${tr.id}')" aria-label="Excluir transferência" class="text-xs text-rose-400 hover:text-rose-600 active:scale-90 transition p-1"><span aria-hidden="true">🗑️</span></button>
             </div>
         </li>`;
     });
@@ -3281,7 +3445,7 @@ window.deletarTransferencia=async id=>{ if(!await confirmar('Remover esta transf
 // ── CARTÕES ───────────────────────────────────────────────────────────────────
 function carregarCartoes(){
     _unsubscribers.push(
-        onSnapshot(query(collection(db,'cartoes'),where('userId','==',currentUser.uid)), snap=>{
+        onSnapshot(query(collection(db,'cartoes'),where('userId','==',currentUser.uid),limit(50)), snap=>{
             cartoes=[]; snap.forEach(d=>cartoes.push({id:d.id,...d.data()}));
             popularSelectsCartoes();
             if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
@@ -3292,7 +3456,7 @@ function carregarCartoes(){
 function carregarResponsaveisCartao(){
     if(!currentUser) return;
     _unsubscribers.push(
-        onSnapshot(query(collection(db,'responsaveis_cartao'),where('userId','==',currentUser.uid)), snap=>{
+        onSnapshot(query(collection(db,'responsaveis_cartao'),where('userId','==',currentUser.uid),limit(50)), snap=>{
             responsaveisCartaoConfig=[]; snap.forEach(d=>responsaveisCartaoConfig.push({id:d.id,...d.data()}));
             responsaveisCartaoConfig.sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
             renderizarResponsaveisCartaoConfig();
@@ -3302,7 +3466,7 @@ function carregarResponsaveisCartao(){
 }
 function carregarFechamentosCartoes(){
     _unsubscribers.push(
-        onSnapshot(query(collection(db,'cartao_fechamentos'),where('userId','==',currentUser.uid)), snap=>{
+        onSnapshot(query(collection(db,'cartao_fechamentos'),where('userId','==',currentUser.uid),limit(200)), snap=>{
             cartaoFechamentosMensais=[]; snap.forEach(d=>cartaoFechamentosMensais.push({id:d.id,...d.data()}));
             if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
             if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard();
@@ -3346,9 +3510,12 @@ function renderizarCartoes(){
                     <button onclick="editarFechamentoCartaoMes('${c.id}')" class="text-[11px] px-2.5 py-1 rounded-full bg-white/10 text-white font-bold hover:bg-white/15 transition">Editar mês</button>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="lancarFatura('${c.id}')" class="flex-1 py-2 bg-white text-slate-800 rounded-xl font-bold text-xs hover:bg-gray-100 active:scale-95 transition">💸 Lançar Pagamento</button>
-                <button onclick="deletarCartao('${c.id}')" class="px-3 py-2 bg-slate-700 text-rose-400 rounded-xl font-bold text-xs hover:bg-slate-600 active:scale-95 transition">🗑️</button>
+            <div class="flex gap-2 items-center">
+                <div class="flex-1 flex items-center justify-between bg-white/10 border border-white/10 rounded-xl px-3 py-2">
+                    <span class="text-xs text-gray-300 font-medium">Total da fatura</span>
+                    <span class="text-sm font-black text-white mono">${fmt(gastosMes)}</span>
+                </div>
+                <button onclick="deletarCartao('${c.id}')" aria-label="Excluir cartão" class="px-3 py-2 bg-slate-700 text-rose-400 rounded-xl font-bold text-xs hover:bg-slate-600 active:scale-95 transition"><span aria-hidden="true">🗑️</span></button>
             </div>
         </div>`;
     });
@@ -3399,7 +3566,7 @@ function renderizarCartoes(){
     $id('resumo-categoria-cartao').innerText=partesResumo.length
         ? `${gastos.length} lançamento(s) para ${partesResumo.join(' · ')}.`
         : 'Todas as categorias e responsáveis da fatura selecionada.';
-    if(!gastos.length){ lt.innerHTML='<p class="text-xs text-gray-400 text-center py-4">Nenhum lançamento encontrado para essa categoria nesta fatura.</p>'; return; }
+    if(!gastos.length){ lt.innerHTML=renderEmptyState('Nenhum lançamento encontrado para essa categoria nesta fatura.','text-xs text-gray-400 py-4'); return; }
     gastos.forEach(t=>{
         const cartao=cartoes.find(c=>c.id===t.cartaoId);
         const isP=t.status==='pendente';
@@ -3414,7 +3581,7 @@ function renderizarCartoes(){
             <div class="shrink-0 text-right">
                 <span class="${isP?'text-rose-400':'text-rose-600'} font-black text-sm mono block">-${fmt(t.valor)}</span>
                 <div class="flex items-center justify-end gap-1.5 mt-2">
-                    ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="text-[11px] bg-emerald-500 text-white px-2 py-1 rounded-lg font-bold active:scale-90">✔</button>`:''}
+                    ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" aria-label="Confirmar lançamento" class="text-[11px] bg-emerald-500 text-white px-2 py-1 rounded-lg font-bold active:scale-90"><span aria-hidden="true">✔</span></button>`:''}
                     <button onclick="abrirEditar('${t.id}')" class="text-[11px] bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg font-bold hover:bg-blue-100 active:scale-90 transition">Editar</button>
                     <button onclick="deletarTransacao('${t.id}')" class="text-[11px] bg-rose-50 text-rose-500 px-2.5 py-1 rounded-lg font-bold hover:bg-rose-100 active:scale-90 transition">Excluir</button>
                 </div>
@@ -3425,7 +3592,7 @@ function renderizarCartoes(){
 }
 
 // Lançar pagamento de fatura
-window.lancarFatura = id=>{ const c=cartoes.find(x=>x.id===id); if(!c)return; abrirModalNovo(); window._modalLancamentoEspecial={tags:['baixa-fatura-manual']}; $id('input-tipo').value='despesa'; $id('input-origem-lancamento').value='padrao'; $id('input-categoria').value='Cartão de Crédito'; $id('input-cartao').value=''; $id('input-desc').value=`Pagamento fatura ${c.nome}`; $id('input-status').value='confirmada'; if(c.contaPagamentoId) $id('input-conta').value=c.contaPagamentoId; syncLancamentoCartaoUI(); setTimeout(()=>$id('input-valor').focus(),200); };
+// Pagamento de fatura: lançar manualmente como despesa comum pelo FAB.
 window.editarFechamentoCartaoMes = async id=>{
     const c=cartoes.find(x=>x.id===id);
     if(!c) return;
@@ -3496,11 +3663,13 @@ $id('btn-exportar-csv').addEventListener('click',()=>{
     if(isDark) html.classList.add('dark');
     const btnD=$id('btn-dark');
     if(btnD){
-        btnD.innerText=isDark?'☀️':'🌙';
+        btnD.innerHTML=`<span aria-hidden="true">${isDark?'☀️':'🌙'}</span>`;
+        btnD.setAttribute('aria-label', isDark?'Ativar modo claro':'Ativar modo escuro');
         btnD.addEventListener('click',()=>{
             const on=html.classList.toggle('dark');
             localStorage.setItem('finapp-dark',on?'1':'0');
-            btnD.innerText=on?'☀️':'🌙';
+            btnD.innerHTML=`<span aria-hidden="true">${on?'☀️':'🌙'}</span>`;
+            btnD.setAttribute('aria-label', on?'Ativar modo claro':'Ativar modo escuro');
             if(!$id('view-patrimonio').classList.contains('hidden')) atualizarPatrimonio();
             if(!$id('view-cartoes').classList.contains('hidden')) renderizarCartoes();
         });
@@ -3513,7 +3682,7 @@ $id('btn-exportar-csv').addEventListener('click',()=>{
     const aplicarPrivacidade=ativo=>{
         body.classList.toggle('privacy-on', ativo);
         if(btnP){
-            btnP.innerText=ativo?'🙈':'👁️';
+            btnP.innerHTML=`<span aria-hidden="true">${ativo?'🙈':'👁️'}</span>`;
             btnP.title=ativo?'Mostrar valores':'Ocultar valores';
             btnP.setAttribute('aria-label', ativo?'Mostrar valores':'Ocultar valores');
         }
@@ -3798,7 +3967,7 @@ $id('btn-import-confirmar').addEventListener('click', async()=>{
 function carregarCategoriasCustom(){
     if(!currentUser)return;
     _unsubscribers.push(
-        onSnapshot(query(collection(db,'categorias'),where('userId','==',currentUser.uid)), snap=>{
+        onSnapshot(query(collection(db,'categorias'),where('userId','==',currentUser.uid),limit(100)), snap=>{
             categoriasCustom=[]; snap.forEach(d=>categoriasCustom.push({id:d.id,...d.data()}));
             popularSelectsCategorias();
         }, err=>erroFirestore(err,'categorias'))
@@ -3954,20 +4123,20 @@ function atualizarPodeGastarHoje(mes, ano){
     $id('val-pg-despesas').innerText=fmt(info.despesasPrevistas);
     $id('val-pg-metas').innerText=fmt(info.reservaMetas);
     $id('pode-gastar-label').innerText=atual
-        ? 'Saldo livre a partir de hoje, considerando contas, previsoes e reserva das metas do mes.'
-        : `Livre projetado para ${mesesNomes[mes-1]} de ${ano}, com base no periodo selecionado.`;
+        ? 'Saldo livre a partir de hoje, considerando contas, previsões e reserva das metas do mês.'
+        : `Livre projetado para ${mesesNomes[mes-1]} de ${ano}, com base no período selecionado.`;
     if(info.valor<0){
-        badge.innerText='Atencao';
+        badge.innerText='Atenção';
         badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-600 border border-rose-100';
-        $id('pode-gastar-recado').innerText='As obrigacoes previstas superam o saldo livre. Revise despesas, metas ou receitas planejadas.';
+        $id('pode-gastar-recado').innerText='As obrigações previstas superam o saldo livre. Revise despesas, metas ou receitas planejadas.';
     }else if(info.valor===0){
         badge.innerText='No limite';
         badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100';
-        $id('pode-gastar-recado').innerText='O periodo esta no limite. Novos gastos exigem cautela para nao pressionar o caixa.';
+        $id('pode-gastar-recado').innerText='O período está no limite. Novos gastos exigem cautela para não pressionar o caixa.';
     }else{
-        badge.innerText='Estavel';
+        badge.innerText='Estável';
         badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100';
-        $id('pode-gastar-recado').innerText='Este valor pode ser usado como limite operacional do periodo selecionado sem comprometer as obrigacoes previstas.';
+        $id('pode-gastar-recado').innerText='Este valor pode ser usado como limite operacional do período selecionado sem comprometer as obrigações previstas.';
     }
 }
 
@@ -4129,13 +4298,13 @@ function calcularScoreSaudeFinanceira(mes, ano){
     estabilidadeScore=Math.round(limitarFaixa(estabilidadeScore,0,15));
 
     const scoreTotal=limitarFaixa(caixaScore+comprometimentoScore+metasScore+cartaoScore+estabilidadeScore,0,100);
-    let nivel='Fragil';
+    let nivel='Frágil';
     if(scoreTotal>=85) nivel='Excelente';
-    else if(scoreTotal>=70) nivel='Solido';
-    else if(scoreTotal>=55) nivel='Atencao';
+    else if(scoreTotal>=70) nivel='Sólido';
+    else if(scoreTotal>=55) nivel='Atenção';
 
     const recados=[];
-    if(infoPodeGastar.valor<0) recados.push({tipo:'erro',texto:'Caixa livre negativo no periodo'});
+    if(infoPodeGastar.valor<0) recados.push({tipo:'erro',texto:'Caixa livre negativo no período'});
     else if(infoPodeGastar.valor<=(infoPodeGastar.saldoContas||0)*0.1) recados.push({tipo:'aviso',texto:'Margem operacional curta'});
     else recados.push({tipo:'ok',texto:'Caixa livre positivo'});
 
@@ -4148,14 +4317,14 @@ function calcularScoreSaudeFinanceira(mes, ano){
     if(metasScore<=10) recados.push({tipo:'aviso',texto:'Metas pressionadas'});
     else if(metas.length) recados.push({tipo:'ok',texto:'Metas sob controle'});
 
-    if(cartaoScore<=5) recados.push({tipo:'erro',texto:'Uso de cartao elevado'});
-    else if(cartoes.length) recados.push({tipo:'ok',texto:'Cartao em nivel saudavel'});
+    if(cartaoScore<=5) recados.push({tipo:'erro',texto:'Uso de cartão elevado'});
+    else if(cartoes.length) recados.push({tipo:'ok',texto:'Cartão em nível saudável'});
 
     let prioridade='Sem alertas relevantes.';
-    if(fluxoFuturo.menorSaldo<0) prioridade='Reforcar o caixa dos proximos dias para evitar saldo negativo.';
-    else if(pctComprometimento>=90) prioridade='Reduzir saidas do mes para aliviar o comprometimento da renda.';
-    else if(cartaoScore<=5) prioridade='Segurar compras no cartao ate abrir mais espaco no limite.';
-    else if(metasScore<=10) prioridade='Revisar metas do mes ou redistribuir categorias pressionadas.';
+    if(fluxoFuturo.menorSaldo<0) prioridade='Reforçar o caixa dos próximos dias para evitar saldo negativo.';
+    else if(pctComprometimento>=90) prioridade='Reduzir saídas do mês para aliviar o comprometimento da renda.';
+    else if(cartaoScore<=5) prioridade='Segurar compras no cartão até abrir mais espaço no limite.';
+    else if(metasScore<=10) prioridade='Revisar metas do mês ou redistribuir categorias pressionadas.';
     else if(infoPodeGastar.valor<0) prioridade='Rever gastos previstos e acompanhar receitas pendentes.';
 
     return {
@@ -4188,13 +4357,13 @@ function atualizarScoreSaudeFinanceira(mes, ano){
         badge.innerText='Excelente';
         badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100';
     }else if(score.total>=70){
-        badge.innerText='Solido';
+        badge.innerText='Sólido';
         badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-blue-50 text-blue-700 border border-blue-100';
     }else if(score.total>=55){
-        badge.innerText='Atencao';
+        badge.innerText='Atenção';
         badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100';
     }else{
-        badge.innerText='Fragil';
+        badge.innerText='Frágil';
         badge.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-600 border border-rose-100';
     }
     const recados=$id('score-saude-recados');
@@ -4303,22 +4472,22 @@ function calcularPainelFechamentoMensal(mes, ano){
     const checklist=[
         {
             ok:listaMes.length>0,
-            titulo:'Movimentos do mes revisados',
-            detalhe:listaMes.length?`${listaMes.length} lancamento(s) no periodo selecionado.`:'Ainda nao ha movimentos neste periodo.'
+            titulo:'Movimentos do mês revisados',
+            detalhe:listaMes.length?`${listaMes.length} lançamento(s) no período selecionado.`:'Ainda não há movimentos neste período.'
         },
         {
             ok:pendencias===0,
-            titulo:'Pendencias tratadas',
-            detalhe:pendencias===0?'Nao ha receitas ou despesas pendentes no periodo.':`${pendencias} pendencia(s) ainda aberta(s) no mes.`
+            titulo:'Pendências tratadas',
+            detalhe:pendencias===0?'Não há receitas ou despesas pendentes no período.':`${pendencias} pendência(s) ainda aberta(s) no mês.`
         },
         {
             ok:metasEstouradas.length===0,
             titulo:'Metas revisadas',
-            detalhe:metasEstouradas.length===0?'Nenhuma meta estourada no mes.':`${metasEstouradas.length} meta(s) acima do limite.`
+            detalhe:metasEstouradas.length===0?'Nenhuma meta estourada no mês.':`${metasEstouradas.length} meta(s) acima do limite.`
         },
         {
             ok:score.total>=70,
-            titulo:'Saude financeira em nivel saudavel',
+            titulo:'Saúde financeira em nível saudável',
             detalhe:`Score atual ${score.total}/100 · ${score.nivel}.`
         }
     ];
@@ -4326,7 +4495,7 @@ function calcularPainelFechamentoMensal(mes, ano){
     const receitasConfirmadas=resumo.receitasConfirmadas;
     const despesasConfirmadasCaixa=resumo.despesasConfirmadas;
     const comprasCartaoTotal=comprasCartaoConfirmadas.reduce((sum,t)=>sum+t.valor,0);
-    let leitura=`${mesesNomes[mes-1]} entregou ${saldoMes>=0?'resultado positivo':'pressao de caixa'} de ${fmt(saldoMes)}, com ${fmt(receitasConfirmadas)} em entradas confirmadas e ${fmt(despesasConfirmadasCaixa)} em saídas de caixa. `;
+    let leitura=`${mesesNomes[mes-1]} entregou ${saldoMes>=0?'resultado positivo':'pressão de caixa'} de ${fmt(saldoMes)}, com ${fmt(receitasConfirmadas)} em entradas confirmadas e ${fmt(despesasConfirmadasCaixa)} em saídas de caixa. `;
     if(comprasCartaoTotal>0) leitura+=`Na leitura analítica do período, as compras no cartão adicionaram ${fmt(comprasCartaoTotal)} pela competência da fatura. `;
     leitura+=topCategoria
         ? `${topCategoria[0]} foi a categoria de maior peso, somando ${fmt(topCategoria[1])}. `
@@ -4402,8 +4571,8 @@ function atualizarFechamentoMensalGuiado(mes, ano){
             ? 'px-2.5 py-1 rounded-full text-[11px] font-black bg-blue-50 text-blue-700 border border-blue-100'
             : 'px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100';
         resumo.innerText=info.okCount===info.checklist.length
-            ? 'O periodo esta consistente e pode ser encerrado quando quiser.'
-            : `${info.okCount}/${info.checklist.length} checkpoints atendidos. Ainda ha pontos para revisar antes do fechamento.`;
+            ? 'O período está consistente e pode ser encerrado quando quiser.'
+            : `${info.okCount}/${info.checklist.length} checkpoints atendidos. Ainda há pontos para revisar antes do fechamento.`;
         $id('btn-fechamento-concluir').classList.remove('hidden');
         $id('btn-fechamento-reabrir').classList.add('hidden');
     }
@@ -4419,17 +4588,17 @@ function atualizarFluxoCaixaFuturo(dias=15){
     const alerta=$id('fluxo-futuro-alerta');
     const recado=$id('fluxo-futuro-recado');
     if(info.menorSaldo<0){
-        alerta.innerText='Pressao';
+        alerta.innerText='Pressão';
         alerta.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-600 border border-rose-100';
         recado.innerText='Existe risco de saldo negativo no horizonte previsto. Vale adiar gastos ou antecipar receitas.';
     }else if(info.saldoFinal<info.saldoInicial){
         alerta.innerText='Atenção';
         alerta.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-700 border border-amber-100';
-        recado.innerText='O caixa segue positivo, mas termina o periodo abaixo do saldo atual.';
+        recado.innerText='O caixa segue positivo, mas termina o período abaixo do saldo atual.';
     }else{
-        alerta.innerText='Estavel';
+        alerta.innerText='Estável';
         alerta.className='px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100';
-        recado.innerText='Sem pressao relevante no caixa previsto. O saldo projetado sustenta os compromissos visiveis.';
+        recado.innerText='Sem pressão relevante no caixa previsto. O saldo projetado sustenta os compromissos visíveis.';
     }
     const lista=$id('fluxo-futuro-lista');
     const vazio=$id('fluxo-futuro-vazio');
@@ -4446,22 +4615,16 @@ function atualizarFluxoCaixaFuturo(dias=15){
                 ? 'bg-amber-50 text-amber-700 border border-amber-100'
                 : 'bg-emerald-50 text-emerald-700 border border-emerald-100';
         const resumo=item.eventos.slice(0,2).map(ev=>`${ev.tipo==='receita'?'+':'-'} ${ev.desc}`).join(' · ');
-        lista.innerHTML+=`<div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <p class="font-black text-gray-800">${fmtData(item.data)}</p>
-                        <span class="px-2 py-1 rounded-full text-[10px] font-black ${chip}">${item.eventos.length} mov.</span>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1 truncate">${resumo}${item.eventos.length>2?' · ...':''}</p>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5 text-right shrink-0 w-full sm:w-auto">
-                    <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Entradas</p><p class="text-sm font-black text-emerald-600 mono">${fmt(item.entradas)}</p></div>
-                    <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saidas</p><p class="text-sm font-black text-rose-600 mono">${fmt(item.saidas)}</p></div>
-                    <div class="col-span-2 sm:col-span-1"><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saldo</p><p class="text-sm font-black mono ${item.saldo>=0?'text-slate-900':'text-rose-600'}">${fmt(item.saldo)}</p></div>
-                </div>
-            </div>
-        </div>`;
+        lista.innerHTML+=renderCard({
+            titulo: fmtData(item.data),
+            subtitulo: `${resumo}${item.eventos.length>2?' · ...':''}`,
+            chips: renderChip(`${item.eventos.length} mov.`, chip),
+            acoes: `<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5 text-right w-full sm:w-auto">
+                <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Entradas</p><p class="text-sm font-black text-emerald-600 mono">${fmt(item.entradas)}</p></div>
+                <div><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saídas</p><p class="text-sm font-black text-rose-600 mono">${fmt(item.saidas)}</p></div>
+                <div class="col-span-2 sm:col-span-1"><p class="text-[10px] font-black uppercase tracking-wider text-gray-300">Saldo</p><p class="text-sm font-black mono ${item.saldo>=0?'text-slate-900':'text-rose-600'}">${fmt(item.saldo)}</p></div>
+            </div>`
+        });
     });
 }
 
@@ -4481,22 +4644,22 @@ function gerarInsightsCurtos(mes, ano){
     if(pendencias>0){
         insights.push({
             cor:'amber',
-            titulo:'Pendencias abertas',
-            detalhe:`${pendencias} conta(s) ainda pedem revisao neste periodo.`,
+            titulo:'Pendências abertas',
+            detalhe:`${pendencias} conta(s) ainda pedem revisão neste período.`,
             acao:'extrato'
         });
     }else{
         insights.push({
             cor:'emerald',
-            titulo:'Periodo limpo',
-            detalhe:'Nao ha pendencias abertas no mes selecionado.',
+            titulo:'Período limpo',
+            detalhe:'Não há pendências abertas no mês selecionado.',
             acao:'extrato'
         });
     }
     if(topCat){
         insights.push({
             cor:'blue',
-            titulo:'Maior peso do mes',
+            titulo:'Maior peso do mês',
             detalhe:`${topCat[0]} lidera com ${fmt(topCat[1])}.`,
             acao:'extrato'
         });
@@ -4504,28 +4667,28 @@ function gerarInsightsCurtos(mes, ano){
         insights.push({
             cor:'slate',
             titulo:'Sem categoria dominante',
-            detalhe:'Ainda nao ha gasto confirmado suficiente para destacar uma categoria.',
+            detalhe:'Ainda não há gasto confirmado suficiente para destacar uma categoria.',
             acao:'extrato'
         });
     }
     if(comprasCartao>0){
         insights.push({
             cor:'rose',
-            titulo:'Fatura em formacao',
-            detalhe:`Compras no cartao somam ${fmt(comprasCartao)} nesta competencia.`,
+            titulo:'Fatura em formação',
+            detalhe:`Compras no cartão somam ${fmt(comprasCartao)} nesta competência.`,
             acao:'cartoes'
         });
     }else{
         insights.push({
             cor:'emerald',
-            titulo:'Cartao sob controle',
-            detalhe:'Nao ha compras relevantes puxando a fatura selecionada.',
+            titulo:'Cartão sob controle',
+            detalhe:'Não há compras relevantes puxando a fatura selecionada.',
             acao:'cartoes'
         });
     }
     insights.push({
         cor:score.total>=70?'emerald':score.total>=55?'amber':'rose',
-        titulo:'Saude financeira',
+        titulo:'Saúde financeira',
         detalhe:`Score atual ${score.total}/100 · ${score.nivel}.`
     });
     insights[insights.length-1].acao='insights';
@@ -4710,7 +4873,7 @@ function atualizarDashboard(){
     const agoraRef=new Date();
     const vencs=todas.filter(t=>t.tipo==='despesa' && t.status==='pendente' && isAlertaVencimentoAtivo(t.data, agoraRef));
     const lv=$id('lista-vencimentos'); lv.innerHTML='';
-    if(!vencs.length){ lv.innerHTML='<p class="text-xs text-amber-600 py-2 text-center">Nenhum vencimento crítico nas próximas 48h.</p>'; }
+    if(!vencs.length){ lv.innerHTML=renderEmptyState('Nenhum vencimento crítico nas próximas 48h.','text-xs text-amber-600 py-2'); }
     vencs.sort((a,b)=>a.data.localeCompare(b.data)).forEach(t=>{
         const at=t.data<hojeStr();
         const vencLocal=parseDataLocal(t.data);
@@ -4739,7 +4902,7 @@ function atualizarDashboard(){
     const totalPags=Math.ceil(ordenadas.length/POR_PAGINA);
     if(paginaAtual>=totalPags&&paginaAtual>0) paginaAtual=Math.max(0,totalPags-1);
     const pagina=ordenadas.slice(paginaAtual*POR_PAGINA,(paginaAtual+1)*POR_PAGINA);
-    if(!pagina.length){ lt.innerHTML='<p class="text-center text-gray-300 py-10 text-sm">Nenhuma transação encontrada.</p>'; }
+    if(!pagina.length){ lt.innerHTML=renderEmptyState('Nenhuma transação encontrada.'); }
     pagina.forEach(t=>{
         const isP=t.status==='pendente';
         const isRecorrente=isRecorrenciaMaterializada(t);
@@ -4797,7 +4960,7 @@ function atualizarDashboard(){
                 ${tagHtml?`<div class="flex flex-wrap gap-1 mt-1.5">${tagHtml}</div>`:''}
                 ${!isTransf?`<div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-black/5 justify-end flex-wrap">
                     ${isP?`<button onclick="alterarStatus('${t.id}','confirmada')" class="bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] active:scale-90 transition">✔ Confirmar</button>`
-                         :`<span class="text-[10px] px-2 py-1 rounded-full font-black ${isRec?'bg-emerald-50 text-emerald-700 border border-emerald-100':'bg-rose-50 text-rose-600 border border-rose-100'}">${isRec?'RECEBIDO':'PAGO'}</span><button onclick="alterarStatus('${t.id}','pendente')" class="text-[11px] text-gray-300 hover:text-amber-500 px-2 py-1 rounded-lg hover:bg-amber-50 transition">↩</button>`}
+                         :`<span class="text-[10px] px-2 py-1 rounded-full font-black ${isRec?'bg-emerald-50 text-emerald-700 border border-emerald-100':'bg-rose-50 text-rose-600 border border-rose-100'}">${isRec?'RECEBIDO':'PAGO'}</span><button onclick="alterarStatus('${t.id}','pendente')" aria-label="Marcar como pendente" class="text-[11px] text-gray-300 hover:text-amber-500 px-2 py-1 rounded-lg hover:bg-amber-50 transition"><span aria-hidden="true">↩</span></button>`}
                     <button onclick="abrirEditar('${t.id}')" class="bg-blue-50 text-blue-500 px-2.5 py-1 rounded-lg font-bold text-[11px] hover:bg-blue-100 active:scale-90 transition">Editar</button>
                     <button onclick="deletarTransacao('${t.id}')" class="bg-rose-50 text-rose-400 px-2.5 py-1 rounded-lg font-bold text-[11px] hover:bg-rose-100 active:scale-90 transition">Excluir</button>
                 </div>`:''}
@@ -5270,7 +5433,7 @@ function atualizarPatrimonio(){
 
     // ── Tabela mensal com variação % ─────────────────────────────────────────
     const tab=$id('tabela-saldo-mensal'); tab.innerHTML='';
-    if(!mesesOrd.length){ tab.innerHTML='<p class="text-gray-300 text-sm text-center py-4">Sem dados registrados</p>'; return; }
+    if(!mesesOrd.length){ tab.innerHTML=renderEmptyState('Sem dados registrados','text-gray-300 py-4'); return; }
     tab.innerHTML=`<div class="grid grid-cols-4 gap-2 px-3 pb-2 border-b border-gray-100">
         <span class="text-xs font-black text-gray-400 uppercase tracking-wider">Mês</span>
         <span class="text-xs font-black text-gray-400 uppercase tracking-wider text-right">Receitas</span>
@@ -5320,10 +5483,10 @@ function atualizarPatrimonio(){
 })();
 
 // ── METAS ─────────────────────────────────────────────────────────────────────
-function carregarMetas(){ _unsubscribers.push(onSnapshot(query(collection(db,'metas'),where('userId','==',currentUser.uid)),snap=>{ metas=[]; snap.forEach(d=>metas.push({id:d.id,...d.data()})); if(!$id('view-metas').classList.contains('hidden')) atualizarMetas(); if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard(); }, err=>erroFirestore(err,'metas'))); }
+function carregarMetas(){ _unsubscribers.push(onSnapshot(query(collection(db,'metas'),where('userId','==',currentUser.uid),limit(100)),snap=>{ metas=[]; snap.forEach(d=>metas.push({id:d.id,...d.data()})); if(!$id('view-metas').classList.contains('hidden')) atualizarMetas(); if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard(); }, err=>erroFirestore(err,'metas'))); }
 function carregarFechamentosMensais(){
     _unsubscribers.push(onSnapshot(
-        query(collection(db,'fechamentos_mensais'),where('userId','==',currentUser.uid)),
+        query(collection(db,'fechamentos_mensais'),where('userId','==',currentUser.uid),limit(120)),
         snap=>{
             fechamentosMensais=[]; snap.forEach(d=>fechamentosMensais.push({id:d.id,...d.data()}));
             if(!$id('view-operacao').classList.contains('hidden')) atualizarDashboard();
@@ -5414,12 +5577,12 @@ function gerenciarNotificacoes(){
 // ── RECORRENTES (sem aba — toggle no modal de lançamento) ────────────────────
 function carregarRecorrentes(){
     _unsubscribers.push(onSnapshot(
-        query(collection(db,'recorrentes'),where('userId','==',currentUser.uid)),
+        query(collection(db,'recorrentes'),where('userId','==',currentUser.uid),limit(200)),
         snap=>{ recorrentes=[]; snap.forEach(d=>recorrentes.push({id:d.id,...d.data()})); _recorrentesInicializadas=true; agendarAplicacaoRecorrentes(); if(!$id('view-recorrentes').classList.contains('hidden')) atualizarCentralRecorrentes(); },
         err=>erroFirestore(err,'recorrentes')
     ));
     _unsubscribers.push(onSnapshot(
-        query(collection(db,'recorrencia_excecoes'),where('userId','==',currentUser.uid)),
+        query(collection(db,'recorrencia_excecoes'),where('userId','==',currentUser.uid),limit(500)),
         snap=>{ recorrenciaExcecoes=[]; snap.forEach(d=>recorrenciaExcecoes.push({id:d.id,...d.data()})); _recorrenciaExcecoesInicializadas=true; agendarAplicacaoRecorrentes(); if(!$id('view-recorrentes').classList.contains('hidden')) atualizarCentralRecorrentes(); },
         err=>erroFirestore(err,'recorrencia-excecoes')
     ));
@@ -5566,25 +5729,12 @@ function renderizarAssinaturasRecorrentes(){
         const acao=item.recorrenteId && !item.jaMarcada
             ? `<button onclick="marcarAssinaturaRecorrente('${item.recorrenteId}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Marcar</button>`
             : '';
-        lista.innerHTML+=`<div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <p class="font-black text-gray-800 text-base truncate">${item.desc}</p>
-                        ${origemChip}
-                        ${statusChip}
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1">${item.categoria||'Sem categoria'} · ${item.detalhe}</p>
-                </div>
-                <div class="flex items-center gap-3 sm:justify-end flex-wrap">
-                    <div class="text-right">
-                        <p class="text-sm font-black text-slate-900 mono">${fmt(item.mensal)}/mes</p>
-                        <p class="text-[11px] text-gray-400 mono">${fmt(item.anual)}/ano</p>
-                    </div>
-                    ${acao}
-                </div>
-            </div>
-        </div>`;
+        lista.innerHTML+=renderCard({
+            titulo: escapeHtml(item.desc),
+            subtitulo: `${escapeHtml(item.categoria||'Sem categoria')} · ${escapeHtml(item.detalhe)}`,
+            chips: `${origemChip}${statusChip}`,
+            acoes: `<div class="text-right">\n                        <p class="text-sm font-black text-slate-900 mono">${fmt(item.mensal)}/mês</p>\n                        <p class="text-[11px] text-gray-400 mono">${fmt(item.anual)}/ano</p>\n                    </div>${acao}`
+        });
     });
 }
 
@@ -5612,7 +5762,7 @@ function atualizarCentralRecorrentes(){
         arquivadas:'Recorrentes arquivadas'
     };
     $id('rec-lista-titulo').innerText=tituloMap[_recorrentesFiltro]||'Recorrentes';
-    $id('rec-lista-sub').innerText='Revisao mensal centralizada';
+    $id('rec-lista-sub').innerText='Revisão mensal centralizada';
     $id('rec-count-ativas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='ativa').length;
     $id('rec-count-pausadas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='pausada').length;
     $id('rec-count-arquivadas').innerText=recorrentes.filter(r=>getEstadoRecorrencia(r)==='arquivada').length;
@@ -5646,32 +5796,19 @@ function atualizarCentralRecorrentes(){
                 ? `<button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">Reativar</button>
                    <button onclick="arquivarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Arquivar</button>`
                 : `<button onclick="ativarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Restaurar</button>`;
-        lista.innerHTML+=`<div data-search-type="recorrente" data-search-id="${rec.id}" class="rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <p class="font-black text-gray-800 text-base truncate">${rec.desc}</p>
-                        ${estadoChip}
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-400">
-                        <span>${rec.tipo==='receita'?'Receita':'Despesa'}</span>
-                        <span>•</span>
-                        <span>${rec.categoria}</span>
-                        <span>•</span>
-                        <span>Dia ${rec.dia}</span>
-                        ${prox?`<span>•</span><span>Proxima: ${fmtData(prox)}</span>`:''}
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2 mt-3">
-                        <span class="${valorCor} font-black text-lg mono">${rec.tipo==='receita'?'+':'-'}${fmt(rec.valor)}</span>
-                        ${(rec.tags||[]).slice(0,2).map(tag=>`<span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">#${tag}</span>`).join('')}
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 sm:justify-end flex-wrap">
-                    ${acoes}
-                    <button onclick="deletarRecorrente('${rec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 transition">Excluir</button>
-                </div>
-            </div>
-        </div>`;
+        const proxLabel=prox?` · Próxima: ${fmtData(prox)}`:'';
+        const tagsHtml=(rec.tags||[]).slice(0,2).map(tag=>`<span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">#${escapeHtml(tag)}</span>`).join('');
+        lista.innerHTML+=renderCard({
+            titulo: escapeHtml(rec.desc),
+            subtitulo: `${rec.tipo==='receita'?'Receita':'Despesa'} · ${escapeHtml(rec.categoria)} · Dia ${rec.dia}${proxLabel}`,
+            chips: estadoChip,
+            extra: `<div class="flex flex-wrap items-center gap-2 mt-3">
+                <span class="${valorCor} font-black text-lg mono">${rec.tipo==='receita'?'+':'-'}${fmt(rec.valor)}</span>
+                ${tagsHtml}
+            </div>`,
+            acoes: `${acoes}${renderAcaoBotao({label:'Excluir',onclick:`deletarRecorrente('${rec.id}')`,variante:'perigo'})}`,
+            attrs: `data-search-type="recorrente" data-search-id="${rec.id}"`
+        });
     });
     aplicarDestaqueBusca();
 }
@@ -5807,7 +5944,7 @@ window.concluirFechamentoMensal=async ()=>{
                 score:calcularScoreSaudeFinanceira(mes, ano).total
             }
         });
-        toast('Fechamento mensal concluido.');
+        toast('Fechamento mensal concluído.');
     }catch(err){
         erroFirestore(err,'fechamento-concluir');
     }
@@ -5822,7 +5959,7 @@ window.reabrirFechamentoMensal=async ()=>{
             statusFechado:false,
             reabertoEm:new Date().toISOString()
         },{merge:true});
-        toast('Mes reaberto para revisao.');
+        toast('Mês reaberto para revisão.');
     }catch(err){
         erroFirestore(err,'fechamento-reabrir');
     }
@@ -5834,7 +5971,7 @@ window.deletarRecorrente=async id=>{
     if(!await confirmar('Excluir esta recorrente?')) return;
     try{
         await deleteDoc(doc(db,'recorrentes',id));
-        toast('Recorrente excluida.');
+        toast('Recorrente excluída.');
     }catch(err){
         erroFirestore(err,'recorrente-delete');
     }
@@ -6228,5 +6365,3 @@ window.addEventListener('appinstalled', () => {
 </script>
 </body>
 </html>
-
-
